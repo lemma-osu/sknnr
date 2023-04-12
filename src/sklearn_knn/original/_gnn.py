@@ -1,15 +1,13 @@
-from sklearn.pipeline import Pipeline
-
-from .._base import IDNeighborsClassifier, KnnPipeline
+from .._base import IDNeighborsClassifier
 from ._cca_transformer import CCATransformer
 
 
-class GNN(KnnPipeline):
-    def _get_pipeline(self):
-        transformer = CCATransformer()
-        classifier = IDNeighborsClassifier(
-            n_neighbors=self.n_neighbors,
-            weights=self.weights,
-        )
-        steps = [("transform", transformer), ("classifier", classifier)]
-        return Pipeline(steps)
+class GNN(IDNeighborsClassifier):
+    """Normalized KNN"""
+    def fit(self, X, y, cca_params=None):
+        X = CCATransformer().fit_transform(X, **cca_params)
+        return super().fit(X, y)
+    
+    def predict(self, X, cca_params=None):
+        X = CCATransformer().fit_transform(X, **cca_params)
+        return super().predict(X)

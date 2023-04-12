@@ -1,63 +1,69 @@
-import numpy as np
+from numpy.testing import assert_array_equal, assert_array_almost_equal
 import pandas as pd
 
 from sklearn_knn import Raw, Euclidean, GNN
 
-
-def get_check_dist_fn(project, method, ref_or_trg):
-    return f"./tests/data/{method}_{project}_{ref_or_trg}_distances_k5.csv"
+import pytest
 
 
-def get_check_nn_fn(project, method, ref_or_trg):
-    return f"./tests/data/{method}_{project}_{ref_or_trg}_neighbors_k5.csv"
+class Dataset:
+    def __init__(self, project, method, k=5):
+        self.project = project
+        self.method = method
+        self.k = k
+        
+        self.distances = pd.read_csv(f"./tests/data/{method}_{project}_ref_distances_k{k}.csv")
+        self.neighbors = pd.read_csv(f"./tests/data/{method}_{project}_ref_neighbors_k{k}.csv")
+        self.env_df = pd.read_csv(f"./tests/data/{project}_env.csv")
+        self.spp_df = pd.read_csv(f"./tests/data/{project}_spp.csv")
+
+        cols = [f"K{i+1}" for i in range(k)]
+
+        self.distances = self.distances.loc[:, cols].values
+        self.neighbors = self.neighbors.loc[:, cols].values
+        self.X = self.env_df.iloc[:, 1:].values
+        self.Y = self.spp_df.iloc[:, 1:].values
+        self.ids = self.env_df.iloc[:, 0].values
+        self.spp = self.spp_df.iloc[:, 1:].values
 
 
-def compare_array_results(calculated, check_fn, k, approx=True):
-    check_df = pd.read_csv(check_fn)
-    cols = [f"K{i+1}" for i in range(k)]
-    check_arr = check_df.loc[:, cols].values
-    return (
-        np.allclose(calculated, check_arr)
-        if approx
-        else np.all(calculated == check_arr)
-    )
+@pytest.fixture
+def moscow_raw():
+    return Dataset(project="moscow", method="raw", k=5)
 
 
-def get_X_ids(project):
-    env_df = pd.read_csv(f"./tests/data/{project}_env.csv")
-    return env_df.iloc[:, 1:].values, env_df.iloc[:, 0].values
+@pytest.fixture
+def moscow_euc():
+    return Dataset(project="moscow", method="euc", k=5)
 
 
-def get_Y(project):
-    spp_df = pd.read_csv(f"./tests/data/{project}_spp.csv")
-    return spp_df.iloc[:, 1:].values
+@pytest.fixture
+def moscow_gnn():
+    return Dataset(project="moscow", method="gnn", k=5)
 
 
-def compare_results(clf, project, method, k):
+def test_moscow_raw(moscow_raw):
+    clf = Raw(n_neighbors=5).fit(moscow_raw.X, moscow_raw.ids)
     dist, _ = clf.kneighbors()
     nn = clf.kneighbor_ids()
-    check_dist_fn = get_check_dist_fn(project, method, "ref")
-    check_nn_fn = get_check_nn_fn(project, method, "ref")
-    match_dists = compare_array_results(dist, check_dist_fn, k, approx=True)
-    match_nns = compare_array_results(nn, check_nn_fn, k, approx=False)
-    # return match_dists and match_nns
-    return match_nns
+
+    assert_array_equal(nn, moscow_raw.neighbors)
+    # assert_array_almost_equal(dist, moscow_raw.distances)
 
 
-def test_moscow_raw():
-    X, ids = get_X_ids("moscow")
-    clf = Raw(n_neighbors=5).fit(X, ids)
-    assert compare_results(clf, "moscow", "raw", 5)
+def test_moscow_euc(moscow_euc):
+    clf = Euclidean(n_neighbors=5).fit(moscow_euc.X, moscow_euc.ids)
+    dist, _ = clf.kneighbors()
+    nn = clf.kneighbor_ids()
+
+    assert_array_equal(nn, moscow_euc.neighbors)
+    # assert_array_almost_equal(dist, moscow_euc.distances)
 
 
-def test_moscow_euc():
-    X, ids = get_X_ids("moscow")
-    clf = Euclidean(n_neighbors=5).fit(X, ids)
-    assert compare_results(clf, "moscow", "euc", 5)
+def test_moscow_gnn(moscow_gnn):
+    clf = GNN(n_neighbors=5).fit(moscow_gnn.X, moscow_gnn.ids, cca_params={"spp": moscow_gnn.Y})
+    dist, _ = clf.kneighbors()
+    nn = clf.kneighbor_ids()
 
-
-def test_moscow_gnn():
-    X, ids = get_X_ids("moscow")
-    Y = get_Y("moscow")
-    clf = GNN(n_neighbors=5).fit(X, ids, transform__spp=Y)
-    assert compare_results(clf, "moscow", "gnn", 5)
+    assert_array_equal(nn, moscow_gnn.neighbors)
+    # assert_array_almost_equal(dist, moscow_gnn.distances)
