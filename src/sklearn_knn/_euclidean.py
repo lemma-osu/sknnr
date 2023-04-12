@@ -2,7 +2,6 @@ from ._base import MyStandardScaler, IDNeighborsClassifier
 
 
 class Euclidean(IDNeighborsClassifier):
-    """Normalized KNN"""
     def fit(self, X, y):
         X = MyStandardScaler().fit_transform(X)
         return super().fit(X, y)
