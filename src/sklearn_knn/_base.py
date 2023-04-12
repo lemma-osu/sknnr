@@ -40,13 +40,13 @@ class KnnPipeline(BaseEstimator):
     def _get_pipeline(self):
         raise NotImplementedError()
 
-    def fit(self, X, y):
+    def fit(self, X, y, **fit_params):
         if not hasattr(self, "_pipeline"):
             self._pipeline = self._get_pipeline()
         X, y = check_X_y(X, y)
         self.is_fitted_ = True
         self.n_features_in_ = X.shape[1]
-        self._pipeline.fit(X, y)
+        self._pipeline.fit(X, y, **fit_params)
         return self
 
     def predict(self, X):
