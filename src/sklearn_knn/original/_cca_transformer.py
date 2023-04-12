@@ -5,16 +5,16 @@ from ._cca import CCA
 
 
 class CCATransformer(TransformerMixin, BaseEstimator):
-    def fit(self, X, Y=None, spp=None):
-        Y = spp if spp is not None else Y
-        self.cca = CCA(X, Y)
+    def fit(self, X, y=None, spp=None):
+        y = spp if spp is not None else y
+        self.cca = CCA(X, y)
         return self
 
-    def transform(self, X, Y=None):
+    def transform(self, X, y=None):
         X = X - self.cca.env_center
         X = np.dot(X, self.cca.coefficients)
         return np.dot(X, self.cca.axis_weights)
 
-    def fit_transform(self, X, Y=None, spp=None):
-        Y = spp if spp is not None else Y
-        return self.fit(X, Y).transform(X)
+    def fit_transform(self, X, y=None, spp=None):
+        y = spp if spp is not None else y
+        return self.fit(X, y).transform(X)
