@@ -48,7 +48,7 @@ def test_moscow_raw(moscow_raw):
     nn = clf.kneighbor_ids()
 
     assert_array_equal(nn, moscow_raw.neighbors)
-    # assert_array_almost_equal(dist, moscow_raw.distances)
+    assert_array_almost_equal(dist, moscow_raw.distances, decimal=3)
 
 
 def test_moscow_euc(moscow_euc):
@@ -57,13 +57,13 @@ def test_moscow_euc(moscow_euc):
     nn = clf.kneighbor_ids()
 
     assert_array_equal(nn, moscow_euc.neighbors)
-    # assert_array_almost_equal(dist, moscow_euc.distances)
+    assert_array_almost_equal(dist, moscow_euc.distances, decimal=3)
 
 
 def test_moscow_gnn(moscow_gnn):
-    clf = GNN(n_neighbors=5).fit(moscow_gnn.X, moscow_gnn.ids, cca_params={"spp": moscow_gnn.Y})
+    clf = GNN(n_neighbors=5).fit(moscow_gnn.X, moscow_gnn.ids, spp=moscow_gnn.Y)
     dist, _ = clf.kneighbors()
     nn = clf.kneighbor_ids()
 
     assert_array_equal(nn, moscow_gnn.neighbors)
-    # assert_array_almost_equal(dist, moscow_gnn.distances)
+    # assert_array_almost_equal(dist, moscow_gnn.distances, decimal=3)
