@@ -116,12 +116,12 @@ class ConstrainedOrdination:
     @property
     def _least_squares(self):
         Q, R = self.qr
-        right = np.dot(Q.T, self.transform.Y)
+        right = Q.T @ self.transform.Y
         return np.linalg.lstsq(R, right, rcond=None)
 
     @property
     def Y_fit(self):
-        return np.dot(self.X_scale, self._least_squares[0])
+        return self.X_scale @ self._least_squares[0]
 
     @property
     def sol(self):
@@ -178,14 +178,12 @@ class ConstrainedOrdination:
 
     @property
     def axis_weights(self):
-        # TODO: Decide on whether to first sum eigenvalues before sqrt
-        # TODO: self.eig_matrix = np.diag(np.power(S / S.sum(), 0.5))
-        return np.diag(np.sqrt(self.S))
+        return np.diag(np.sqrt(self.S / self.S.sum()))
 
     @property
     def coefficients(self):
         Q, R = self.qr
-        right = np.dot(Q.T, self._U)
+        right = Q.T @ self._U
         return np.linalg.lstsq(R, right, rcond=None)[0]
 
     @property
@@ -212,7 +210,7 @@ class ConstrainedOrdination:
         y = self.Y.T
         y_xiuk_sqr = np.zeros((uk.shape[0], uk.shape[1]), dtype=np.float64)
         for i in range(y.shape[0]):
-            y_xiuk_sqr[i] = np.dot(y[i], np.square(xiuk[i]))
+            y_xiuk_sqr[i] = y[i] @ np.square(xiuk[i])
         return np.sqrt(y_xiuk_sqr / y.sum(axis=1).reshape(-1, 1))
 
 

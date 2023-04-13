@@ -7,13 +7,13 @@ from ._cca import CCA
 class CCATransformer(TransformerMixin, BaseEstimator):
     def fit(self, X, y=None, spp=None):
         y = spp if spp is not None else y
-        self.cca = CCA(X, y)
+        self.cca_ = CCA(X, y)
         return self
 
     def transform(self, X, y=None):
-        X = X - self.cca.env_center
-        X = np.dot(X, self.cca.coefficients)
-        return np.dot(X, self.cca.axis_weights)
+        X = X - self.cca_.env_center
+        X = X @ self.cca_.coefficients
+        return X @ self.cca_.axis_weights
 
     def fit_transform(self, X, y=None, spp=None):
         y = spp if spp is not None else y

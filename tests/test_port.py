@@ -60,4 +60,4 @@ def test_moscow_gnn(moscow_gnn):
     nn = clf.kneighbor_ids()
 
     assert_array_equal(nn, moscow_gnn.neighbors)
-    # assert_array_almost_equal(dist, moscow_gnn.distances, decimal=3)
+    assert_array_almost_equal(dist, moscow_gnn.distances, decimal=3)
