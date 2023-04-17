@@ -1,5 +1,5 @@
-from dataclasses import dataclass
 import math
+from dataclasses import dataclass
 
 import numpy as np
 
@@ -202,9 +202,7 @@ class ConstrainedOrdination:
     def species_tolerances(self):
         xi = self.site_lc_scores
         uk = self.species_scores
-        xiuk = np.zeros(
-            (uk.shape[0], xi.shape[0], xi.shape[1]), dtype=np.float64
-        )
+        xiuk = np.zeros((uk.shape[0], xi.shape[0], xi.shape[1]), dtype=np.float64)
         for i, s in enumerate(uk):
             xiuk[i] = xi - s
         y = self.Y.T

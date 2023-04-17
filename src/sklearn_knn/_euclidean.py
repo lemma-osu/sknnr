@@ -1,5 +1,6 @@
 from sklearn.utils.validation import check_is_fitted
-from ._base import MyStandardScaler, IDNeighborsClassifier, TransformedKNeighborsMixin
+
+from ._base import IDNeighborsClassifier, MyStandardScaler, TransformedKNeighborsMixin
 
 
 class Euclidean(IDNeighborsClassifier, TransformedKNeighborsMixin):
