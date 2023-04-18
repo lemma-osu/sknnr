@@ -1,7 +1,5 @@
 from setuptools import find_packages, setup
 
-from src.sklearn_knn import __version__
-
 
 def setup_package():
     metadata = dict(
@@ -10,7 +8,7 @@ def setup_package():
         author_email="matt.gregory@oregonstate.edu",
         description="Scikit-learn estimators for kNN methods",
         url="http://github.com/lemma-osu/scikit-learn-knn/",
-        version=__version__,
+        version="0.1.0",
         package_dir={"": "src"},
         packages=find_packages(where="src"),
         python_requires=">=3.8",
