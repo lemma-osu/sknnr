@@ -1,6 +1,6 @@
 from setuptools import find_packages, setup
 
-from sklearn_knn import __version__
+from src.sklearn_knn import __version__
 
 
 def setup_package():
@@ -20,8 +20,16 @@ def setup_package():
         ],
         extras_require={
             "dev": [
+                "black",
+                "bumpversion",
+                "flake8",
+                "isort",
                 "pytest",
+                "pytest-cov",
                 "pandas",
+                "pre-commit",
+                "mypy",
+                "twine",
             ],
         },
     )
