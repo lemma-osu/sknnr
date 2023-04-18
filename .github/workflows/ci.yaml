@@ -1,4 +1,4 @@
-name: Test
+name: Test and lint
 on: [push, pull_request]
 
 permissions:
@@ -8,7 +8,7 @@ jobs:
   test:
     strategy:
       matrix:
-        python-version: [3.8, 3.9, 3.10, 3.11]
+        python-version: ["3.8", "3.9", "3.10", "3.11"]
 
     runs-on: ubuntu-latest
 
@@ -38,7 +38,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -e .[dev]
+          pip install .[dev]
 
       - name: Set up pre-commit
         uses: pre-commit/action@v3.0.0
