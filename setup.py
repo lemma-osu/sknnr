@@ -1,6 +1,6 @@
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
-VERSION = "0.1.0"
+from sklearn_knn import __version__
 
 
 def setup_package():
@@ -10,9 +10,10 @@ def setup_package():
         author_email="matt.gregory@oregonstate.edu",
         description="Scikit-learn estimators for kNN methods",
         url="http://github.com/lemma-osu/scikit-learn-knn/",
-        version=VERSION,
+        version=__version__,
         package_dir={"": "src"},
         packages=find_packages(where="src"),
+        python_requires=">=3.8",
         install_requires=[
             "numpy",
             "scikit-learn",
@@ -22,7 +23,7 @@ def setup_package():
                 "pytest",
                 "pandas",
             ],
-        }
+        },
     )
     setup(**metadata)
 
