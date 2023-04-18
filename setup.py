@@ -17,6 +17,12 @@ def setup_package():
             "numpy",
             "scikit-learn",
         ],
+        extras_require={
+            "dev": [
+                "pytest",
+                "pandas",
+            ],
+        }
     )
     setup(**metadata)
 

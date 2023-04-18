@@ -1,63 +1,65 @@
-import numpy as np
-import pandas as pd
+from numpy.testing import assert_array_equal, assert_array_almost_equal
+from sklearn.model_selection import train_test_split
 
 from sklearn_knn import Raw, Euclidean, GNN
 
 
-def get_check_dist_fn(project, method, ref_or_trg):
-    return f"./tests/data/{method}_{project}_{ref_or_trg}_distances_k5.csv"
-
-
-def get_check_nn_fn(project, method, ref_or_trg):
-    return f"./tests/data/{method}_{project}_{ref_or_trg}_neighbors_k5.csv"
-
-
-def compare_array_results(calculated, check_fn, k, approx=True):
-    check_df = pd.read_csv(check_fn)
-    cols = [f"K{i+1}" for i in range(k)]
-    check_arr = check_df.loc[:, cols].values
-    return (
-        np.allclose(calculated, check_arr)
-        if approx
-        else np.all(calculated == check_arr)
+def test_moscow_raw(moscow_raw):
+    X_train, X_test, y_train, _ = train_test_split(
+        moscow_raw.X, moscow_raw.ids, train_size=0.8, shuffle=False
     )
+    clf = Raw(n_neighbors=5).fit(X_train, y_train)
 
-
-def get_X_ids(project):
-    env_df = pd.read_csv(f"./tests/data/{project}_env.csv")
-    return env_df.iloc[:, 1:].values, env_df.iloc[:, 0].values
-
-
-def get_Y(project):
-    spp_df = pd.read_csv(f"./tests/data/{project}_spp.csv")
-    return spp_df.iloc[:, 1:].values
-
-
-def compare_results(clf, project, method, k):
     dist, _ = clf.kneighbors()
     nn = clf.kneighbor_ids()
-    check_dist_fn = get_check_dist_fn(project, method, "ref")
-    check_nn_fn = get_check_nn_fn(project, method, "ref")
-    match_dists = compare_array_results(dist, check_dist_fn, k, approx=True)
-    match_nns = compare_array_results(nn, check_nn_fn, k, approx=False)
-    # return match_dists and match_nns
-    return match_nns
+
+    assert_array_equal(nn, moscow_raw.ref_neighbors)
+    assert_array_almost_equal(dist, moscow_raw.ref_distances, decimal=3)
+
+    dist, _ = clf.kneighbors(X_test)
+    nn = clf.kneighbor_ids(X_test)
+
+    assert_array_equal(nn, moscow_raw.trg_neighbors)
+    assert_array_almost_equal(dist, moscow_raw.trg_distances, decimal=3)
 
 
-def test_moscow_raw():
-    X, ids = get_X_ids("moscow")
-    clf = Raw(n_neighbors=5).fit(X, ids)
-    assert compare_results(clf, "moscow", "raw", 5)
+def test_moscow_euc(moscow_euc):
+    X_train, X_test, y_train, _ = train_test_split(
+        moscow_euc.X, moscow_euc.ids, train_size=0.8, shuffle=False
+    )
+    clf = Euclidean(n_neighbors=5).fit(X_train, y_train)
+
+    dist, _ = clf.kneighbors()
+    nn = clf.kneighbor_ids()
+
+    assert_array_equal(nn, moscow_euc.ref_neighbors)
+    assert_array_almost_equal(dist, moscow_euc.ref_distances, decimal=3)
+
+    dist, _ = clf.kneighbors(X_test)
+    nn = clf.kneighbor_ids(X_test)
+
+    assert_array_equal(nn, moscow_euc.trg_neighbors)
+    assert_array_almost_equal(dist, moscow_euc.trg_distances, decimal=3)
 
 
-def test_moscow_euc():
-    X, ids = get_X_ids("moscow")
-    clf = Euclidean(n_neighbors=5).fit(X, ids)
-    assert compare_results(clf, "moscow", "euc", 5)
+def test_moscow_gnn(moscow_gnn):
+    X_train, X_test, y_train, _, y_spp, _ = train_test_split(
+        moscow_gnn.X,
+        moscow_gnn.ids,
+        moscow_gnn.y,
+        train_size=0.8,
+        shuffle=False,
+    )
+    clf = GNN(n_neighbors=5).fit(X_train, y_train, spp=y_spp)
 
+    dist, _ = clf.kneighbors()
+    nn = clf.kneighbor_ids()
 
-def test_moscow_gnn():
-    X, ids = get_X_ids("moscow")
-    Y = get_Y("moscow")
-    clf = GNN(n_neighbors=5).fit(X, ids, transform__spp=Y)
-    assert compare_results(clf, "moscow", "gnn", 5)
+    assert_array_equal(nn, moscow_gnn.ref_neighbors)
+    assert_array_almost_equal(dist, moscow_gnn.ref_distances, decimal=3)
+
+    dist, _ = clf.kneighbors(X_test)
+    nn = clf.kneighbor_ids(X_test)
+
+    assert_array_equal(nn, moscow_gnn.trg_neighbors)
+    assert_array_almost_equal(dist, moscow_gnn.trg_distances, decimal=3)

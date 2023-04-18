@@ -1,14 +1,14 @@
-from sklearn.pipeline import Pipeline
+from sklearn.utils.validation import check_is_fitted
+from ._base import MyStandardScaler, IDNeighborsClassifier, TransformedKNeighborsMixin
 
-from ._base import MyStandardScaler, IDNeighborsClassifier, KnnPipeline
 
+class Euclidean(IDNeighborsClassifier, TransformedKNeighborsMixin):
+    def fit(self, X, y):
+        self.transform_ = MyStandardScaler().fit(X, y)
+        X = self.transform_.transform(X)
+        return super().fit(X, y)
 
-class Euclidean(KnnPipeline):
-    def _get_pipeline(self):
-        scaler = MyStandardScaler()
-        classifier = IDNeighborsClassifier(
-            n_neighbors=self.n_neighbors,
-            weights=self.weights,
-        )
-        steps = [("scaler", scaler), ("classifier", classifier)]
-        return Pipeline(steps)
+    def predict(self, X):
+        check_is_fitted(self)
+        X = self.transform_.transform(X)
+        return super().predict(X)
