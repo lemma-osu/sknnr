@@ -1,7 +1,7 @@
-from numpy.testing import assert_array_equal, assert_array_almost_equal
+from numpy.testing import assert_array_almost_equal, assert_array_equal
 from sklearn.model_selection import train_test_split
 
-from sklearn_knn import Raw, Euclidean, GNN
+from sklearn_knn import GNN, Euclidean, Raw
 
 
 def test_moscow_raw(moscow_raw):

@@ -24,7 +24,7 @@ class Dataset:
         self.ref_neighbors = ref_neighbors_df.loc[:, cols].values
         self.trg_distances = trg_distances_df.loc[:, cols].values
         self.trg_neighbors = trg_neighbors_df.loc[:, cols].values
-        
+
         self.X = env_df.iloc[:, 1:].values
         self.y = spp_df.iloc[:, 1:].values
         self.ids = env_df.iloc[:, 0].values
