@@ -40,5 +40,8 @@ jobs:
           python -m pip install --upgrade pip
           pip install .[dev]
 
+      - name: Sourcery login
+        run: sourcery login --token ${{ secrets.SOURCERY_TOKEN }}
+
       - name: Set up pre-commit
         uses: pre-commit/action@v3.0.0

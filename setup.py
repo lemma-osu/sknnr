@@ -21,6 +21,7 @@ def setup_package():
                 "black",
                 "bumpversion",
                 "flake8",
+                "flake8-bugbear",
                 "isort",
                 "pytest",
                 "pytest-cov",
@@ -28,6 +29,7 @@ def setup_package():
                 "pre-commit",
                 "mypy",
                 "twine",
+                "sourcery",
             ],
         },
     )
