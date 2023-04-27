@@ -42,8 +42,7 @@ jobs:
 
       - name: Setup environment
         run: |
-          hatch shell
-          sourcery login --token ${{ secrets.SOURCERY_TOKEN }}
+          hatch run sourcery login --token ${{ secrets.SOURCERY_TOKEN }}
 
       - name: Set up pre-commit
         uses: pre-commit/action@v3.0.0
