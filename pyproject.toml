@@ -10,7 +10,7 @@ readme = "README.md"
 license = ""
 requires-python = ">=3.8"
 authors = [
-    { name = "Matthew Gregory", email = "matt.gregory@oregonstate.edu" },
+    { name = "Matt Gregory", email = "matt.gregory@oregonstate.edu" },
     { name = "Aaron Zuspan", email = "aaron.zuspan@oregonstate.edu" }
 ]
 dependencies = [
