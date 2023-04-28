@@ -10,7 +10,7 @@ readme = "README.md"
 license = ""
 requires-python = ">=3.8"
 authors = [
-    { name = "LEMMA group @ Oregon State University", email = "matt.gregory@oregonstate.edu" },
+    { name = "Matthew Gregory", email = "matt.gregory@oregonstate.edu" },
     { name = "Aaron Zuspan", email = "aaron.zuspan@oregonstate.edu" }
 ]
 dependencies = [
@@ -23,7 +23,7 @@ Homepage = "https://github.com/lemma-osu/scikit-learn-knn"
 Source = "https://github.com/lemma-osu/scikit-learn-knn"
 
 [tool.hatch.version]
-path = "src/sklearn_knn/__init__.py"
+path = "src/sklearn_knn/__about__.py"
 
 [tool.hatch.build.targets.sdist]
 include = [
