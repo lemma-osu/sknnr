@@ -5,7 +5,7 @@ import pytest
 # from sklearn.utils.estimator_checks import parametrize_with_checks
 from sklearn.utils.validation import NotFittedError
 
-from sklearn_knn import GNN, Euclidean, Raw
+from sklearn_knn import GNN, Euclidean, Mahalanobis, Raw
 from sklearn_knn._base import IDNeighborsClassifier
 
 
@@ -16,6 +16,7 @@ def get_kneighbor_estimator_instances() -> List[IDNeighborsClassifier]:
     return [
         Raw(),
         Euclidean(),
+        Mahalanobis(),
         GNN(),
     ]
 

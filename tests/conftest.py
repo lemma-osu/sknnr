@@ -41,5 +41,10 @@ def moscow_euc():
 
 
 @pytest.fixture
+def moscow_mah():
+    return Dataset(project="moscow", method="mah", k=5)
+
+
+@pytest.fixture
 def moscow_gnn():
     return Dataset(project="moscow", method="gnn", k=5)
