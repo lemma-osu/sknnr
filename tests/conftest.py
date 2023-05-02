@@ -36,8 +36,13 @@ def moscow_raw():
 
 
 @pytest.fixture
-def moscow_euc():
-    return Dataset(project="moscow", method="euc", k=5)
+def moscow_euclidean():
+    return Dataset(project="moscow", method="euclidean", k=5)
+
+
+@pytest.fixture
+def moscow_mahalanobis():
+    return Dataset(project="moscow", method="mahalanobis", k=5)
 
 
 @pytest.fixture

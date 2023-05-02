@@ -5,7 +5,7 @@ from ._base import IDNeighborsClassifier, MyStandardScaler, TransformedKNeighbor
 
 class Euclidean(IDNeighborsClassifier, TransformedKNeighborsMixin):
     def fit(self, X, y):
-        self.transform_ = MyStandardScaler().fit(X, y)
+        self.transform_ = MyStandardScaler().fit(X)
         X = self.transform_.transform(X)
         return super().fit(X, y)
 
