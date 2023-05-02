@@ -1,0 +1,54 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "scikit-learn-knn"
+dynamic = ["version"]
+description = "Scikit-learn estimators for kNN methods"
+readme = "README.md"
+license = ""
+requires-python = ">=3.8"
+authors = [
+    { name = "Matt Gregory", email = "matt.gregory@oregonstate.edu" },
+    { name = "Aaron Zuspan", email = "aaron.zuspan@oregonstate.edu" }
+]
+dependencies = [
+    "numpy",
+    "scikit-learn",
+]
+
+[project.urls]
+Homepage = "https://github.com/lemma-osu/scikit-learn-knn"
+Source = "https://github.com/lemma-osu/scikit-learn-knn"
+
+[tool.hatch.version]
+path = "src/sklearn_knn/__about__.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/sklearn_knn"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/src",
+]
+
+[tool.hatch.envs.default]
+dependencies = [
+    "pre-commit",
+    "sourcery",
+]
+
+[tool.hatch.envs.test]
+dependencies = [
+    "pytest",
+    "pytest-cov",
+    "pandas"
+]
+
+[tool.hatch.envs.test.scripts]
+all = "pytest {args}"
+coverage = "pytest --cov=src/sklearn_knn {args}"
+
+[tool.pytest.ini_options]
+pythonpath = "src/"

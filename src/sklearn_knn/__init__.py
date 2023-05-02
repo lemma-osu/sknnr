@@ -1,3 +1,4 @@
+from .__about__ import __version__  # noqa: F401
 from ._euclidean import Euclidean
 from ._gnn import GNN
 from ._mahalanobis import Mahalanobis
