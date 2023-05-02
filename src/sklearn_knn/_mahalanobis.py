@@ -1,7 +1,7 @@
 from sklearn.utils.validation import check_is_fitted
 
 from ._base import IDNeighborsClassifier, TransformedKNeighborsMixin
-from .original._mahalanobis_transformer import MahalanobisTransformer
+from .transformers._mahalanobis_transformer import MahalanobisTransformer
 
 
 class Mahalanobis(IDNeighborsClassifier, TransformedKNeighborsMixin):

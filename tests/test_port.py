@@ -23,42 +23,42 @@ def test_moscow_raw(moscow_raw):
     assert_array_almost_equal(dist, moscow_raw.trg_distances, decimal=3)
 
 
-def test_moscow_euc(moscow_euc):
+def test_moscow_euclidean(moscow_euclidean):
     X_train, X_test, y_train, _ = train_test_split(
-        moscow_euc.X, moscow_euc.ids, train_size=0.8, shuffle=False
+        moscow_euclidean.X, moscow_euclidean.ids, train_size=0.8, shuffle=False
     )
     clf = Euclidean(n_neighbors=5).fit(X_train, y_train)
 
     dist, _ = clf.kneighbors()
     nn = clf.kneighbor_ids()
 
-    assert_array_equal(nn, moscow_euc.ref_neighbors)
-    assert_array_almost_equal(dist, moscow_euc.ref_distances, decimal=3)
+    assert_array_equal(nn, moscow_euclidean.ref_neighbors)
+    assert_array_almost_equal(dist, moscow_euclidean.ref_distances, decimal=3)
 
     dist, _ = clf.kneighbors(X_test)
     nn = clf.kneighbor_ids(X_test)
 
-    assert_array_equal(nn, moscow_euc.trg_neighbors)
-    assert_array_almost_equal(dist, moscow_euc.trg_distances, decimal=3)
+    assert_array_equal(nn, moscow_euclidean.trg_neighbors)
+    assert_array_almost_equal(dist, moscow_euclidean.trg_distances, decimal=3)
 
 
-def test_moscow_mah(moscow_mah):
+def test_moscow_mahalanobis(moscow_mahalanobis):
     X_train, X_test, y_train, _ = train_test_split(
-        moscow_mah.X, moscow_mah.ids, train_size=0.8, shuffle=False
+        moscow_mahalanobis.X, moscow_mahalanobis.ids, train_size=0.8, shuffle=False
     )
     clf = Mahalanobis(n_neighbors=5).fit(X_train, y_train)
 
     dist, _ = clf.kneighbors()
     nn = clf.kneighbor_ids()
 
-    assert_array_equal(nn, moscow_mah.ref_neighbors)
-    assert_array_almost_equal(dist, moscow_mah.ref_distances, decimal=3)
+    assert_array_equal(nn, moscow_mahalanobis.ref_neighbors)
+    assert_array_almost_equal(dist, moscow_mahalanobis.ref_distances, decimal=3)
 
     dist, _ = clf.kneighbors(X_test)
     nn = clf.kneighbor_ids(X_test)
 
-    assert_array_equal(nn, moscow_mah.trg_neighbors)
-    assert_array_almost_equal(dist, moscow_mah.trg_distances, decimal=3)
+    assert_array_equal(nn, moscow_mahalanobis.trg_neighbors)
+    assert_array_almost_equal(dist, moscow_mahalanobis.trg_distances, decimal=3)
 
 
 def test_moscow_gnn(moscow_gnn):
