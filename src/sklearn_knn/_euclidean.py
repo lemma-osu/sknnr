@@ -1,9 +1,9 @@
 from sklearn.utils.validation import check_is_fitted
 
-from ._base import IDNeighborsClassifier, MyStandardScaler, TransformedKNeighborsMixin
+from ._base import IDNeighborsRegressor, MyStandardScaler, TransformedKNeighborsMixin
 
 
-class Euclidean(IDNeighborsClassifier, TransformedKNeighborsMixin):
+class Euclidean(IDNeighborsRegressor, TransformedKNeighborsMixin):
     def fit(self, X, y):
         self.transform_ = MyStandardScaler().fit(X)
         X = self.transform_.transform(X)

@@ -6,12 +6,12 @@ import pytest
 from sklearn.utils.validation import NotFittedError
 
 from sklearn_knn import GNN, Euclidean, Mahalanobis, Raw
-from sklearn_knn._base import IDNeighborsClassifier
+from sklearn_knn._base import IDNeighborsRegressor
 
 
-def get_kneighbor_estimator_instances() -> List[IDNeighborsClassifier]:
+def get_kneighbor_estimator_instances() -> List[IDNeighborsRegressor]:
     """
-    Return instances of all supported IDNeighborsClassifier estimators.
+    Return instances of all supported IDNeighborsRegressor estimators.
     """
     return [
         Raw(),
@@ -37,14 +37,14 @@ def test_estimators_raise_notfitted_kneighbors(estimator, moscow_euclidean):
 
 
 @pytest.mark.parametrize("estimator", get_kneighbor_estimator_instances())
-def test_estimators_raise_notfitted_kneighbor_ids(estimator, moscow_euclidean):
-    """Attempting to call kneighbor_ids on an unfitted estimator should raise."""
-    with pytest.raises(NotFittedError):
-        estimator.kneighbor_ids(moscow_euclidean.X)
-
-
-@pytest.mark.parametrize("estimator", get_kneighbor_estimator_instances())
 def test_estimators_raise_notfitted_predict(estimator, moscow_euclidean):
     """Attempting to call predict on an unfitted estimator should raise."""
     with pytest.raises(NotFittedError):
         estimator.predict(moscow_euclidean.X)
+
+
+@pytest.mark.parametrize("estimator", get_kneighbor_estimator_instances())
+def test_estimators_support_continuous_multioutput(estimator, moscow_euclidean):
+    """All estimators should fit and predict continuous multioutput data."""
+    estimator.fit(moscow_euclidean.X, moscow_euclidean.y)
+    estimator.predict(moscow_euclidean.X)

@@ -1,24 +1,19 @@
 import numpy as np
-from sklearn.neighbors import KNeighborsClassifier
+from sklearn.neighbors import KNeighborsRegressor
 from sklearn.preprocessing import StandardScaler
 from sklearn.utils.validation import check_is_fitted
 
 
-class IDNeighborsClassifier(KNeighborsClassifier):
+class IDNeighborsRegressor(KNeighborsRegressor):
     """
-    Specialized KNeighborsClassifier where labels
-    are IDs for samples and not classes
+    Placeholder class for implementing plot ID access.
     """
 
-    def kneighbor_ids(self, X=None, n_neighbors=None):
-        neigh_ind = super().kneighbors(X, n_neighbors, False)
-        return self.classes_[self._y[neigh_ind]]
 
-
-class TransformedKNeighborsMixin(KNeighborsClassifier):
+class TransformedKNeighborsMixin(KNeighborsRegressor):
     """
-    Mixin for KNeighbors classifiers that store a `transform_` during fitting
-    (e.g. GNN).
+    Mixin for KNeighbors regressors that store a `transform_` during fitting (e.g.
+    GNN).
     """
 
     def kneighbors(self, X=None, n_neighbors=None, return_distance=True):
