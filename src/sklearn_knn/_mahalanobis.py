@@ -1,10 +1,10 @@
 from sklearn.utils.validation import check_is_fitted
 
-from ._base import IDNeighborsClassifier, TransformedKNeighborsMixin
+from ._base import IDNeighborsRegressor, TransformedKNeighborsMixin
 from .transformers._mahalanobis_transformer import MahalanobisTransformer
 
 
-class Mahalanobis(IDNeighborsClassifier, TransformedKNeighborsMixin):
+class Mahalanobis(IDNeighborsRegressor, TransformedKNeighborsMixin):
     def fit(self, X, y):
         self.transform_ = MahalanobisTransformer().fit(X)
         X = self.transform_.transform(X)

@@ -1,5 +1,5 @@
-from ._base import IDNeighborsClassifier
+from ._base import IDNeighborsRegressor
 
 
-class Raw(IDNeighborsClassifier):
+class Raw(IDNeighborsRegressor):
     pass
