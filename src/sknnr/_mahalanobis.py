@@ -1,12 +1,12 @@
 from sklearn.utils.validation import check_is_fitted
 
 from ._base import IDNeighborsRegressor, TransformedKNeighborsMixin
-from .transformers._cca_transformer import CCATransformer
+from .transformers._mahalanobis_transformer import MahalanobisTransformer
 
 
-class GNN(IDNeighborsRegressor, TransformedKNeighborsMixin):
-    def fit(self, X, y, spp=None):
-        self.transform_ = CCATransformer().fit(X, y=y, spp=spp)
+class MahalanobisKnnRegressor(IDNeighborsRegressor, TransformedKNeighborsMixin):
+    def fit(self, X, y):
+        self.transform_ = MahalanobisTransformer().fit(X)
         X = self.transform_.transform(X)
         return super().fit(X, y)
 
