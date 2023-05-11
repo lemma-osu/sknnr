@@ -9,5 +9,5 @@ class StandardScalerWithDOF(StandardScaler):
 
     def fit(self, X, y=None, sample_weight=None):
         scaler = super().fit(X, y, sample_weight)
-        scaler.scale_ = np.std(np.array(X), axis=0, ddof=self.ddof)
+        scaler.scale_ = np.std(np.asarray(X), axis=0, ddof=self.ddof)
         return scaler

@@ -57,8 +57,8 @@ def test_estimators_support_continuous_multioutput(estimator, moscow_euclidean):
 
 
 @pytest.mark.parametrize("estimator", get_kneighbor_estimator_instances())
-def test_estimators_support_multioutput_dataframes(estimator, moscow_euclidean):
-    """All estimators should fit and predict multioutput data stored as dataframe."""
-    X_df = pd.DataFrame(moscow_euclidean.X)
-    estimator.fit(X_df, moscow_euclidean.y)
+def test_estimators_support_dataframes(estimator, moscow_euclidean):
+    """All estimators should fit and predict data stored as dataframes."""
+    X_df, y_df = pd.DataFrame(moscow_euclidean.X), pd.DataFrame(moscow_euclidean.y)
+    estimator.fit(X_df, y_df)
     estimator.predict(X_df)
