@@ -1,6 +1,4 @@
-import numpy as np
 from sklearn.neighbors import KNeighborsRegressor
-from sklearn.preprocessing import StandardScaler
 from sklearn.utils.validation import check_is_fitted
 
 
@@ -23,10 +21,3 @@ class TransformedKNeighborsMixin(KNeighborsRegressor):
         return super().kneighbors(
             X=X, n_neighbors=n_neighbors, return_distance=return_distance
         )
-
-
-class MyStandardScaler(StandardScaler):
-    def fit(self, X, y=None, sample_weight=None):
-        sc = super().fit(X, y, sample_weight)
-        sc.scale_ = np.std(X, axis=0, ddof=1)
-        return sc

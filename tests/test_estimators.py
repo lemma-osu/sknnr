@@ -1,5 +1,6 @@
 from typing import List
 
+import pandas as pd
 import pytest
 
 # from sklearn.utils.estimator_checks import parametrize_with_checks
@@ -53,3 +54,11 @@ def test_estimators_support_continuous_multioutput(estimator, moscow_euclidean):
     """All estimators should fit and predict continuous multioutput data."""
     estimator.fit(moscow_euclidean.X, moscow_euclidean.y)
     estimator.predict(moscow_euclidean.X)
+
+
+@pytest.mark.parametrize("estimator", get_kneighbor_estimator_instances())
+def test_estimators_support_multioutput_dataframes(estimator, moscow_euclidean):
+    """All estimators should fit and predict multioutput data stored as dataframe."""
+    X_df = pd.DataFrame(moscow_euclidean.X)
+    estimator.fit(X_df, moscow_euclidean.y)
+    estimator.predict(X_df)
