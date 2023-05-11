@@ -4,7 +4,7 @@ from ._base import IDNeighborsRegressor, TransformedKNeighborsMixin
 from .transformers._mahalanobis_transformer import MahalanobisTransformer
 
 
-class MahalanobisKnnRegressor(IDNeighborsRegressor, TransformedKNeighborsMixin):
+class MahalanobisKNNRegressor(IDNeighborsRegressor, TransformedKNeighborsMixin):
     def fit(self, X, y):
         self.transform_ = MahalanobisTransformer().fit(X)
         X = self.transform_.transform(X)

@@ -1,5 +1,5 @@
 from ._base import IDNeighborsRegressor
 
 
-class RawKnnRegressor(IDNeighborsRegressor):
+class RawKNNRegressor(IDNeighborsRegressor):
     pass

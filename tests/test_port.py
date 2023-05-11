@@ -2,10 +2,10 @@ from numpy.testing import assert_array_almost_equal
 from sklearn.model_selection import train_test_split
 
 from sknnr import (
-    EuclideanKnnRegressor,
+    EuclideanKNNRegressor,
     GNNRegressor,
-    MahalanobisKnnRegressor,
-    RawKnnRegressor,
+    MahalanobisKNNRegressor,
+    RawKNNRegressor,
 )
 
 
@@ -13,7 +13,7 @@ def test_moscow_raw(moscow_raw):
     X_train, X_test, y_train, _ = train_test_split(
         moscow_raw.X, moscow_raw.ids, train_size=0.8, shuffle=False
     )
-    clf = RawKnnRegressor(n_neighbors=5).fit(X_train, y_train)
+    clf = RawKNNRegressor(n_neighbors=5).fit(X_train, y_train)
 
     dist, nn = clf.kneighbors()
 
@@ -30,7 +30,7 @@ def test_moscow_euclidean(moscow_euclidean):
     X_train, X_test, y_train, _ = train_test_split(
         moscow_euclidean.X, moscow_euclidean.ids, train_size=0.8, shuffle=False
     )
-    clf = EuclideanKnnRegressor(n_neighbors=5).fit(X_train, y_train)
+    clf = EuclideanKNNRegressor(n_neighbors=5).fit(X_train, y_train)
 
     dist, nn = clf.kneighbors()
 
@@ -47,7 +47,7 @@ def test_moscow_mahalanobis(moscow_mahalanobis):
     X_train, X_test, y_train, _ = train_test_split(
         moscow_mahalanobis.X, moscow_mahalanobis.ids, train_size=0.8, shuffle=False
     )
-    clf = MahalanobisKnnRegressor(n_neighbors=5).fit(X_train, y_train)
+    clf = MahalanobisKNNRegressor(n_neighbors=5).fit(X_train, y_train)
 
     dist, nn = clf.kneighbors()
 

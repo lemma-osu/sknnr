@@ -1,4 +1,4 @@
-# scikit-learn-knn
+# scikit-learn-knn-regression
 
 This package is in active development.
 
@@ -29,7 +29,7 @@ $ pre-commit run --all-files
 ```
 
 ...or install it to run automatically before every commit with:
-    
+
 ```bash
 $ pre-commit install
 ```
