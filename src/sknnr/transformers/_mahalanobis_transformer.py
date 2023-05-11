@@ -1,12 +1,12 @@
 import numpy as np
 from sklearn.base import BaseEstimator, TransformerMixin
 
-from .._base import MyStandardScaler
+from . import StandardScalerWithDOF
 
 
 class MahalanobisTransformer(TransformerMixin, BaseEstimator):
     def fit(self, X, y=None):
-        self.scaler_ = MyStandardScaler().fit(X)
+        self.scaler_ = StandardScalerWithDOF(ddof=1).fit(X)
         covariance = np.cov(self.scaler_.transform(X), rowvar=False)
         self.transform_ = np.linalg.inv(np.linalg.cholesky(covariance).T)
         return self

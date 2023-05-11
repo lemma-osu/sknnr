@@ -1,7 +1,7 @@
 from sklearn.utils.validation import check_is_fitted
 
 from ._base import IDNeighborsRegressor, TransformedKNeighborsMixin
-from .transformers._mahalanobis_transformer import MahalanobisTransformer
+from .transformers import MahalanobisTransformer
 
 
 class MahalanobisKNNRegressor(IDNeighborsRegressor, TransformedKNeighborsMixin):
