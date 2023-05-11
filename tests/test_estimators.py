@@ -5,8 +5,13 @@ import pytest
 # from sklearn.utils.estimator_checks import parametrize_with_checks
 from sklearn.utils.validation import NotFittedError
 
-from sklearn_knn import GNN, Euclidean, Mahalanobis, Raw
-from sklearn_knn._base import IDNeighborsRegressor
+from sknnr import (
+    EuclideanKNNRegressor,
+    GNNRegressor,
+    MahalanobisKNNRegressor,
+    RawKNNRegressor,
+)
+from sknnr._base import IDNeighborsRegressor
 
 
 def get_kneighbor_estimator_instances() -> List[IDNeighborsRegressor]:
@@ -14,10 +19,10 @@ def get_kneighbor_estimator_instances() -> List[IDNeighborsRegressor]:
     Return instances of all supported IDNeighborsRegressor estimators.
     """
     return [
-        Raw(),
-        Euclidean(),
-        Mahalanobis(),
-        GNN(),
+        RawKNNRegressor(),
+        EuclideanKNNRegressor(),
+        MahalanobisKNNRegressor(),
+        GNNRegressor(),
     ]
 
 

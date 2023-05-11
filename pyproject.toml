@@ -3,9 +3,9 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "scikit-learn-knn"
+name = "scikit-learn-knn-regression"
 dynamic = ["version"]
-description = "Scikit-learn estimators for kNN methods"
+description = "Scikit-learn estimators for kNN regression methods"
 readme = "README.md"
 license = ""
 requires-python = ">=3.8"
@@ -19,14 +19,14 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/lemma-osu/scikit-learn-knn"
-Source = "https://github.com/lemma-osu/scikit-learn-knn"
+Homepage = "https://github.com/lemma-osu/scikit-learn-knn-regression"
+Source = "https://github.com/lemma-osu/scikit-learn-knn-regression"
 
 [tool.hatch.version]
-path = "src/sklearn_knn/__about__.py"
+path = "src/sknnr/__about__.py"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/sklearn_knn"]
+packages = ["src/sknnr"]
 
 [tool.hatch.build.targets.sdist]
 include = [
@@ -48,7 +48,7 @@ dependencies = [
 
 [tool.hatch.envs.test.scripts]
 all = "pytest {args}"
-coverage = "pytest --cov=src/sklearn_knn {args}"
+coverage = "pytest --cov=src/sknnr {args}"
 
 [tool.pytest.ini_options]
 pythonpath = "src/"

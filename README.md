@@ -1,4 +1,4 @@
-# scikit-learn-knn
+# scikit-learn-knn-regression
 
 This package is in active development.
 
@@ -29,7 +29,7 @@ $ pre-commit run --all-files
 ```
 
 ...or install it to run automatically before every commit with:
-    
+
 ```bash
 $ pre-commit install
 ```
@@ -37,7 +37,7 @@ $ pre-commit install
 You can run pre-commit hooks separately and pass additional arguments to them. For example, to run `flake8` on a single file:
 
 ```bash
-$ pre-commit run flake8 --files=src/sklearn_knn/_base.py
+$ pre-commit run flake8 --files=src/sknnr/_base.py
 ```
 
 ### Testing

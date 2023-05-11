@@ -4,7 +4,7 @@ from ._base import IDNeighborsRegressor, TransformedKNeighborsMixin
 from .transformers._cca_transformer import CCATransformer
 
 
-class GNN(IDNeighborsRegressor, TransformedKNeighborsMixin):
+class GNNRegressor(IDNeighborsRegressor, TransformedKNeighborsMixin):
     def fit(self, X, y, spp=None):
         self.transform_ = CCATransformer().fit(X, y=y, spp=spp)
         X = self.transform_.transform(X)

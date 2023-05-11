@@ -1,11 +1,12 @@
 from sklearn.utils.validation import check_is_fitted
 
-from ._base import IDNeighborsRegressor, MyStandardScaler, TransformedKNeighborsMixin
+from ._base import IDNeighborsRegressor, TransformedKNeighborsMixin
+from .transformers._mahalanobis_transformer import MahalanobisTransformer
 
 
-class Euclidean(IDNeighborsRegressor, TransformedKNeighborsMixin):
+class MahalanobisKNNRegressor(IDNeighborsRegressor, TransformedKNeighborsMixin):
     def fit(self, X, y):
-        self.transform_ = MyStandardScaler().fit(X)
+        self.transform_ = MahalanobisTransformer().fit(X)
         X = self.transform_.transform(X)
         return super().fit(X, y)
 
