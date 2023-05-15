@@ -2,6 +2,7 @@ from typing import List
 
 import pandas as pd
 import pytest
+from numpy.testing import assert_array_equal
 
 # from sklearn.utils.estimator_checks import parametrize_with_checks
 from sklearn.utils.validation import NotFittedError
@@ -59,6 +60,12 @@ def test_estimators_support_continuous_multioutput(estimator, moscow_euclidean):
 @pytest.mark.parametrize("estimator", get_kneighbor_estimator_instances())
 def test_estimators_support_dataframes(estimator, moscow_euclidean):
     """All estimators should fit and predict data stored as dataframes."""
-    X_df, y_df = pd.DataFrame(moscow_euclidean.X), pd.DataFrame(moscow_euclidean.y)
+    num_features = moscow_euclidean.X.shape[1]
+    feature_names = [f"col_{i}" for i in range(num_features)]
+
+    X_df = pd.DataFrame(moscow_euclidean.X, columns=feature_names)
+    y_df = pd.DataFrame(moscow_euclidean.y)
+
     estimator.fit(X_df, y_df)
     estimator.predict(X_df)
+    assert_array_equal(estimator.feature_names_in_, feature_names)
