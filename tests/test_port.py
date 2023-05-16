@@ -5,6 +5,7 @@ from sknnr import (
     EuclideanKNNRegressor,
     GNNRegressor,
     MahalanobisKNNRegressor,
+    MSNRegressor,
     RawKNNRegressor,
 )
 
@@ -58,6 +59,23 @@ def test_moscow_mahalanobis(moscow_mahalanobis):
 
     # assert_array_equal(nn, moscow_mahalanobis.trg_neighbors)
     assert_array_almost_equal(dist, moscow_mahalanobis.trg_distances, decimal=3)
+
+
+def test_moscow_msn(moscow_msn):
+    X_train, X_test, y_train, _, y_spp, _ = train_test_split(
+        moscow_msn.X, moscow_msn.ids, moscow_msn.y, train_size=0.8, shuffle=False
+    )
+    clf = MSNRegressor(n_neighbors=5).fit(X_train, y_train, spp=y_spp)
+
+    dist, nn = clf.kneighbors()
+
+    # assert_array_equal(nn, moscow_msn.ref_neighbors)
+    assert_array_almost_equal(dist, moscow_msn.ref_distances, decimal=3)
+
+    dist, nn = clf.kneighbors(X_test)
+
+    # assert_array_equal(nn, moscow_msn.trg_neighbors)
+    assert_array_almost_equal(dist, moscow_msn.trg_distances, decimal=3)
 
 
 def test_moscow_gnn(moscow_gnn):

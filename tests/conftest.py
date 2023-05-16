@@ -46,5 +46,10 @@ def moscow_mahalanobis():
 
 
 @pytest.fixture
+def moscow_msn():
+    return Dataset(project="moscow", method="msn", k=5)
+
+
+@pytest.fixture
 def moscow_gnn():
     return Dataset(project="moscow", method="gnn", k=5)
