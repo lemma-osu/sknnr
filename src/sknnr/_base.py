@@ -54,11 +54,6 @@ class TransformedKNeighborsMixin(KNeighborsRegressor):
         X_transformed = self._apply_transform(X)
         return super().fit(X_transformed, y)
 
-    def predict(self, X):
-        """Predict using transformed feature data."""
-        X_transformed = self._apply_transform(X)
-        return super().predict(X_transformed)
-
     def kneighbors(self, X=None, n_neighbors=None, return_distance=True):
         """Return neighbor indices and distances using transformed feature data."""
         X_transformed = self._apply_transform(X) if X is not None else X
