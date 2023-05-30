@@ -11,6 +11,7 @@ from sknnr import (
     EuclideanKNNRegressor,
     GNNRegressor,
     MahalanobisKNNRegressor,
+    MSNRegressor,
     RawKNNRegressor,
 )
 from sknnr._base import IDNeighborsRegressor
@@ -24,6 +25,7 @@ def get_kneighbor_estimator_instances() -> List[IDNeighborsRegressor]:
         RawKNNRegressor(),
         EuclideanKNNRegressor(),
         MahalanobisKNNRegressor(),
+        MSNRegressor(),
         GNNRegressor(),
     ]
 
