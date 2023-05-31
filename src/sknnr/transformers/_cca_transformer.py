@@ -5,8 +5,7 @@ from ._cca import CCA
 
 
 class CCATransformer(TransformerMixin, BaseEstimator):
-    def fit(self, X, y=None, spp=None):
-        y = spp if spp is not None else y
+    def fit(self, X, y):
         X, y = np.asarray(X), np.asarray(y)
         self.cca_ = CCA(X, y)
         return self
@@ -16,6 +15,5 @@ class CCATransformer(TransformerMixin, BaseEstimator):
         X = X @ self.cca_.coefficients
         return X @ self.cca_.axis_weights
 
-    def fit_transform(self, X, y=None, spp=None):
-        y = spp if spp is not None else y
+    def fit_transform(self, X, y):
         return self.fit(X, y).transform(X)
