@@ -16,6 +16,12 @@ class Dataset:
         trg_neighbors_df = pd.read_csv(
             f"./tests/data/{method}_{project}_trg_neighbors_k{k}.csv"
         )
+        trg_predicted_weighted_df = pd.read_csv(
+            f"./tests/data/{method}_{project}_trg_predicted_weighted_k{k}.csv"
+        )
+        trg_predicted_unweighted_df = pd.read_csv(
+            f"./tests/data/{method}_{project}_trg_predicted_unweighted_k{k}.csv"
+        )
         env_df = pd.read_csv(f"./tests/data/{project}_env.csv")
         spp_df = pd.read_csv(f"./tests/data/{project}_spp.csv")
         cols = [f"K{i+1}" for i in range(k)]
@@ -24,6 +30,8 @@ class Dataset:
         self.ref_neighbors = ref_neighbors_df.loc[:, cols].values
         self.trg_distances = trg_distances_df.loc[:, cols].values
         self.trg_neighbors = trg_neighbors_df.loc[:, cols].values
+        self.trg_predicted_weighted = trg_predicted_weighted_df.iloc[:, 1:].values
+        self.trg_predicted_unweighted = trg_predicted_unweighted_df.iloc[:, 1:].values
 
         self.X = env_df.iloc[:, 1:].values
         self.y = spp_df.iloc[:, 1:].values
