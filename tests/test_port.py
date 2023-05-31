@@ -96,7 +96,7 @@ def test_moscow_msn(moscow_msn):
     X_train, X_test, y_train, _ = train_test_split(
         moscow_msn.X, moscow_msn.y, train_size=0.8, shuffle=False
     )
-    clf = MSNRegressor(n_neighbors=5).fit(X_train, y_train, spp=y_train)
+    clf = MSNRegressor(n_neighbors=5).fit(X_train, y_train, y_fit=y_train)
 
     dist, nn = clf.kneighbors()
 
@@ -120,7 +120,7 @@ def test_moscow_gnn(moscow_gnn):
     X_train, X_test, y_train, _ = train_test_split(
         moscow_gnn.X, moscow_gnn.y, train_size=0.8, shuffle=False
     )
-    clf = GNNRegressor(n_neighbors=5).fit(X_train, y_train, spp=y_train)
+    clf = GNNRegressor(n_neighbors=5).fit(X_train, y_train, y_fit=y_train)
 
     dist, nn = clf.kneighbors()
 
