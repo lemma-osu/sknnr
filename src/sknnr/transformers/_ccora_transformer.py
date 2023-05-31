@@ -5,8 +5,7 @@ from ._ccora import CCorA
 
 
 class CCorATransformer(TransformerMixin, BaseEstimator):
-    def fit(self, X, y=None, spp=None):
-        y = spp if spp is not None else y
+    def fit(self, X, y):
         self.scaler_ = StandardScalerWithDOF(ddof=1).fit(X)
         y = StandardScalerWithDOF(ddof=1).fit_transform(y)
         self.ccora_ = CCorA(self.scaler_.transform(X), y)
@@ -15,6 +14,5 @@ class CCorATransformer(TransformerMixin, BaseEstimator):
     def transform(self, X, y=None):
         return self.scaler_.transform(X) @ self.ccora_.projector
 
-    def fit_transform(self, X, y=None, spp=None):
-        y = spp if spp is not None else y
+    def fit_transform(self, X, y):
         return self.fit(X, y).transform(X)
