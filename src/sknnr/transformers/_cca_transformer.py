@@ -5,7 +5,18 @@ from ._cca import CCA
 
 
 class CCATransformer(TransformerMixin, BaseEstimator):
+    @property
+    def _n_features_out(self):
+        return self.cca_.eigenvalues.shape[0]
+
+    def get_feature_names_out(self, input_features=None) -> np.ndarray:
+        return np.asarray(
+            [f"cca{i}" for i in range(self._n_features_out)], dtype=object
+        )
+
     def fit(self, X, y):
+        X = self._validate_data(X, reset=True)
+
         X, y = np.asarray(X), np.asarray(y)
         self.cca_ = CCA(X, y)
         return self
