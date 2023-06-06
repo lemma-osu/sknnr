@@ -10,7 +10,7 @@ class CCATransformer(TransformerMixin, BaseEstimator):
     def _n_features_out(self):
         return self.cca_.eigenvalues.shape[0]
 
-    def get_feature_names_out(self, input_features=None) -> np.ndarray:
+    def get_feature_names_out(self) -> np.ndarray:
         return np.asarray(
             [f"cca{i}" for i in range(self._n_features_out)], dtype=object
         )

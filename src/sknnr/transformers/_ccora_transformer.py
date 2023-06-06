@@ -1,22 +1,16 @@
 import numpy as np
-from sklearn.base import (
-    BaseEstimator,
-    ClassNamePrefixFeaturesOutMixin,
-    TransformerMixin,
-)
+from sklearn.base import BaseEstimator, TransformerMixin
 
 from . import StandardScalerWithDOF
 from ._ccora import CCorA
 
 
-class CCorATransformer(
-    ClassNamePrefixFeaturesOutMixin, TransformerMixin, BaseEstimator
-):
+class CCorATransformer(TransformerMixin, BaseEstimator):
     @property
     def _n_features_out(self):
         return self.ccora_.projector.shape[1]
 
-    def get_feature_names_out(self, input_features=None) -> np.ndarray:
+    def get_feature_names_out(self) -> np.ndarray:
         return np.asarray(
             [f"ccora{i}" for i in range(self._n_features_out)], dtype=object
         )

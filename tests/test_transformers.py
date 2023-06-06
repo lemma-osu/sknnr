@@ -1,8 +1,11 @@
+from typing import List, Type
+
 import numpy as np
 import pandas as pd
 import pytest
 from numpy.testing import assert_array_equal
 from sklearn import set_config
+from sklearn.base import TransformerMixin
 from sklearn.preprocessing import StandardScaler
 
 from sknnr._base import set_temp_output
@@ -14,7 +17,7 @@ from sknnr.transformers import (
 )
 
 
-def get_transformer_classes():
+def get_transformer_classes() -> List[Type[TransformerMixin]]:
     """
     Return classes of all supported transformers.
     """

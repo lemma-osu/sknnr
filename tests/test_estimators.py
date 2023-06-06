@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Type
 
 import pandas as pd
 import pytest
@@ -19,7 +19,7 @@ from sknnr import (
 from sknnr._base import IDNeighborsRegressor
 
 
-def get_kneighbor_estimator_classes() -> List[IDNeighborsRegressor]:
+def get_kneighbor_estimator_classes() -> List[Type[IDNeighborsRegressor]]:
     """
     Return classes of all supported IDNeighborsRegressor estimators.
     """
