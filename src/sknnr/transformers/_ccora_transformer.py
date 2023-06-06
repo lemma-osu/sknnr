@@ -22,7 +22,7 @@ class CCorATransformer(
         )
 
     def fit(self, X, y):
-        X = self._validate_data(X, reset=True)
+        self._validate_data(X, reset=True)
 
         self.scaler_ = StandardScalerWithDOF(ddof=1).fit(X)
         y = StandardScalerWithDOF(ddof=1).fit_transform(y)

@@ -1,5 +1,6 @@
 import numpy as np
 from sklearn.base import BaseEstimator, TransformerMixin
+from sklearn.utils.validation import FLOAT_DTYPES, check_is_fitted
 
 from ._cca import CCA
 
@@ -15,13 +16,18 @@ class CCATransformer(TransformerMixin, BaseEstimator):
         )
 
     def fit(self, X, y):
-        X = self._validate_data(X, reset=True)
+        self._validate_data(
+            X, reset=True, dtype=FLOAT_DTYPES, force_all_finite="allow-nan"
+        )
 
         X, y = np.asarray(X), np.asarray(y)
         self.cca_ = CCA(X, y)
         return self
 
     def transform(self, X, y=None):
+        check_is_fitted(self)
+        X = np.asarray(X)
+
         X = X - self.cca_.env_center
         X = X @ self.cca_.coefficients
         return X @ self.cca_.axis_weights
