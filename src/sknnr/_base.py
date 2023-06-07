@@ -1,11 +1,10 @@
 import warnings
-from contextlib import contextmanager
-from typing import Literal
 
 import numpy as np
-from sklearn.base import BaseEstimator
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.utils.validation import _get_feature_names, check_is_fitted
+
+from .transformers._base import set_temp_output
 
 
 class IDNeighborsRegressor(KNeighborsRegressor):
@@ -80,15 +79,3 @@ class TransformedKNeighborsMixin(KNeighborsRegressor):
         return super().kneighbors(
             X=X_transformed, n_neighbors=n_neighbors, return_distance=return_distance
         )
-
-
-@contextmanager
-def set_temp_output(estimator: BaseEstimator, temp_mode: Literal["default", "pandas"]):
-    """Temporarily set the output mode of an estimator."""
-    previous_config = getattr(estimator, "_sklearn_output_config", {}).copy()
-
-    estimator.set_output(transform=temp_mode)
-    try:
-        yield
-    finally:
-        estimator._sklearn_output_config = previous_config

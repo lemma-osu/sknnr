@@ -1,5 +1,6 @@
 import numpy as np
 from sklearn.base import BaseEstimator, OneToOneFeatureMixin, TransformerMixin
+from sklearn.utils.validation import check_is_fitted
 
 from . import StandardScalerWithDOF
 
@@ -14,6 +15,7 @@ class MahalanobisTransformer(OneToOneFeatureMixin, TransformerMixin, BaseEstimat
         return self
 
     def transform(self, X, y=None):
+        check_is_fitted(self)
         return self.scaler_.transform(X) @ self.transform_
 
     def fit_transform(self, X, y=None):

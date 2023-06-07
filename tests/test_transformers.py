@@ -111,7 +111,7 @@ def test_set_temp_output(moscow_euclidean, config_type):
         transformer.set_output(transform="pandas")
 
     # Temp output mode should override previously set config
-    with set_temp_output(estimator=transformer, temp_mode="default"):
+    with set_temp_output(transformer=transformer, temp_mode="default"):
         assert isinstance(transformer.transform(moscow_euclidean.X), np.ndarray)
 
     # Previous config should be restored
