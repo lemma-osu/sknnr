@@ -1,17 +1,21 @@
 import numpy as np
-from sklearn.base import BaseEstimator, TransformerMixin
+from sklearn.base import BaseEstimator, OneToOneFeatureMixin, TransformerMixin
+from sklearn.utils.validation import check_is_fitted
 
 from . import StandardScalerWithDOF
 
 
-class MahalanobisTransformer(TransformerMixin, BaseEstimator):
+class MahalanobisTransformer(OneToOneFeatureMixin, TransformerMixin, BaseEstimator):
     def fit(self, X, y=None):
+        self._validate_data(X, reset=True)
+
         self.scaler_ = StandardScalerWithDOF(ddof=1).fit(X)
         covariance = np.cov(self.scaler_.transform(X), rowvar=False)
         self.transform_ = np.linalg.inv(np.linalg.cholesky(covariance).T)
         return self
 
     def transform(self, X, y=None):
+        check_is_fitted(self)
         return self.scaler_.transform(X) @ self.transform_
 
     def fit_transform(self, X, y=None):
