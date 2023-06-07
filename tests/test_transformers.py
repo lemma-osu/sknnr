@@ -7,6 +7,7 @@ from numpy.testing import assert_array_equal
 from sklearn import set_config
 from sklearn.base import TransformerMixin
 from sklearn.preprocessing import StandardScaler
+from sklearn.utils.validation import NotFittedError
 
 from sknnr._base import set_temp_output
 from sknnr.transformers import (
@@ -98,6 +99,13 @@ def test_transformer_feature_consistency(
         )
     else:
         assert not hasattr(transformer.fit(x, y), "feature_names_in_")
+
+
+@pytest.mark.parametrize("transformer", get_transformer_classes())
+def test_transformers_raise_notfitted_transform(transformer, moscow_euclidean):
+    """Attempting to call transform on an unfitted transformer should raise."""
+    with pytest.raises(NotFittedError):
+        transformer().transform(moscow_euclidean.X)
 
 
 @pytest.mark.parametrize("config_type", ["global", "transformer"])
