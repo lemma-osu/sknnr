@@ -21,7 +21,7 @@ class StandardScalerWithDOF(StandardScaler):
 def set_temp_output(
     transformer: TransformerMixin, temp_mode: Literal["default", "pandas"]
 ):
-    """Temporarily set the output mode of an transformer."""
+    """Temporarily set the output mode of a transformer."""
     previous_config = getattr(transformer, "_sklearn_output_config", {}).copy()
 
     transformer.set_output(transform=temp_mode)
