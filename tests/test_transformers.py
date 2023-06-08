@@ -1,6 +1,5 @@
 from typing import List, Type
 
-import numpy as np
 import pandas as pd
 import pytest
 from numpy.testing import assert_array_equal
@@ -9,7 +8,6 @@ from sklearn.base import TransformerMixin
 from sklearn.preprocessing import StandardScaler
 from sklearn.utils.validation import NotFittedError
 
-from sknnr._base import set_temp_output
 from sknnr.transformers import (
     CCATransformer,
     CCorATransformer,
@@ -106,21 +104,3 @@ def test_transformers_raise_notfitted_transform(transformer, moscow_euclidean):
     """Attempting to call transform on an unfitted transformer should raise."""
     with pytest.raises(NotFittedError):
         transformer().transform(moscow_euclidean.X)
-
-
-@pytest.mark.parametrize("config_type", ["global", "transformer"])
-def test_set_temp_output(moscow_euclidean, config_type):
-    """Test that set_temp_output works as expected."""
-    transformer = StandardScaler().fit(moscow_euclidean.X, moscow_euclidean.y)
-
-    if config_type == "global":
-        set_config(transform_output="pandas")
-    else:
-        transformer.set_output(transform="pandas")
-
-    # Temp output mode should override previously set config
-    with set_temp_output(transformer=transformer, temp_mode="default"):
-        assert isinstance(transformer.transform(moscow_euclidean.X), np.ndarray)
-
-    # Previous config should be restored
-    assert isinstance(transformer.transform(moscow_euclidean.X), pd.DataFrame)
