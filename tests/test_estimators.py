@@ -69,23 +69,26 @@ def test_estimators_support_continuous_multioutput(estimator, moscow_euclidean):
     estimator.predict(moscow_euclidean.X)
 
 
+@pytest.mark.parametrize("with_names", [True, False])
 @pytest.mark.parametrize("estimator", get_kneighbor_estimator_classes())
-def test_estimators_support_dataframes(estimator, moscow_euclidean):
+def test_estimators_support_dataframes(estimator, with_names, moscow_euclidean):
     """All estimators should fit and predict data stored as dataframes."""
     estimator = estimator()
     num_features = moscow_euclidean.X.shape[1]
-    feature_names = [f"col_{i}" for i in range(num_features)]
+    feature_names = [f"col_{i}" for i in range(num_features)] if with_names else None
 
     X_df = pd.DataFrame(moscow_euclidean.X, columns=feature_names)
     y_df = pd.DataFrame(moscow_euclidean.y)
 
     estimator.fit(X_df, y_df)
     estimator.predict(X_df)
-    assert_array_equal(estimator.feature_names_in_, feature_names)
+
+    assert_array_equal(getattr(estimator, "feature_names_in_", None), feature_names)
 
 
+@pytest.mark.parametrize("fit_names", [True, False])
 @pytest.mark.parametrize("estimator", get_kneighbor_estimator_classes())
-def test_estimators_warn_for_missing_features(estimator, moscow_euclidean):
+def test_estimators_warn_for_missing_features(estimator, fit_names, moscow_euclidean):
     """All estimators should warn when fitting and predicting feature names mismatch."""
     estimator = estimator()
     num_features = moscow_euclidean.X.shape[1]
@@ -95,15 +98,16 @@ def test_estimators_warn_for_missing_features(estimator, moscow_euclidean):
     y = moscow_euclidean.y
     X_df = pd.DataFrame(X, columns=feature_names)
 
-    # Fit without feature names, predict with feature names
-    with pytest.warns(UserWarning, match="fitted without feature names"):
-        estimator.fit(X, y)
-        estimator.predict(X_df)
+    if fit_names:
+        msg = "fitted with feature names"
+        fit_X, predict_X = X_df, X
+    else:
+        msg = "fitted without feature names"
+        fit_X, predict_X = X, X_df
 
-    # Fit with feature names, predict without feature names
-    with pytest.warns(UserWarning, match="fitted with feature names"):
-        estimator.fit(X_df, y)
-        estimator.predict(X)
+    with pytest.warns(UserWarning, match=msg):
+        estimator.fit(fit_X, y)
+        estimator.predict(predict_X)
 
 
 @pytest.mark.parametrize("output_mode", ["default", "pandas"])
