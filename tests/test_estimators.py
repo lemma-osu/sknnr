@@ -82,6 +82,7 @@ def test_estimators_support_dataframe_indexes(estimator, moscow_euclidean):
     estimator.fit(X_df, moscow_euclidean.y)
     assert_array_equal(estimator.dataframe_index_in_, moscow_euclidean.ids)
 
+    # Run k=1 so that each record in X_df returns itself as the neighbor
     idx = estimator.kneighbors(X_df, return_distance=False, return_dataframe_index=True)
     assert_array_equal(idx.ravel(), moscow_euclidean.ids)
 
