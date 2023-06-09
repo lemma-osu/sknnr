@@ -20,14 +20,12 @@ def test_moscow_raw(moscow_raw):
     )
     clf = RawKNNRegressor(n_neighbors=5).fit(X_train, y_train)
 
-    dist, nn = clf.kneighbors()
+    dist, _ = clf.kneighbors()
 
-    # assert_array_equal(nn, moscow_raw.ref_neighbors)
     assert_array_almost_equal(dist, moscow_raw.ref_distances, decimal=3)
 
-    dist, nn = clf.kneighbors(X_test)
+    dist, _ = clf.kneighbors(X_test)
 
-    # assert_array_equal(nn, moscow_raw.trg_neighbors)
     assert_array_almost_equal(dist, moscow_raw.trg_distances, decimal=3)
 
     prd = clf.predict(X_test)
@@ -44,14 +42,12 @@ def test_moscow_euclidean(moscow_euclidean):
     )
     clf = EuclideanKNNRegressor(n_neighbors=5).fit(X_train, y_train)
 
-    dist, nn = clf.kneighbors()
+    dist, _ = clf.kneighbors()
 
-    # assert_array_equal(nn, moscow_euclidean.ref_neighbors)
     assert_array_almost_equal(dist, moscow_euclidean.ref_distances, decimal=3)
 
-    dist, nn = clf.kneighbors(X_test)
+    dist, _ = clf.kneighbors(X_test)
 
-    # assert_array_equal(nn, moscow_euclidean.trg_neighbors)
     assert_array_almost_equal(dist, moscow_euclidean.trg_distances, decimal=3)
 
     prd = clf.predict(X_test)
@@ -70,14 +66,12 @@ def test_moscow_mahalanobis(moscow_mahalanobis):
     )
     clf = MahalanobisKNNRegressor(n_neighbors=5).fit(X_train, y_train)
 
-    dist, nn = clf.kneighbors()
+    dist, _ = clf.kneighbors()
 
-    # assert_array_equal(nn, moscow_mahalanobis.ref_neighbors)
     assert_array_almost_equal(dist, moscow_mahalanobis.ref_distances, decimal=3)
 
-    dist, nn = clf.kneighbors(X_test)
+    dist, _ = clf.kneighbors(X_test)
 
-    # assert_array_equal(nn, moscow_mahalanobis.trg_neighbors)
     assert_array_almost_equal(dist, moscow_mahalanobis.trg_distances, decimal=3)
 
     prd = clf.predict(X_test)
@@ -98,14 +92,12 @@ def test_moscow_msn(moscow_msn):
     )
     clf = MSNRegressor(n_neighbors=5).fit(X_train, y_train, y_fit=y_train)
 
-    dist, nn = clf.kneighbors()
+    dist, _ = clf.kneighbors()
 
-    # assert_array_equal(nn, moscow_msn.ref_neighbors)
     assert_array_almost_equal(dist, moscow_msn.ref_distances, decimal=3)
 
-    dist, nn = clf.kneighbors(X_test)
+    dist, _ = clf.kneighbors(X_test)
 
-    # assert_array_equal(nn, moscow_msn.trg_neighbors)
     assert_array_almost_equal(dist, moscow_msn.trg_distances, decimal=3)
 
     prd = clf.predict(X_test)
@@ -122,14 +114,12 @@ def test_moscow_gnn(moscow_gnn):
     )
     clf = GNNRegressor(n_neighbors=5).fit(X_train, y_train, y_fit=y_train)
 
-    dist, nn = clf.kneighbors()
+    dist, _ = clf.kneighbors()
 
-    # assert_array_equal(nn, moscow_gnn.ref_neighbors)
     assert_array_almost_equal(dist, moscow_gnn.ref_distances, decimal=3)
 
-    dist, nn = clf.kneighbors(X_test)
+    dist, _ = clf.kneighbors(X_test)
 
-    # assert_array_equal(nn, moscow_gnn.trg_neighbors)
     assert_array_almost_equal(dist, moscow_gnn.trg_distances, decimal=3)
 
     prd = clf.predict(X_test)

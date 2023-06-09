@@ -1,8 +1,12 @@
-from ._base import IDNeighborsRegressor, TransformedKNeighborsMixin
+from sklearn.neighbors import KNeighborsRegressor
+
+from ._base import KNeighborsDFIndexCrosswalkMixin, TransformedKNeighborsMixin
 from .transformers import CCorATransformer
 
 
-class MSNRegressor(IDNeighborsRegressor, TransformedKNeighborsMixin):
+class MSNRegressor(
+    KNeighborsDFIndexCrosswalkMixin, TransformedKNeighborsMixin, KNeighborsRegressor
+):
     def fit(self, X, y, y_fit=None):
         y_fit = y_fit if y_fit is not None else y
         self.transform_ = CCorATransformer().fit(X, y=y_fit)

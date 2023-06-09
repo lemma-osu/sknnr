@@ -16,12 +16,12 @@ from sknnr import (
     MSNRegressor,
     RawKNNRegressor,
 )
-from sknnr._base import IDNeighborsRegressor
+from sknnr._base import KNeighborsDFIndexCrosswalkMixin
 
 
-def get_kneighbor_estimator_classes() -> List[Type[IDNeighborsRegressor]]:
+def get_kneighbor_estimator_classes() -> List[Type[KNeighborsDFIndexCrosswalkMixin]]:
     """
-    Return classes of all supported IDNeighborsRegressor estimators.
+    Return classes of all supported KNeighborsDFIndexCrosswalkMixin estimators.
     """
     return [
         RawKNNRegressor,
@@ -32,9 +32,9 @@ def get_kneighbor_estimator_classes() -> List[Type[IDNeighborsRegressor]]:
     ]
 
 
-def get_kneighbor_estimator_instances() -> List[IDNeighborsRegressor]:
+def get_kneighbor_estimator_instances() -> List[KNeighborsDFIndexCrosswalkMixin]:
     """
-    Return instances of all supported IDNeighborsRegressor estimators.
+    Return instances of all supported KNeighborsDFIndexCrosswalkMixin estimators.
     """
     return [cls() for cls in get_kneighbor_estimator_classes()]
 
@@ -67,6 +67,23 @@ def test_estimators_support_continuous_multioutput(estimator, moscow_euclidean):
     estimator = estimator()
     estimator.fit(moscow_euclidean.X, moscow_euclidean.y)
     estimator.predict(moscow_euclidean.X)
+
+
+@pytest.mark.parametrize("estimator", get_kneighbor_estimator_classes())
+def test_estimators_support_dataframe_indexes(estimator, moscow_euclidean):
+    """All estimators should store and return dataframe indexes."""
+    estimator = estimator(n_neighbors=1)
+    X_df = pd.DataFrame(moscow_euclidean.X, index=moscow_euclidean.ids)
+
+    estimator.fit(moscow_euclidean.X, moscow_euclidean.y)
+    with pytest.raises(NotFittedError, match="fitted with a dataframe"):
+        estimator.kneighbors(X_df, return_distance=False, return_dataframe_index=True)
+
+    estimator.fit(X_df, moscow_euclidean.y)
+    assert_array_equal(estimator.dataframe_index_in_, moscow_euclidean.ids)
+
+    idx = estimator.kneighbors(X_df, return_distance=False, return_dataframe_index=True)
+    assert_array_equal(idx.ravel(), moscow_euclidean.ids)
 
 
 @pytest.mark.parametrize("with_names", [True, False])
