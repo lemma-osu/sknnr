@@ -1,5 +1,3 @@
-from typing import List, Type
-
 import pandas as pd
 import pytest
 from numpy.testing import assert_array_equal
@@ -16,12 +14,11 @@ from sknnr import (
     MSNRegressor,
     RawKNNRegressor,
 )
-from sknnr._base import KNeighborsDFIndexCrosswalkMixin
 
 
-def get_kneighbor_estimator_classes() -> List[Type[KNeighborsDFIndexCrosswalkMixin]]:
+def get_kneighbor_estimator_classes():
     """
-    Return classes of all supported KNeighborsDFIndexCrosswalkMixin estimators.
+    Return classes of all KNeighborRegressor-derived estimators.
     """
     return [
         RawKNNRegressor,
@@ -32,17 +29,10 @@ def get_kneighbor_estimator_classes() -> List[Type[KNeighborsDFIndexCrosswalkMix
     ]
 
 
-def get_kneighbor_estimator_instances() -> List[KNeighborsDFIndexCrosswalkMixin]:
-    """
-    Return instances of all supported KNeighborsDFIndexCrosswalkMixin estimators.
-    """
-    return [cls() for cls in get_kneighbor_estimator_classes()]
-
-
 # Note: This will run all the sklearn estimator checks. It's going to take quite a bit
 # of work to get these all passing, and it's possible we just won't be able to do it
 # while maintaining all the features we need.
-# @parametrize_with_checks(get_kneighbor_estimator_instances())
+# @parametrize_with_checks([cls() for cls in get_kneighbor_estimator_classes()])
 # def test_sklearn_compatibile_estimators(estimator, check):
 #     check(estimator)
 
