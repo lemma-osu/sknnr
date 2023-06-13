@@ -140,7 +140,7 @@ def load_moscow_stjoes(
     if as_frame:
         moscow_stjoes = _dataset_as_frame(moscow_stjoes)
 
-    return moscow_stjoes.data, moscow_stjoes.target if return_X_y else moscow_stjoes
+    return (moscow_stjoes.data, moscow_stjoes.target) if return_X_y else moscow_stjoes
 
 
 def _import_pandas():
