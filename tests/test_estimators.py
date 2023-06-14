@@ -15,43 +15,38 @@ from sknnr import (
     RawKNNRegressor,
 )
 
-
-def get_kneighbor_estimator_classes():
-    """
-    Return classes of all KNeighborRegressor-derived estimators.
-    """
-    return [
-        RawKNNRegressor,
-        EuclideanKNNRegressor,
-        MahalanobisKNNRegressor,
-        MSNRegressor,
-        GNNRegressor,
-    ]
+TEST_ESTIMATORS = [
+    RawKNNRegressor,
+    EuclideanKNNRegressor,
+    MahalanobisKNNRegressor,
+    MSNRegressor,
+    GNNRegressor,
+]
 
 
 # Note: This will run all the sklearn estimator checks. It's going to take quite a bit
 # of work to get these all passing, and it's possible we just won't be able to do it
 # while maintaining all the features we need.
-# @parametrize_with_checks([cls() for cls in get_kneighbor_estimator_classes()])
+# @parametrize_with_checks([cls() for cls in TEST_ESTIMATORS])
 # def test_sklearn_compatibile_estimators(estimator, check):
 #     check(estimator)
 
 
-@pytest.mark.parametrize("estimator", get_kneighbor_estimator_classes())
+@pytest.mark.parametrize("estimator", TEST_ESTIMATORS)
 def test_estimators_raise_notfitted_kneighbors(estimator, moscow_euclidean):
     """Attempting to call kneighbors on an unfitted estimator should raise."""
     with pytest.raises(NotFittedError):
         estimator().kneighbors(moscow_euclidean.X)
 
 
-@pytest.mark.parametrize("estimator", get_kneighbor_estimator_classes())
+@pytest.mark.parametrize("estimator", TEST_ESTIMATORS)
 def test_estimators_raise_notfitted_predict(estimator, moscow_euclidean):
     """Attempting to call predict on an unfitted estimator should raise."""
     with pytest.raises(NotFittedError):
         estimator().predict(moscow_euclidean.X)
 
 
-@pytest.mark.parametrize("estimator", get_kneighbor_estimator_classes())
+@pytest.mark.parametrize("estimator", TEST_ESTIMATORS)
 def test_estimators_support_continuous_multioutput(estimator, moscow_euclidean):
     """All estimators should fit and predict continuous multioutput data."""
     estimator = estimator()
@@ -59,7 +54,7 @@ def test_estimators_support_continuous_multioutput(estimator, moscow_euclidean):
     estimator.predict(moscow_euclidean.X)
 
 
-@pytest.mark.parametrize("estimator", get_kneighbor_estimator_classes())
+@pytest.mark.parametrize("estimator", TEST_ESTIMATORS)
 def test_estimators_support_dataframe_indexes(estimator, moscow_euclidean):
     """All estimators should store and return dataframe indexes."""
     estimator = estimator(n_neighbors=1)
@@ -78,7 +73,7 @@ def test_estimators_support_dataframe_indexes(estimator, moscow_euclidean):
 
 
 @pytest.mark.parametrize("with_names", [True, False])
-@pytest.mark.parametrize("estimator", get_kneighbor_estimator_classes())
+@pytest.mark.parametrize("estimator", TEST_ESTIMATORS)
 def test_estimators_support_dataframes(estimator, with_names, moscow_euclidean):
     """All estimators should fit and predict data stored as dataframes."""
     estimator = estimator()
@@ -95,7 +90,7 @@ def test_estimators_support_dataframes(estimator, with_names, moscow_euclidean):
 
 
 @pytest.mark.parametrize("fit_names", [True, False])
-@pytest.mark.parametrize("estimator", get_kneighbor_estimator_classes())
+@pytest.mark.parametrize("estimator", TEST_ESTIMATORS)
 def test_estimators_warn_for_missing_features(estimator, fit_names, moscow_euclidean):
     """All estimators should warn when fitting and predicting feature names mismatch."""
     estimator = estimator()
@@ -120,7 +115,7 @@ def test_estimators_warn_for_missing_features(estimator, fit_names, moscow_eucli
 
 @pytest.mark.parametrize("output_mode", ["default", "pandas"])
 @pytest.mark.parametrize("x_type", ["array", "dataframe"])
-@pytest.mark.parametrize("estimator", get_kneighbor_estimator_classes())
+@pytest.mark.parametrize("estimator", TEST_ESTIMATORS)
 def test_estimator_output_type_consistency(
     output_mode, x_type, estimator, moscow_euclidean
 ):

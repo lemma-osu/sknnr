@@ -1,10 +1,7 @@
-from typing import List, Type
-
 import pandas as pd
 import pytest
 from numpy.testing import assert_array_equal
 from sklearn import set_config
-from sklearn.base import TransformerMixin
 from sklearn.preprocessing import StandardScaler
 from sklearn.utils.validation import NotFittedError
 
@@ -15,20 +12,15 @@ from sknnr.transformers import (
     StandardScalerWithDOF,
 )
 
-
-def get_transformer_classes() -> List[Type[TransformerMixin]]:
-    """
-    Return classes of all supported transformers.
-    """
-    return [
-        StandardScalerWithDOF,
-        MahalanobisTransformer,
-        CCATransformer,
-        CCorATransformer,
-    ]
+TEST_TRANSFORMERS = [
+    StandardScalerWithDOF,
+    MahalanobisTransformer,
+    CCATransformer,
+    CCorATransformer,
+]
 
 
-@pytest.mark.parametrize("transformer", get_transformer_classes())
+@pytest.mark.parametrize("transformer", TEST_TRANSFORMERS)
 def test_transformers_get_feature_names_out(transformer, moscow_euclidean):
     """Test that all transformers get the correct number of feature names out."""
     fit_transformer = transformer().fit(X=moscow_euclidean.X, y=moscow_euclidean.y)
@@ -41,7 +33,7 @@ def test_transformers_get_feature_names_out(transformer, moscow_euclidean):
 @pytest.mark.parametrize("config_type", ["global", "transformer"])
 @pytest.mark.parametrize("output_mode", ["default", "pandas"])
 @pytest.mark.parametrize("x_type", ["array", "dataframe"])
-@pytest.mark.parametrize("transformer", get_transformer_classes())
+@pytest.mark.parametrize("transformer", TEST_TRANSFORMERS)
 def test_transformer_output_type_consistency(
     config_type, output_mode, x_type, transformer, moscow_euclidean
 ):
@@ -69,7 +61,7 @@ def test_transformer_output_type_consistency(
 @pytest.mark.parametrize("config_type", ["global", "transformer"])
 @pytest.mark.parametrize("output_mode", ["default", "pandas"])
 @pytest.mark.parametrize("x_type", ["array", "dataframe"])
-@pytest.mark.parametrize("transformer", get_transformer_classes())
+@pytest.mark.parametrize("transformer", TEST_TRANSFORMERS)
 def test_transformer_feature_consistency(
     config_type, output_mode, x_type, transformer, moscow_euclidean
 ):
@@ -99,7 +91,7 @@ def test_transformer_feature_consistency(
         assert not hasattr(transformer.fit(x, y), "feature_names_in_")
 
 
-@pytest.mark.parametrize("transformer", get_transformer_classes())
+@pytest.mark.parametrize("transformer", TEST_TRANSFORMERS)
 def test_transformers_raise_notfitted_transform(transformer, moscow_euclidean):
     """Attempting to call transform on an unfitted transformer should raise."""
     with pytest.raises(NotFittedError):
