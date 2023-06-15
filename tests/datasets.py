@@ -26,9 +26,9 @@ class TestDataset:
 def load_moscow_stjoes_results(method: str, k: int = 5) -> TestDataset:
     """Load the Moscow Mountain / St. Joe's dataset results for port testing.
 
-    The dataset will always be in dataframe format, with a fixed 80% train/test split
-    applied. New attributes are added with results from yaImpute using the given method
-    and split.
+    The dataset will always be in dataframe format, with a fixed 80%/20% train/test
+    split applied. New attributes are added with results from yaImpute using the given
+    method and split.
     """
     X, y = load_moscow_stjoes(return_X_y=True, as_frame=True)
     X_train, X_test, y_train, y_test = train_test_split(
