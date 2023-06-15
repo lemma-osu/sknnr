@@ -1,4 +1,5 @@
 import numpy as np
+from numpy.typing import NDArray
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.utils.validation import check_is_fitted
 
@@ -11,7 +12,7 @@ class CCorATransformer(TransformerMixin, BaseEstimator):
     def _n_features_out(self):
         return self.ccora_.projector.shape[1]
 
-    def get_feature_names_out(self) -> np.ndarray:
+    def get_feature_names_out(self) -> NDArray:
         return np.asarray(
             [f"ccora{i}" for i in range(self._n_features_out)], dtype=object
         )
