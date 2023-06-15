@@ -8,9 +8,7 @@ from sknnr.datasets import load_moscow_stjoes
 
 
 @dataclass
-class TestDataset:
-    __test__ = False
-
+class KNNTestDataset:
     X_train: np.ndarray
     X_test: np.ndarray
     y_train: np.ndarray
@@ -23,7 +21,7 @@ class TestDataset:
     trg_predicted_unweighted: np.ndarray
 
 
-def load_moscow_stjoes_results(method: str, k: int = 5) -> TestDataset:
+def load_moscow_stjoes_results(method: str, k: int = 5) -> KNNTestDataset:
     """Load the Moscow Mountain / St. Joe's dataset results for port testing.
 
     The dataset will always be in dataframe format, with a fixed 80%/20% train/test
@@ -48,7 +46,7 @@ def load_moscow_stjoes_results(method: str, k: int = 5) -> TestDataset:
 
     cols = [f"K{i+1}" for i in range(k)]
 
-    return TestDataset(
+    return KNNTestDataset(
         X_train=X_train,
         X_test=X_test,
         y_train=y_train,
