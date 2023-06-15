@@ -17,7 +17,7 @@ DATA_MODULE = "sknnr.datasets.data"
 
 @dataclass
 class Dataset:
-    ids: Union[NDArray[np.int64], pd.DataFrame]
+    index: Union[NDArray[np.int64], pd.DataFrame]
     data: Union[NDArray[np.float64], pd.DataFrame]
     target: Union[NDArray[np.float64], pd.DataFrame]
     frame: Union[None, pd.DataFrame]
@@ -36,16 +36,16 @@ def _dataset_as_frame(dataset: Dataset) -> Dataset:
     pd = _import_pandas()
 
     data_df = pd.DataFrame(dataset.data, columns=dataset.feature_names).set_index(
-        dataset.ids
+        dataset.index
     )
     target_df = pd.DataFrame(dataset.target, columns=dataset.target_names).set_index(
-        dataset.ids
+        dataset.index
     )
 
-    frame = pd.concat([data_df, target_df], axis=1).set_index(dataset.ids)
+    frame = pd.concat([data_df, target_df], axis=1).set_index(dataset.index)
 
     return Dataset(
-        ids=dataset.ids,
+        index=dataset.index,
         data=data_df,
         target=target_df,
         frame=frame,
@@ -81,11 +81,11 @@ def _load_csv_data(
         headers = next(data_file)
         rows = list(iter(data_file))
 
-        ids = np.array([row[0] for row in rows], dtype=np.int64)
+        index = np.array([row[0] for row in rows], dtype=np.int64)
         data = np.array([row[1:] for row in rows], dtype=np.float64)
         data_names = headers[1:]
 
-    return ids, data, data_names
+    return index, data, data_names
 
 
 def load_moscow_stjoes(
@@ -104,7 +104,7 @@ def load_moscow_stjoes(
     as_frame : bool, default=False
         If True, the `data` and `target` attributes of the returned Dataset will be
         DataFrames instead of NumPy arrays. The `frame` attribute will also be added as
-        a DataFrame with the `ids` as an index. Pandas must be installed for this
+        a DataFrame with the dataset index. Pandas must be installed for this
         option.
 
     Returns
@@ -126,11 +126,11 @@ def load_moscow_stjoes(
     Rocky Mountain Research Station.
     https://www.fs.usda.gov/rds/archive/Catalog/RDS-2010-0012
     """
-    ids, data, feature_names = _load_csv_data(file_name="moscow_env.csv")
+    index, data, feature_names = _load_csv_data(file_name="moscow_env.csv")
     _, target, target_names = _load_csv_data(file_name="moscow_spp.csv")
 
     moscow_stjoes = Dataset(
-        ids=ids,
+        index=index,
         data=data,
         target=target,
         feature_names=feature_names,

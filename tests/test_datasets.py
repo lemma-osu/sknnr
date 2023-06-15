@@ -13,14 +13,14 @@ def test_load_moscow_stjoes():
     """Test that the dataset is loaded with correct shapes and dtypes."""
     moscow = load_moscow_stjoes()
 
-    assert moscow.ids.shape == (165,)
+    assert moscow.index.shape == (165,)
     assert moscow.data.shape == (165, 28)
     assert moscow.target.shape == (165, 35)
     assert len(moscow.feature_names) == 28
     assert len(moscow.target_names) == 35
     assert moscow.frame is None
 
-    assert moscow.ids.dtype == np.int64
+    assert moscow.index.dtype == np.int64
     assert moscow.data.dtype == np.float64
     assert moscow.target.dtype == np.float64
     assert isinstance(moscow.feature_names, list)
@@ -38,7 +38,7 @@ def test_load_moscow_stjoes_as_frame():
     assert moscow.data.shape == (165, 28)
     assert moscow.target.shape == (165, 35)
     assert moscow.frame.shape == (165, 28 + 35)
-    assert_array_equal(moscow.frame.index.values, moscow.ids)
+    assert_array_equal(moscow.frame.index.values, moscow.index)
 
 
 def test_load_moscow_stjoes_as_xy():
@@ -57,8 +57,8 @@ def test_load_moscow_stjoes_as_xy_as_frame():
     assert isinstance(y, pd.DataFrame)
     assert X.shape == (165, 28)
     assert y.shape == (165, 35)
-    assert_array_equal(X.index.values, data.ids)
-    assert_array_equal(y.index.values, data.ids)
+    assert_array_equal(X.index.values, data.index)
+    assert_array_equal(y.index.values, data.index)
 
 
 def test_asframe_raises_without_pandas():
