@@ -2,6 +2,7 @@ from dataclasses import dataclass
 
 import numpy as np
 import pandas as pd
+from numpy.typing import NDArray
 from sklearn.model_selection import train_test_split
 
 from sknnr.datasets import load_moscow_stjoes
@@ -9,16 +10,16 @@ from sknnr.datasets import load_moscow_stjoes
 
 @dataclass
 class KNNTestDataset:
-    X_train: np.ndarray
-    X_test: np.ndarray
-    y_train: np.ndarray
-    y_test: np.ndarray
-    ref_distances: np.ndarray
-    ref_neighbors: np.ndarray
-    trg_distances: np.ndarray
-    trg_neighbors: np.ndarray
-    trg_predicted_weighted: np.ndarray
-    trg_predicted_unweighted: np.ndarray
+    X_train: NDArray[np.float64]
+    X_test: NDArray[np.float64]
+    y_train: NDArray[np.float64]
+    y_test: NDArray[np.float64]
+    ref_distances: NDArray[np.float64]
+    ref_neighbors: NDArray[np.float64]
+    trg_distances: NDArray[np.float64]
+    trg_neighbors: NDArray[np.float64]
+    trg_predicted_weighted: NDArray[np.float64]
+    trg_predicted_unweighted: NDArray[np.float64]
 
 
 def load_moscow_stjoes_results(method: str, k: int = 5) -> KNNTestDataset:

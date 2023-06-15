@@ -2,20 +2,21 @@ import math
 from dataclasses import dataclass
 
 import numpy as np
+from numpy.typing import NDArray
 
 
-def zero_sum_rows(arr: np.ndarray) -> np.ndarray:
+def zero_sum_rows(arr: NDArray) -> NDArray:
     return arr.sum(axis=1) <= 0.0
 
 
-def zero_sum_columns(arr: np.ndarray) -> np.ndarray:
+def zero_sum_columns(arr: NDArray) -> NDArray:
     return arr.sum(axis=0) <= 0.0
 
 
 # Corresponds to vegan function "initCA" in ordConstrained.R
 @dataclass
 class InitCA:
-    Y_: np.ndarray
+    Y_: NDArray
     method: str = "CA"
 
     @property

@@ -1,4 +1,4 @@
-import numpy as np
+from numpy.typing import NDArray
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.utils.validation import check_is_fitted
 
@@ -27,7 +27,7 @@ class TransformedKNeighborsMixin(KNeighborsRegressor):
         """
         return
 
-    def _apply_transform(self, X) -> np.ndarray:
+    def _apply_transform(self, X) -> NDArray:
         """Apply the stored transform to the input data."""
         check_is_fitted(self, "transform_")
         self.transform_._validate_data(X, reset=False)
