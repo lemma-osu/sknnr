@@ -6,6 +6,9 @@ from numpy.typing import NDArray
 from sklearn.model_selection import train_test_split
 
 from sknnr.datasets import load_moscow_stjoes
+from sknnr.datasets._base import _open_text
+
+TEST_DATA_MODULE = "tests.data"
 
 
 @dataclass
@@ -34,15 +37,15 @@ def load_moscow_stjoes_results(method: str, k: int = 5) -> KNNTestDataset:
         X, y, train_size=0.8, shuffle=False
     )
 
-    ref_distances = pd.read_csv(f"./tests/data/{method}_moscow_ref_distances_k{k}.csv")
-    ref_neighbors = pd.read_csv(f"./tests/data/{method}_moscow_ref_neighbors_k{k}.csv")
-    trg_distances = pd.read_csv(f"./tests/data/{method}_moscow_trg_distances_k{k}.csv")
-    trg_neighbors = pd.read_csv(f"./tests/data/{method}_moscow_trg_neighbors_k{k}.csv")
-    trg_predicted_weighted = pd.read_csv(
-        f"./tests/data/{method}_moscow_trg_predicted_weighted_k{k}.csv"
+    ref_distances = _load_test_data(f"{method}_moscow_ref_distances_k{k}.csv")
+    ref_neighbors = _load_test_data(f"{method}_moscow_ref_neighbors_k{k}.csv")
+    trg_distances = _load_test_data(f"{method}_moscow_trg_distances_k{k}.csv")
+    trg_neighbors = _load_test_data(f"{method}_moscow_trg_neighbors_k{k}.csv")
+    trg_predicted_weighted = _load_test_data(
+        f"{method}_moscow_trg_predicted_weighted_k{k}.csv"
     )
-    trg_predicted_unweighted = pd.read_csv(
-        f"./tests/data/{method}_moscow_trg_predicted_unweighted_k{k}.csv"
+    trg_predicted_unweighted = _load_test_data(
+        f"{method}_moscow_trg_predicted_unweighted_k{k}.csv"
     )
 
     cols = [f"K{i+1}" for i in range(k)]
@@ -59,3 +62,9 @@ def load_moscow_stjoes_results(method: str, k: int = 5) -> KNNTestDataset:
         trg_predicted_weighted=trg_predicted_weighted.iloc[:, 1:].values,
         trg_predicted_unweighted=trg_predicted_unweighted.iloc[:, 1:].values,
     )
+
+
+def _load_test_data(filename: str) -> pd.DataFrame:
+    """Load a test dataset from the tests/data directory."""
+    with _open_text(TEST_DATA_MODULE, filename) as fh:
+        return pd.read_csv(fh)
