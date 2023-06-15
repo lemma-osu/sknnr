@@ -1,5 +1,5 @@
 import pytest
-from numpy.testing import assert_array_almost_equal
+from numpy.testing import assert_array_almost_equal, assert_array_equal
 
 from sknnr import (
     EuclideanKNNRegressor,
@@ -34,12 +34,12 @@ def test_kneighbors(result):
 
     est = estimator(n_neighbors=5).fit(dataset.X_train, dataset.y_train)
 
-    dist, nn = est.kneighbors()
-    # assert_array_equal(nn, dataset.ref_neighbors)
+    dist, nn = est.kneighbors(return_dataframe_index=True)
+    assert_array_equal(nn, dataset.ref_neighbors)
     assert_array_almost_equal(dist, dataset.ref_distances, decimal=3)
 
-    dist, nn = est.kneighbors(dataset.X_test)
-    # assert_array_equal(nn, dataset.trg_neighbors)
+    dist, nn = est.kneighbors(dataset.X_test, return_dataframe_index=True)
+    assert_array_equal(nn, dataset.trg_neighbors)
     assert_array_almost_equal(dist, dataset.trg_distances, decimal=3)
 
 

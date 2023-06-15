@@ -1,5 +1,3 @@
-from typing import List, Type
-
 import pytest
 from numpy.testing import assert_array_equal
 from sklearn import set_config
@@ -15,39 +13,26 @@ from sknnr import (
     MSNRegressor,
     RawKNNRegressor,
 )
-from sknnr._base import IDNeighborsRegressor
 from sknnr.datasets import load_moscow_stjoes
 
-
-def get_kneighbor_estimator_classes() -> List[Type[IDNeighborsRegressor]]:
-    """
-    Return classes of all supported IDNeighborsRegressor estimators.
-    """
-    return [
-        RawKNNRegressor,
-        EuclideanKNNRegressor,
-        MahalanobisKNNRegressor,
-        MSNRegressor,
-        GNNRegressor,
-    ]
-
-
-def get_kneighbor_estimator_instances() -> List[IDNeighborsRegressor]:
-    """
-    Return instances of all supported IDNeighborsRegressor estimators.
-    """
-    return [cls() for cls in get_kneighbor_estimator_classes()]
+TEST_ESTIMATORS = [
+    RawKNNRegressor,
+    EuclideanKNNRegressor,
+    MahalanobisKNNRegressor,
+    MSNRegressor,
+    GNNRegressor,
+]
 
 
 # Note: This will run all the sklearn estimator checks. It's going to take quite a bit
 # of work to get these all passing, and it's possible we just won't be able to do it
 # while maintaining all the features we need.
-# @parametrize_with_checks(get_kneighbor_estimator_instances())
+# @parametrize_with_checks([cls() for cls in TEST_ESTIMATORS])
 # def test_sklearn_compatibile_estimators(estimator, check):
 #     check(estimator)
 
 
-@pytest.mark.parametrize("estimator", get_kneighbor_estimator_classes())
+@pytest.mark.parametrize("estimator", TEST_ESTIMATORS)
 def test_estimators_raise_notfitted_kneighbors(estimator):
     """Attempting to call kneighbors on an unfitted estimator should raise."""
     X, y = load_moscow_stjoes(return_X_y=True)
@@ -55,7 +40,7 @@ def test_estimators_raise_notfitted_kneighbors(estimator):
         estimator().kneighbors(X)
 
 
-@pytest.mark.parametrize("estimator", get_kneighbor_estimator_classes())
+@pytest.mark.parametrize("estimator", TEST_ESTIMATORS)
 def test_estimators_raise_notfitted_predict(estimator):
     """Attempting to call predict on an unfitted estimator should raise."""
     X, y = load_moscow_stjoes(return_X_y=True)
@@ -63,7 +48,7 @@ def test_estimators_raise_notfitted_predict(estimator):
         estimator().predict(X)
 
 
-@pytest.mark.parametrize("estimator", get_kneighbor_estimator_classes())
+@pytest.mark.parametrize("estimator", TEST_ESTIMATORS)
 def test_estimators_support_continuous_multioutput(estimator):
     """All estimators should fit and predict continuous multioutput data."""
     X, y = load_moscow_stjoes(return_X_y=True)
@@ -72,8 +57,27 @@ def test_estimators_support_continuous_multioutput(estimator):
     estimator.predict(X)
 
 
+@pytest.mark.parametrize("estimator", TEST_ESTIMATORS)
+def test_estimators_support_dataframe_indexes(estimator):
+    """All estimators should store and return dataframe indexes."""
+    estimator = estimator(n_neighbors=1)
+    moscow = load_moscow_stjoes()
+    X_df, _ = load_moscow_stjoes(as_frame=True, return_X_y=True)
+
+    estimator.fit(moscow.data, moscow.target)
+    with pytest.raises(NotFittedError, match="fitted with a dataframe"):
+        estimator.kneighbors(return_dataframe_index=True)
+
+    estimator.fit(X_df, moscow.target)
+    assert_array_equal(estimator.dataframe_index_in_, moscow.index)
+
+    # Run k=1 so that each record in X_df returns itself as the neighbor
+    idx = estimator.kneighbors(X_df, return_distance=False, return_dataframe_index=True)
+    assert_array_equal(idx.ravel(), moscow.index)
+
+
 @pytest.mark.parametrize("with_names", [True, False])
-@pytest.mark.parametrize("estimator", get_kneighbor_estimator_classes())
+@pytest.mark.parametrize("estimator", TEST_ESTIMATORS)
 def test_estimators_support_dataframes(estimator, with_names):
     """All estimators should fit and predict data stored as dataframes."""
     X, y = load_moscow_stjoes(return_X_y=True, as_frame=True)
@@ -84,7 +88,7 @@ def test_estimators_support_dataframes(estimator, with_names):
 
 
 @pytest.mark.parametrize("fit_names", [True, False])
-@pytest.mark.parametrize("estimator", get_kneighbor_estimator_classes())
+@pytest.mark.parametrize("estimator", TEST_ESTIMATORS)
 def test_estimators_warn_for_missing_features(estimator, fit_names):
     """All estimators should warn when fitting and predicting feature names mismatch."""
     estimator = estimator()
@@ -105,7 +109,7 @@ def test_estimators_warn_for_missing_features(estimator, fit_names):
 
 @pytest.mark.parametrize("output_mode", ["default", "pandas"])
 @pytest.mark.parametrize("x_type", ["array", "dataframe"])
-@pytest.mark.parametrize("estimator", get_kneighbor_estimator_classes())
+@pytest.mark.parametrize("estimator", TEST_ESTIMATORS)
 def test_estimator_output_type_consistency(output_mode, x_type, estimator):
     """Test that output types are consistent with an sklearn estimator."""
     X, y = load_moscow_stjoes(return_X_y=True, as_frame=x_type == "dataframe")

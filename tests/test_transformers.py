@@ -1,9 +1,6 @@
-from typing import List, Type
-
 import pytest
 from numpy.testing import assert_array_equal
 from sklearn import set_config
-from sklearn.base import TransformerMixin
 from sklearn.preprocessing import StandardScaler
 from sklearn.utils.validation import NotFittedError
 
@@ -15,20 +12,15 @@ from sknnr.transformers import (
     StandardScalerWithDOF,
 )
 
-
-def get_transformer_classes() -> List[Type[TransformerMixin]]:
-    """
-    Return classes of all supported transformers.
-    """
-    return [
-        StandardScalerWithDOF,
-        MahalanobisTransformer,
-        CCATransformer,
-        CCorATransformer,
-    ]
+TEST_TRANSFORMERS = [
+    StandardScalerWithDOF,
+    MahalanobisTransformer,
+    CCATransformer,
+    CCorATransformer,
+]
 
 
-@pytest.mark.parametrize("transformer", get_transformer_classes())
+@pytest.mark.parametrize("transformer", TEST_TRANSFORMERS)
 def test_transformers_get_feature_names_out(transformer):
     """Test that all transformers get the correct number of feature names out."""
     X, y = load_moscow_stjoes(return_X_y=True)
@@ -42,7 +34,7 @@ def test_transformers_get_feature_names_out(transformer):
 @pytest.mark.parametrize("config_type", ["global", "transformer"])
 @pytest.mark.parametrize("output_mode", ["default", "pandas"])
 @pytest.mark.parametrize("x_type", ["array", "dataframe"])
-@pytest.mark.parametrize("transformer", get_transformer_classes())
+@pytest.mark.parametrize("transformer", TEST_TRANSFORMERS)
 def test_transformer_output_type_consistency(
     config_type, output_mode, x_type, transformer
 ):
@@ -68,7 +60,7 @@ def test_transformer_output_type_consistency(
 @pytest.mark.parametrize("config_type", ["global", "transformer"])
 @pytest.mark.parametrize("output_mode", ["default", "pandas"])
 @pytest.mark.parametrize("x_type", ["array", "dataframe"])
-@pytest.mark.parametrize("transformer", get_transformer_classes())
+@pytest.mark.parametrize("transformer", TEST_TRANSFORMERS)
 def test_transformer_feature_consistency(config_type, output_mode, x_type, transformer):
     """Test that feature names are consistent with an sklearn transformer."""
     X, y = load_moscow_stjoes(return_X_y=True, as_frame=x_type == "dataframe")
@@ -91,7 +83,7 @@ def test_transformer_feature_consistency(config_type, output_mode, x_type, trans
         assert not hasattr(transformer.fit(X, y), "feature_names_in_")
 
 
-@pytest.mark.parametrize("transformer", get_transformer_classes())
+@pytest.mark.parametrize("transformer", TEST_TRANSFORMERS)
 def test_transformers_raise_notfitted_transform(transformer):
     """Attempting to call transform on an unfitted transformer should raise."""
     X, y = load_moscow_stjoes(return_X_y=True)
