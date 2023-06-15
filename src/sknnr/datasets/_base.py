@@ -17,10 +17,10 @@ DATA_MODULE = "sknnr.datasets.data"
 
 @dataclass
 class Dataset:
-    ids: Union[NDArray[np.int64], "pd.DataFrame"]
-    data: Union[NDArray[np.float64], "pd.DataFrame"]
-    target: Union[NDArray[np.float64], "pd.DataFrame"]
-    frame: Union[None, "pd.DataFrame"]
+    ids: Union[NDArray[np.int64], pd.DataFrame]
+    data: Union[NDArray[np.float64], pd.DataFrame]
+    target: Union[NDArray[np.float64], pd.DataFrame]
+    frame: Union[None, pd.DataFrame]
     feature_names: list[str]
     target_names: list[str]
 
