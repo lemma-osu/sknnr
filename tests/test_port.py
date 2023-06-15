@@ -1,5 +1,5 @@
-from numpy.testing import assert_array_almost_equal
-from sklearn.model_selection import train_test_split
+import pytest
+from numpy.testing import assert_array_almost_equal, assert_array_equal
 
 from sknnr import (
     EuclideanKNNRegressor,
@@ -9,122 +9,56 @@ from sknnr import (
     RawKNNRegressor,
 )
 
+from .datasets import load_moscow_stjoes_results
+
+ESTIMATOR_RESULTS = {
+    "raw": RawKNNRegressor,
+    "euclidean": EuclideanKNNRegressor,
+    "mahalanobis": MahalanobisKNNRegressor,
+    "gnn": GNNRegressor,
+    "msn": MSNRegressor,
+}
+
 
 def yaimpute_weights(d):
     return 1.0 / (1.0 + d)
 
 
-def test_moscow_raw(moscow_raw):
-    X_train, X_test, y_train, _ = train_test_split(
-        moscow_raw.X, moscow_raw.y, train_size=0.8, shuffle=False
-    )
-    clf = RawKNNRegressor(n_neighbors=5).fit(X_train, y_train)
+@pytest.mark.parametrize(
+    "result", ESTIMATOR_RESULTS.items(), ids=ESTIMATOR_RESULTS.keys()
+)
+def test_kneighbors(result):
+    """Test that the ported estimators identify the correct neighbors and distances."""
+    method, estimator = result
+    dataset = load_moscow_stjoes_results(method=method)
 
-    dist, _ = clf.kneighbors()
+    est = estimator(n_neighbors=5).fit(dataset.X_train, dataset.y_train)
 
-    assert_array_almost_equal(dist, moscow_raw.ref_distances, decimal=3)
+    dist, nn = est.kneighbors(return_dataframe_index=True)
+    assert_array_equal(nn, dataset.ref_neighbors)
+    assert_array_almost_equal(dist, dataset.ref_distances, decimal=3)
 
-    dist, _ = clf.kneighbors(X_test)
-
-    assert_array_almost_equal(dist, moscow_raw.trg_distances, decimal=3)
-
-    prd = clf.predict(X_test)
-    assert_array_almost_equal(prd, moscow_raw.trg_predicted_unweighted, decimal=3)
-
-    clf = RawKNNRegressor(n_neighbors=5, weights=yaimpute_weights).fit(X_train, y_train)
-    prd = clf.predict(X_test)
-    assert_array_almost_equal(prd, moscow_raw.trg_predicted_weighted, decimal=3)
+    dist, nn = est.kneighbors(dataset.X_test, return_dataframe_index=True)
+    assert_array_equal(nn, dataset.trg_neighbors)
+    assert_array_almost_equal(dist, dataset.trg_distances, decimal=3)
 
 
-def test_moscow_euclidean(moscow_euclidean):
-    X_train, X_test, y_train, _ = train_test_split(
-        moscow_euclidean.X, moscow_euclidean.y, train_size=0.8, shuffle=False
-    )
-    clf = EuclideanKNNRegressor(n_neighbors=5).fit(X_train, y_train)
+@pytest.mark.parametrize(
+    "result", ESTIMATOR_RESULTS.items(), ids=ESTIMATOR_RESULTS.keys()
+)
+@pytest.mark.parametrize("weighted", [False, True], ids=["unweighted", "weighted"])
+def test_predict(result, weighted):
+    """Test that the ported estimators predict the correct values."""
+    method, estimator = result
+    dataset = load_moscow_stjoes_results(method=method)
 
-    dist, _ = clf.kneighbors()
-
-    assert_array_almost_equal(dist, moscow_euclidean.ref_distances, decimal=3)
-
-    dist, _ = clf.kneighbors(X_test)
-
-    assert_array_almost_equal(dist, moscow_euclidean.trg_distances, decimal=3)
-
-    prd = clf.predict(X_test)
-    assert_array_almost_equal(prd, moscow_euclidean.trg_predicted_unweighted, decimal=3)
-
-    clf = EuclideanKNNRegressor(n_neighbors=5, weights=yaimpute_weights).fit(
-        X_train, y_train
-    )
-    prd = clf.predict(X_test)
-    assert_array_almost_equal(prd, moscow_euclidean.trg_predicted_weighted, decimal=3)
-
-
-def test_moscow_mahalanobis(moscow_mahalanobis):
-    X_train, X_test, y_train, _ = train_test_split(
-        moscow_mahalanobis.X, moscow_mahalanobis.y, train_size=0.8, shuffle=False
-    )
-    clf = MahalanobisKNNRegressor(n_neighbors=5).fit(X_train, y_train)
-
-    dist, _ = clf.kneighbors()
-
-    assert_array_almost_equal(dist, moscow_mahalanobis.ref_distances, decimal=3)
-
-    dist, _ = clf.kneighbors(X_test)
-
-    assert_array_almost_equal(dist, moscow_mahalanobis.trg_distances, decimal=3)
-
-    prd = clf.predict(X_test)
-    assert_array_almost_equal(
-        prd, moscow_mahalanobis.trg_predicted_unweighted, decimal=3
+    weights = yaimpute_weights if weighted else None
+    trg_predicted = (
+        dataset.trg_predicted_weighted if weighted else dataset.trg_predicted_unweighted
     )
 
-    clf = MahalanobisKNNRegressor(n_neighbors=5, weights=yaimpute_weights).fit(
-        X_train, y_train
+    est = estimator(n_neighbors=5, weights=weights).fit(
+        dataset.X_train, dataset.y_train
     )
-    prd = clf.predict(X_test)
-    assert_array_almost_equal(prd, moscow_mahalanobis.trg_predicted_weighted, decimal=3)
-
-
-def test_moscow_msn(moscow_msn):
-    X_train, X_test, y_train, _ = train_test_split(
-        moscow_msn.X, moscow_msn.y, train_size=0.8, shuffle=False
-    )
-    clf = MSNRegressor(n_neighbors=5).fit(X_train, y_train, y_fit=y_train)
-
-    dist, _ = clf.kneighbors()
-
-    assert_array_almost_equal(dist, moscow_msn.ref_distances, decimal=3)
-
-    dist, _ = clf.kneighbors(X_test)
-
-    assert_array_almost_equal(dist, moscow_msn.trg_distances, decimal=3)
-
-    prd = clf.predict(X_test)
-    assert_array_almost_equal(prd, moscow_msn.trg_predicted_unweighted, decimal=3)
-
-    clf = MSNRegressor(n_neighbors=5, weights=yaimpute_weights).fit(X_train, y_train)
-    prd = clf.predict(X_test)
-    assert_array_almost_equal(prd, moscow_msn.trg_predicted_weighted, decimal=3)
-
-
-def test_moscow_gnn(moscow_gnn):
-    X_train, X_test, y_train, _ = train_test_split(
-        moscow_gnn.X, moscow_gnn.y, train_size=0.8, shuffle=False
-    )
-    clf = GNNRegressor(n_neighbors=5).fit(X_train, y_train, y_fit=y_train)
-
-    dist, _ = clf.kneighbors()
-
-    assert_array_almost_equal(dist, moscow_gnn.ref_distances, decimal=3)
-
-    dist, _ = clf.kneighbors(X_test)
-
-    assert_array_almost_equal(dist, moscow_gnn.trg_distances, decimal=3)
-
-    prd = clf.predict(X_test)
-    assert_array_almost_equal(prd, moscow_gnn.trg_predicted_unweighted, decimal=3)
-
-    clf = GNNRegressor(n_neighbors=5, weights=yaimpute_weights).fit(X_train, y_train)
-    prd = clf.predict(X_test)
-    assert_array_almost_equal(prd, moscow_gnn.trg_predicted_weighted, decimal=3)
+    prd = est.predict(dataset.X_test)
+    assert_array_almost_equal(prd, trg_predicted, decimal=3)

@@ -1,4 +1,3 @@
-import pandas as pd
 import pytest
 from numpy.testing import assert_array_equal
 from sklearn import set_config
@@ -14,6 +13,7 @@ from sknnr import (
     MSNRegressor,
     RawKNNRegressor,
 )
+from sknnr.datasets import load_moscow_stjoes
 
 TEST_ESTIMATORS = [
     RawKNNRegressor,
@@ -33,73 +33,67 @@ TEST_ESTIMATORS = [
 
 
 @pytest.mark.parametrize("estimator", TEST_ESTIMATORS)
-def test_estimators_raise_notfitted_kneighbors(estimator, moscow_euclidean):
+def test_estimators_raise_notfitted_kneighbors(estimator):
     """Attempting to call kneighbors on an unfitted estimator should raise."""
+    X, y = load_moscow_stjoes(return_X_y=True)
     with pytest.raises(NotFittedError):
-        estimator().kneighbors(moscow_euclidean.X)
+        estimator().kneighbors(X)
 
 
 @pytest.mark.parametrize("estimator", TEST_ESTIMATORS)
-def test_estimators_raise_notfitted_predict(estimator, moscow_euclidean):
+def test_estimators_raise_notfitted_predict(estimator):
     """Attempting to call predict on an unfitted estimator should raise."""
+    X, y = load_moscow_stjoes(return_X_y=True)
     with pytest.raises(NotFittedError):
-        estimator().predict(moscow_euclidean.X)
+        estimator().predict(X)
 
 
 @pytest.mark.parametrize("estimator", TEST_ESTIMATORS)
-def test_estimators_support_continuous_multioutput(estimator, moscow_euclidean):
+def test_estimators_support_continuous_multioutput(estimator):
     """All estimators should fit and predict continuous multioutput data."""
+    X, y = load_moscow_stjoes(return_X_y=True)
     estimator = estimator()
-    estimator.fit(moscow_euclidean.X, moscow_euclidean.y)
-    estimator.predict(moscow_euclidean.X)
+    estimator.fit(X, y)
+    estimator.predict(X)
 
 
 @pytest.mark.parametrize("estimator", TEST_ESTIMATORS)
-def test_estimators_support_dataframe_indexes(estimator, moscow_euclidean):
+def test_estimators_support_dataframe_indexes(estimator):
     """All estimators should store and return dataframe indexes."""
     estimator = estimator(n_neighbors=1)
-    X_df = pd.DataFrame(moscow_euclidean.X, index=moscow_euclidean.ids)
+    moscow = load_moscow_stjoes()
+    X_df, _ = load_moscow_stjoes(as_frame=True, return_X_y=True)
 
-    estimator.fit(moscow_euclidean.X, moscow_euclidean.y)
+    estimator.fit(moscow.data, moscow.target)
     with pytest.raises(NotFittedError, match="fitted with a dataframe"):
-        estimator.kneighbors(X_df, return_distance=False, return_dataframe_index=True)
+        estimator.kneighbors(return_dataframe_index=True)
 
-    estimator.fit(X_df, moscow_euclidean.y)
-    assert_array_equal(estimator.dataframe_index_in_, moscow_euclidean.ids)
+    estimator.fit(X_df, moscow.target)
+    assert_array_equal(estimator.dataframe_index_in_, moscow.index)
 
     # Run k=1 so that each record in X_df returns itself as the neighbor
     idx = estimator.kneighbors(X_df, return_distance=False, return_dataframe_index=True)
-    assert_array_equal(idx.ravel(), moscow_euclidean.ids)
+    assert_array_equal(idx.ravel(), moscow.index)
 
 
 @pytest.mark.parametrize("with_names", [True, False])
 @pytest.mark.parametrize("estimator", TEST_ESTIMATORS)
-def test_estimators_support_dataframes(estimator, with_names, moscow_euclidean):
+def test_estimators_support_dataframes(estimator, with_names):
     """All estimators should fit and predict data stored as dataframes."""
-    estimator = estimator()
-    num_features = moscow_euclidean.X.shape[1]
-    feature_names = [f"col_{i}" for i in range(num_features)] if with_names else None
+    X, y = load_moscow_stjoes(return_X_y=True, as_frame=True)
+    estimator = estimator().fit(X, y)
+    estimator.predict(X)
 
-    X_df = pd.DataFrame(moscow_euclidean.X, columns=feature_names)
-    y_df = pd.DataFrame(moscow_euclidean.y)
-
-    estimator.fit(X_df, y_df)
-    estimator.predict(X_df)
-
-    assert_array_equal(getattr(estimator, "feature_names_in_", None), feature_names)
+    assert_array_equal(getattr(estimator, "feature_names_in_", None), X.columns)
 
 
 @pytest.mark.parametrize("fit_names", [True, False])
 @pytest.mark.parametrize("estimator", TEST_ESTIMATORS)
-def test_estimators_warn_for_missing_features(estimator, fit_names, moscow_euclidean):
+def test_estimators_warn_for_missing_features(estimator, fit_names):
     """All estimators should warn when fitting and predicting feature names mismatch."""
     estimator = estimator()
-    num_features = moscow_euclidean.X.shape[1]
-    feature_names = [f"col_{i}" for i in range(num_features)]
-
-    X = moscow_euclidean.X
-    y = moscow_euclidean.y
-    X_df = pd.DataFrame(X, columns=feature_names)
+    X, y = load_moscow_stjoes(return_X_y=True)
+    X_df, _ = load_moscow_stjoes(return_X_y=True, as_frame=True)
 
     if fit_names:
         msg = "fitted with feature names"
@@ -116,21 +110,16 @@ def test_estimators_warn_for_missing_features(estimator, fit_names, moscow_eucli
 @pytest.mark.parametrize("output_mode", ["default", "pandas"])
 @pytest.mark.parametrize("x_type", ["array", "dataframe"])
 @pytest.mark.parametrize("estimator", TEST_ESTIMATORS)
-def test_estimator_output_type_consistency(
-    output_mode, x_type, estimator, moscow_euclidean
-):
+def test_estimator_output_type_consistency(output_mode, x_type, estimator):
     """Test that output types are consistent with an sklearn estimator."""
-    X, y = moscow_euclidean.X, moscow_euclidean.y
-    X_df = pd.DataFrame(X, columns=[f"col_{i}" for i in range(X.shape[1])])
-    x = X if x_type == "array" else X_df
-
+    X, y = load_moscow_stjoes(return_X_y=True, as_frame=x_type == "dataframe")
     estimator = estimator()
     ref_estimator = KNeighborsRegressor()
 
     # Transformer config should not affect estimator output
     set_config(transform_output=output_mode)
 
-    sknnr_type = type(estimator.fit(x, y).predict(x))
-    ref_type = type(ref_estimator.fit(x, y).predict(x))
+    sknnr_type = type(estimator.fit(X, y).predict(X))
+    ref_type = type(ref_estimator.fit(X, y).predict(X))
 
     assert sknnr_type is ref_type  # noqa: E721
