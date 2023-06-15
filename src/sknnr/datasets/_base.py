@@ -100,11 +100,12 @@ def load_moscow_stjoes(
     Parameters
     ----------
     return_X_y : bool, default=False
-        If true, return the data and target as NumPy arrays instead of a Dataset.
+        If True, return the data and target as NumPy arrays instead of a Dataset.
     as_frame : bool, default=False
-        If true, the `data` and `target` attributes of the returned Dataset will be
-        DataFrames instead of NumPy arrays. The `frame` attribute will also added as a
-        DataFrame with the `ids` as an index. Pandas must be installed for this option.
+        If True, the `data` and `target` attributes of the returned Dataset will be
+        DataFrames instead of NumPy arrays. The `frame` attribute will also be added as
+        a DataFrame with the `ids` as an index. Pandas must be installed for this
+        option.
 
     Returns
     -------
