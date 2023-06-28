@@ -2,8 +2,7 @@ import pytest
 from numpy.testing import assert_array_equal
 from sklearn import set_config
 from sklearn.neighbors import KNeighborsRegressor
-
-# from sklearn.utils.estimator_checks import parametrize_with_checks
+from sklearn.utils.estimator_checks import parametrize_with_checks
 from sklearn.utils.validation import NotFittedError
 
 from sknnr import (
@@ -24,12 +23,9 @@ TEST_ESTIMATORS = [
 ]
 
 
-# Note: This will run all the sklearn estimator checks. It's going to take quite a bit
-# of work to get these all passing, and it's possible we just won't be able to do it
-# while maintaining all the features we need.
-# @parametrize_with_checks([cls() for cls in TEST_ESTIMATORS])
-# def test_sklearn_compatibile_estimators(estimator, check):
-#     check(estimator)
+@parametrize_with_checks([cls() for cls in TEST_ESTIMATORS])
+def test_sklearn_compatibile_estimators(estimator, check):
+    check(estimator)
 
 
 @pytest.mark.parametrize("estimator", TEST_ESTIMATORS)

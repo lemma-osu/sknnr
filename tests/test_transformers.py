@@ -2,6 +2,7 @@ import pytest
 from numpy.testing import assert_array_equal
 from sklearn import set_config
 from sklearn.preprocessing import StandardScaler
+from sklearn.utils.estimator_checks import parametrize_with_checks
 from sklearn.utils.validation import NotFittedError
 
 from sknnr.datasets import load_moscow_stjoes
@@ -18,6 +19,11 @@ TEST_TRANSFORMERS = [
     CCATransformer,
     CCorATransformer,
 ]
+
+
+@parametrize_with_checks([cls() for cls in TEST_TRANSFORMERS])
+def test_sklearn_compatibile_transformers(estimator, check):
+    check(estimator)
 
 
 @pytest.mark.parametrize("transformer", TEST_TRANSFORMERS)
