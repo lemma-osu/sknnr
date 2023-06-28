@@ -89,3 +89,23 @@ def test_transformers_raise_notfitted_transform(transformer):
     X, y = load_moscow_stjoes(return_X_y=True)
     with pytest.raises(NotFittedError):
         transformer().transform(X)
+
+
+@pytest.mark.parametrize("transformer", [CCATransformer, CCorATransformer])
+@pytest.mark.parametrize("n_components", [None, 0, 5])
+def test_transformers_n_components(transformer, n_components):
+    """Test that n_components is handled correctly."""
+    X, y = load_moscow_stjoes(return_X_y=True)
+    t = transformer(n_components=n_components).fit(X, y)
+    assert t._n_features_out == t.n_components_
+    assert t.transform(X).shape[1] == t.n_components_
+
+
+@pytest.mark.parametrize("transformer", [CCATransformer, CCorATransformer])
+@pytest.mark.parametrize("n_components", [-1, 1000])
+def test_transformers_raise_out_of_range_n_components(transformer, n_components):
+    """Attempting to call fit with an out of range value of n_components
+    should raise."""
+    X, y = load_moscow_stjoes(return_X_y=True)
+    with pytest.raises(ValueError):
+        transformer(n_components=n_components).fit(X, y)

@@ -174,6 +174,10 @@ class ConstrainedOrdination:
         return self.transform.Y - self.Y_fit
 
     @property
+    def max_components(self):
+        return self.rank
+
+    @property
     def eigenvalues(self):
         return self.S
 
@@ -186,6 +190,14 @@ class ConstrainedOrdination:
         Q, R = self.qr
         right = Q.T @ self._U
         return np.linalg.lstsq(R, right, rcond=None)[0]
+
+    def projector(self, n_components=None):
+        if n_components is None:
+            return self.coefficients @ self.axis_weights
+        return (
+            self.coefficients[:, :n_components]
+            @ self.axis_weights[:n_components, :n_components]
+        )
 
     @property
     def species_scores(self):

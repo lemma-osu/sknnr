@@ -129,5 +129,12 @@ class CCorA:
         return max(1, len(self.f_test) - sum(self.f_test > self.P_VAL))
 
     @property
-    def projector(self):
-        return self.x_coef[:, : self.n_vec] @ np.diag(self.cancorr[: self.n_vec])
+    def max_components(self):
+        return self.n_vec
+
+    def projector(self, n_components=None):
+        if n_components is None:
+            return self.x_coef[:, : self.max_components] @ np.diag(
+                self.cancorr[: self.max_components]
+            )
+        return self.x_coef[:, :n_components] @ np.diag(self.cancorr[:n_components])

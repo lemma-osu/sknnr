@@ -3,13 +3,14 @@ from numpy.typing import NDArray
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.utils.validation import FLOAT_DTYPES, check_is_fitted
 
+from . import ComponentReducerMixin
 from ._cca import CCA
 
 
-class CCATransformer(TransformerMixin, BaseEstimator):
+class CCATransformer(ComponentReducerMixin, TransformerMixin, BaseEstimator):
     @property
     def _n_features_out(self):
-        return self.cca_.eigenvalues.shape[0]
+        return self.n_components_
 
     def get_feature_names_out(self) -> NDArray:
         return np.asarray(
@@ -23,15 +24,14 @@ class CCATransformer(TransformerMixin, BaseEstimator):
 
         X, y = np.asarray(X), np.asarray(y)
         self.cca_ = CCA(X, y)
+        self.set_components(self.cca_)
+        self.projector_ = self.cca_.projector(n_components=self.n_components_)
         return self
 
     def transform(self, X, y=None):
         check_is_fitted(self)
         X = np.asarray(X)
-
-        X = X - self.cca_.env_center
-        X = X @ self.cca_.coefficients
-        return X @ self.cca_.axis_weights
+        return (X - self.cca_.env_center) @ self.projector_
 
     def fit_transform(self, X, y):
         return self.fit(X, y).transform(X)
