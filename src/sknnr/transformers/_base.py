@@ -1,4 +1,4 @@
-from typing import Union
+from __future__ import annotations
 
 import numpy as np
 from numpy.typing import NDArray
@@ -8,7 +8,7 @@ from sklearn.utils.validation import check_is_fitted
 from ._cca import CCA
 from ._ccora import CCorA
 
-Ordination = Union[CCA, CCorA]
+Ordination = CCA | CCorA
 
 
 class StandardScalerWithDOF(StandardScaler):
