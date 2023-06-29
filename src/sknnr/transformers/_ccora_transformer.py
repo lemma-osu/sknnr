@@ -1,5 +1,3 @@
-import numpy as np
-from numpy.typing import NDArray
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.utils.validation import check_is_fitted
 
@@ -8,11 +6,6 @@ from ._ccora import CCorA
 
 
 class CCorATransformer(ComponentReducerMixin, TransformerMixin, BaseEstimator):
-    def get_feature_names_out(self) -> NDArray:
-        return np.asarray(
-            [f"ccora{i}" for i in range(self.n_components_)], dtype=object
-        )
-
     def fit(self, X, y):
         self._validate_data(X, reset=True)
 

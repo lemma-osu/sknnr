@@ -1,5 +1,12 @@
 import numpy as np
+from numpy.typing import NDArray
 from sklearn.preprocessing import StandardScaler
+from sklearn.utils.validation import check_is_fitted
+
+from ._cca import CCA
+from ._ccora import CCorA
+
+Ordination = CCA | CCorA
 
 
 class StandardScalerWithDOF(StandardScaler):
@@ -18,8 +25,20 @@ class ComponentReducerMixin:
     Mixin for transformers that allow reduction of the number of components.
     """
 
+    ordination_: Ordination
+
     def __init__(self, n_components=None):
         self.n_components = n_components
+
+    def get_feature_names_out(self) -> NDArray:
+        check_is_fitted(self, "n_components_")
+        return np.asarray(
+            [
+                f"{self.ordination_.__class__.__name__.lower()}{i}"
+                for i in range(self.n_components_)
+            ],
+            dtype=object,
+        )
 
     def set_n_components(self):
         n_components = (

@@ -1,5 +1,4 @@
 import numpy as np
-from numpy.typing import NDArray
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.utils.validation import FLOAT_DTYPES, check_is_fitted
 
@@ -8,9 +7,6 @@ from ._cca import CCA
 
 
 class CCATransformer(ComponentReducerMixin, TransformerMixin, BaseEstimator):
-    def get_feature_names_out(self) -> NDArray:
-        return np.asarray([f"cca{i}" for i in range(self.n_components_)], dtype=object)
-
     def fit(self, X, y):
         self._validate_data(
             X, reset=True, dtype=FLOAT_DTYPES, force_all_finite="allow-nan"
