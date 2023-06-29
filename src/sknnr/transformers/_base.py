@@ -21,15 +21,15 @@ class ComponentReducerMixin:
     def __init__(self, n_components=None):
         self.n_components = n_components
 
-    def set_components(self, ordination_obj):
+    def set_n_components(self):
         n_components = (
             self.n_components
             if self.n_components is not None
-            else ordination_obj.max_components
+            else self.ordination_.max_components
         )
-        if not 0 <= n_components <= ordination_obj.max_components:
+        if not 0 <= n_components <= self.ordination_.max_components:
             raise ValueError(
                 f"n_components={n_components} must be between 0 and "
-                f"{ordination_obj.max_components}"
+                f"{self.ordination_.max_components}"
             )
         self.n_components_ = n_components

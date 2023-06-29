@@ -8,14 +8,8 @@ from ._cca import CCA
 
 
 class CCATransformer(ComponentReducerMixin, TransformerMixin, BaseEstimator):
-    @property
-    def _n_features_out(self):
-        return self.n_components_
-
     def get_feature_names_out(self) -> NDArray:
-        return np.asarray(
-            [f"cca{i}" for i in range(self._n_features_out)], dtype=object
-        )
+        return np.asarray([f"cca{i}" for i in range(self.n_components_)], dtype=object)
 
     def fit(self, X, y):
         self._validate_data(
@@ -23,15 +17,16 @@ class CCATransformer(ComponentReducerMixin, TransformerMixin, BaseEstimator):
         )
 
         X, y = np.asarray(X), np.asarray(y)
-        self.cca_ = CCA(X, y)
-        self.set_components(self.cca_)
-        self.projector_ = self.cca_.projector(n_components=self.n_components_)
+        self.ordination_ = CCA(X, y)
+        self.set_n_components()
         return self
 
     def transform(self, X, y=None):
         check_is_fitted(self)
         X = np.asarray(X)
-        return (X - self.cca_.env_center) @ self.projector_
+        return (X - self.ordination_.env_center) @ self.ordination_.projector(
+            n_components=self.n_components_
+        )
 
     def fit_transform(self, X, y):
         return self.fit(X, y).transform(X)

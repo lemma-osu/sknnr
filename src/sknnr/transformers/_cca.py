@@ -193,7 +193,7 @@ class ConstrainedOrdination:
 
     def projector(self, n_components=None):
         if n_components is None:
-            return self.coefficients @ self.axis_weights
+            n_components = self.max_components
         return (
             self.coefficients[:, :n_components]
             @ self.axis_weights[:n_components, :n_components]
