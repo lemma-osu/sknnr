@@ -99,7 +99,11 @@ def test_transformers_raise_notfitted_transform(transformer):
 @pytest.mark.parametrize("transformer", TEST_ORDINATION_TRANSFORMERS)
 @pytest.mark.parametrize("n_components", [None, 0, 5])
 def test_transformers_n_components(transformer, n_components):
-    """Test that n_components is handled correctly."""
+    """Test that n_components is handled correctly.
+
+    Note: The value 5 was chosen because it was one component less
+    than the minimum number of components across TEST_ORDINATION_TRANSFORMERS
+    and should work across transformers."""
     X, y = load_moscow_stjoes(return_X_y=True)
     t = transformer(n_components=n_components).fit(X, y)
     if n_components is not None:
