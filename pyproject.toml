@@ -53,3 +53,6 @@ coverage = "pytest --cov=src/sknnr {args}"
 
 [tool.pytest.ini_options]
 pythonpath = "src/"
+markers = [
+    "uncollect_if(*, func): function to uncollect tests from parametrization",
+]
