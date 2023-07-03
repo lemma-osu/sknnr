@@ -12,7 +12,8 @@ def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item
     removed = []
     kept = []
     for item in items:
-        if m := item.get_closest_marker("uncollect_if"):
+        m = item.get_closest_marker("uncollect_if")
+        if m:
             func = m.kwargs["func"]
             if func(**item.callspec.params):
                 removed.append(item)

@@ -37,7 +37,7 @@ include = [
 [tool.hatch.envs.default]
 dependencies = [
     "pre-commit",
-    "sourcery",
+    # "sourcery",
 ]
 
 [tool.hatch.envs.test]

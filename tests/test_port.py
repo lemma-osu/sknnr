@@ -40,7 +40,8 @@ def test_kneighbors(result, n_components):
     method, estimator = result
     dataset = load_moscow_stjoes_results(method=method, n_components=n_components)
 
-    hyperparams = dict(n_neighbors=5) | (
+    hyperparams = dict(n_neighbors=5)
+    hyperparams.update(
         {"n_components": n_components} if hasattr(estimator(), "n_components") else {}
     )
 
@@ -71,7 +72,8 @@ def test_predict(result, n_components, weighted):
         dataset.trg_predicted_weighted if weighted else dataset.trg_predicted_unweighted
     )
 
-    hyperparams = dict(n_neighbors=5, weights=weights) | (
+    hyperparams = dict(n_neighbors=5, weights=weights)
+    hyperparams.update(
         {"n_components": n_components} if hasattr(estimator(), "n_components") else {}
     )
     est = estimator(**hyperparams).fit(dataset.X_train, dataset.y_train)
