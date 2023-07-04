@@ -26,8 +26,7 @@ def yaimpute_weights(d):
 
 def estimator_does_not_support_n_components(result, n_components, **kwargs):
     _, estimator = result
-    if n_components is not None and not hasattr(estimator(), "n_components"):
-        return True
+    return n_components is not None and not hasattr(estimator(), "n_components")
 
 
 @pytest.mark.uncollect_if(func=estimator_does_not_support_n_components)
