@@ -37,7 +37,7 @@ include = [
 [tool.hatch.envs.default]
 dependencies = [
     "pre-commit",
-    "sourcery",
+    # "sourcery",
 ]
 
 [tool.hatch.envs.test]
@@ -53,3 +53,6 @@ coverage = "pytest --cov=src/sknnr {args}"
 
 [tool.pytest.ini_options]
 pythonpath = "src/"
+markers = [
+    "uncollect_if(*, func): function to uncollect tests from parametrization",
+]

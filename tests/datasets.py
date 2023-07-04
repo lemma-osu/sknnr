@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
 
 import numpy as np
@@ -25,7 +27,9 @@ class KNNTestDataset:
     trg_predicted_unweighted: NDArray[np.float64]
 
 
-def load_moscow_stjoes_results(method: str, k: int = 5) -> KNNTestDataset:
+def load_moscow_stjoes_results(
+    method: str, k: int = 5, n_components: int | None = None
+) -> KNNTestDataset:
     """Load the Moscow Mountain / St. Joe's dataset results for port testing.
 
     The dataset will always be in dataframe format, with a fixed 80%/20% train/test
@@ -37,15 +41,25 @@ def load_moscow_stjoes_results(method: str, k: int = 5) -> KNNTestDataset:
         X, y, train_size=0.8, shuffle=False
     )
 
-    ref_distances = _load_test_data(f"{method}_moscow_ref_distances_k{k}.csv")
-    ref_neighbors = _load_test_data(f"{method}_moscow_ref_neighbors_k{k}.csv")
-    trg_distances = _load_test_data(f"{method}_moscow_trg_distances_k{k}.csv")
-    trg_neighbors = _load_test_data(f"{method}_moscow_trg_neighbors_k{k}.csv")
+    n_components_str = f"_c{n_components}" if n_components is not None else ""
+
+    ref_distances = _load_test_data(
+        f"{method}_moscow_ref_distances_k{k}{n_components_str}.csv"
+    )
+    ref_neighbors = _load_test_data(
+        f"{method}_moscow_ref_neighbors_k{k}{n_components_str}.csv"
+    )
+    trg_distances = _load_test_data(
+        f"{method}_moscow_trg_distances_k{k}{n_components_str}.csv"
+    )
+    trg_neighbors = _load_test_data(
+        f"{method}_moscow_trg_neighbors_k{k}{n_components_str}.csv"
+    )
     trg_predicted_weighted = _load_test_data(
-        f"{method}_moscow_trg_predicted_weighted_k{k}.csv"
+        f"{method}_moscow_trg_predicted_weighted_k{k}{n_components_str}.csv"
     )
     trg_predicted_unweighted = _load_test_data(
-        f"{method}_moscow_trg_predicted_unweighted_k{k}.csv"
+        f"{method}_moscow_trg_predicted_unweighted_k{k}{n_components_str}.csv"
     )
 
     cols = [f"K{i+1}" for i in range(k)]
