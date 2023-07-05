@@ -4,8 +4,8 @@ from scipy.stats import f
 
 def ftest_cor(p, q, N, cor):
     """Direct port of yaImpute ftest_cor in yai
-    REFERENCE: https://github.com/jeffreyevans/yaImpute/blob/f06d1daf13cf461730c3da5f18f022c1074e9826/R/yai.R#L11-L42 # noqa: E501
-    """
+    REFERENCE: https://github.com/jeffreyevans/yaImpute/blob/f06d1daf13cf461730c3da5f18f022c1074e9826/R/yai.R#L11-L42
+    """  # noqa: E501
     s = min(p, q)
     k = np.arange(s) + 1
     L = np.array([np.prod(1 - np.square(cor[i:s])) for i in range(s)])
@@ -49,9 +49,9 @@ class CCorA:
 
     We were not able to use the statsmodels implementation directly as it detects
     collinear features and raises a `ValueError` which yaImpute allows to pass silently.
-    REFERENCE: https://github.com/statsmodels/statsmodels/blob/77cb066320391ffed4196a32491ddca28e8c9122/statsmodels/multivariate/cancorr.py#L17-L93 # noqa: E501
-    REFERENCE: https://github.com/jeffreyevans/yaImpute/blob/f06d1daf13cf461730c3da5f18f022c1074e9826/R/yai.R#L367-L371 # noqa: E501
-    """
+    REFERENCE: https://github.com/statsmodels/statsmodels/blob/77cb066320391ffed4196a32491ddca28e8c9122/statsmodels/multivariate/cancorr.py#L17-L93
+    REFERENCE: https://github.com/jeffreyevans/yaImpute/blob/f06d1daf13cf461730c3da5f18f022c1074e9826/R/yai.R#L367-L371
+    """  # noqa: E501
 
     TOLERANCE = 1e-8
     P_VAL = 0.05

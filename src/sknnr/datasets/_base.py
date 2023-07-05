@@ -4,7 +4,7 @@ import csv
 import sys
 from dataclasses import dataclass
 from importlib import resources
-from typing import TYPE_CHECKING, TextIO, Union
+from typing import TYPE_CHECKING, TextIO
 
 import numpy as np
 from numpy.typing import NDArray
@@ -17,10 +17,10 @@ DATA_MODULE = "sknnr.datasets.data"
 
 @dataclass
 class Dataset:
-    index: Union[NDArray[np.int64], pd.DataFrame]
-    data: Union[NDArray[np.float64], pd.DataFrame]
-    target: Union[NDArray[np.float64], pd.DataFrame]
-    frame: Union[None, pd.DataFrame]
+    index: NDArray[np.int64] | pd.DataFrame
+    data: NDArray[np.float64] | pd.DataFrame
+    target: NDArray[np.float64] | pd.DataFrame
+    frame: None | pd.DataFrame
     feature_names: list[str]
     target_names: list[str]
 
@@ -90,7 +90,7 @@ def _load_csv_data(
 
 def load_moscow_stjoes(
     return_X_y: bool = False, as_frame: bool = False
-) -> Union[tuple[NDArray[np.float64], NDArray[np.float64]], Dataset]:
+) -> tuple[NDArray[np.float64], NDArray[np.float64]] | Dataset:
     """Load the Moscow Mountain / St. Joe's dataset (Hudak 2010[^1]).
 
     The dataset contains 165 plots with environmental, LiDAR, and forest structure
