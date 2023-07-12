@@ -63,9 +63,10 @@ def test_load_moscow_stjoes_as_xy_as_frame():
 
 def test_asframe_raises_without_pandas():
     """Test that as_frame=True raises a helpful error if pandas is not installed."""
-    with mock.patch.dict(sys.modules, {"pandas": None}):
-        with pytest.raises(ImportError, match="pip install pandas"):
-            load_moscow_stjoes(as_frame=True)
+    with mock.patch.dict(sys.modules, {"pandas": None}), pytest.raises(
+        ImportError, match="pip install pandas"
+    ):
+        load_moscow_stjoes(as_frame=True)
 
 
 def test_dataset_repr():

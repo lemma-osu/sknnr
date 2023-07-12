@@ -40,9 +40,5 @@ jobs:
           python -m pip install --upgrade pip
           pip install hatch
 
-      # - name: Setup environment
-      #   run: |
-      #     hatch run sourcery login --token ${{ secrets.SOURCERY_TOKEN }}
-
-      - name: Set up pre-commit
+      - name: Run pre-commit hooks
         uses: pre-commit/action@v3.0.0
