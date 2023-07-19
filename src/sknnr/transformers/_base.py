@@ -25,6 +25,7 @@ class StandardScalerWithDOF(StandardScaler):
             dtype=FLOAT_DTYPES,
             force_all_finite="allow-nan",
             reset=False,
+            ensure_min_samples=self.ddof + 1,
         )
         scaler.scale_ = np.std(X, axis=0, ddof=self.ddof)
         return scaler
