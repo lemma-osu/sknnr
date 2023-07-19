@@ -7,7 +7,9 @@ from . import StandardScalerWithDOF
 
 class MahalanobisTransformer(OneToOneFeatureMixin, TransformerMixin, BaseEstimator):
     def fit(self, X, y=None):
-        self._validate_data(X, force_all_finite="allow-nan", reset=True)
+        self._validate_data(
+            X, force_all_finite="allow-nan", reset=True, ensure_min_features=2
+        )
 
         self.scaler_ = StandardScalerWithDOF(ddof=1).fit(X)
         covariance = np.cov(self.scaler_.transform(X), rowvar=False)
