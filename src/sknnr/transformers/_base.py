@@ -3,7 +3,7 @@ from typing import Union
 import numpy as np
 from numpy.typing import NDArray
 from sklearn.preprocessing import StandardScaler
-from sklearn.utils.validation import check_is_fitted
+from sklearn.utils.validation import FLOAT_DTYPES, check_is_fitted
 
 from ._cca import CCA
 from ._ccora import CCorA
@@ -17,6 +17,14 @@ class StandardScalerWithDOF(StandardScaler):
         self.ddof = ddof
 
     def fit(self, X, y=None, sample_weight=None):
+        X = self._validate_data(
+            X,
+            accept_sparse=("csr", "csc"),
+            dtype=FLOAT_DTYPES,
+            force_all_finite="allow-nan",
+            reset=True,
+        )
+
         scaler = super().fit(X, y, sample_weight)
         scaler.scale_ = np.std(np.asarray(X), axis=0, ddof=self.ddof)
         return scaler
