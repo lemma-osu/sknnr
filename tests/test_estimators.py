@@ -1,6 +1,6 @@
 import pytest
 from numpy.testing import assert_array_equal
-from sklearn import set_config
+from sklearn import config_context
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.utils.estimator_checks import parametrize_with_checks
 from sklearn.utils.validation import NotFittedError
@@ -113,9 +113,8 @@ def test_estimator_output_type_consistency(output_mode, x_type, estimator):
     ref_estimator = KNeighborsRegressor()
 
     # Transformer config should not affect estimator output
-    set_config(transform_output=output_mode)
-
-    sknnr_type = type(estimator.fit(X, y).predict(X))
-    ref_type = type(ref_estimator.fit(X, y).predict(X))
+    with config_context(transform_output=output_mode):
+        sknnr_type = type(estimator.fit(X, y).predict(X))
+        ref_type = type(ref_estimator.fit(X, y).predict(X))
 
     assert sknnr_type is ref_type  # noqa: E721
