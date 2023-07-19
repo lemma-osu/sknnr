@@ -27,7 +27,7 @@ TEST_ORDINATION_TRANSFORMERS = [
 
 
 @parametrize_with_checks([cls() for cls in TEST_TRANSFORMERS])
-def test_sklearn_compatibile_transformers(estimator, check):
+def test_sklearn_transformer_checks(estimator, check):
     check(estimator)
 
 
