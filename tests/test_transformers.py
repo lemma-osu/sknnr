@@ -20,6 +20,11 @@ TEST_TRANSFORMERS = [
     CCorATransformer,
 ]
 
+TEST_ORDINATION_TRANSFORMERS = [
+    CCATransformer,
+    CCorATransformer,
+]
+
 
 @parametrize_with_checks([cls() for cls in TEST_TRANSFORMERS])
 def test_sklearn_compatibile_transformers(estimator, check):
@@ -95,3 +100,30 @@ def test_transformers_raise_notfitted_transform(transformer):
     X, y = load_moscow_stjoes(return_X_y=True)
     with pytest.raises(NotFittedError):
         transformer().transform(X)
+
+
+@pytest.mark.parametrize("transformer", TEST_ORDINATION_TRANSFORMERS)
+@pytest.mark.parametrize("n_components", [None, 0, 5])
+def test_transformers_n_components(transformer, n_components):
+    """Test that n_components is handled correctly.
+
+    Note: The value 5 was chosen because it was one component less
+    than the minimum number of components across TEST_ORDINATION_TRANSFORMERS
+    and should work across transformers."""
+    X, y = load_moscow_stjoes(return_X_y=True)
+    t = transformer(n_components=n_components).fit(X, y)
+    if n_components is not None:
+        assert t.n_components_ == n_components
+    assert t.transform(X).shape[1] == t.n_components_
+
+
+@pytest.mark.parametrize("transformer", TEST_ORDINATION_TRANSFORMERS)
+@pytest.mark.parametrize("n_components", [-1, 1000])
+def test_transformers_raise_out_of_range_n_components(transformer, n_components):
+    """Attempting to call fit with an out of range value of n_components
+    should raise."""
+    X, y = load_moscow_stjoes(return_X_y=True)
+    with pytest.raises(
+        ValueError, match=r"n_components=-?\d+ must be between 0 and \d+"
+    ):
+        transformer(n_components=n_components).fit(X, y)

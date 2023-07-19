@@ -34,10 +34,10 @@ $ pre-commit run --all-files
 $ pre-commit install
 ```
 
-You can run pre-commit hooks separately and pass additional arguments to them. For example, to run `flake8` on a single file:
+You can run pre-commit hooks separately and pass additional arguments to them. For example, to run `black` on a single file:
 
 ```bash
-$ pre-commit run flake8 --files=src/sknnr/_base.py
+$ pre-commit run black --files=src/sknnr/_base.py
 ```
 
 ### Testing

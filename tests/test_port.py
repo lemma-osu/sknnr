@@ -24,15 +24,27 @@ def yaimpute_weights(d):
     return 1.0 / (1.0 + d)
 
 
+def estimator_does_not_support_n_components(result, n_components, **kwargs):
+    _, estimator = result
+    return n_components is not None and not hasattr(estimator(), "n_components")
+
+
+@pytest.mark.uncollect_if(func=estimator_does_not_support_n_components)
 @pytest.mark.parametrize(
     "result", ESTIMATOR_RESULTS.items(), ids=ESTIMATOR_RESULTS.keys()
 )
-def test_kneighbors(result):
+@pytest.mark.parametrize("n_components", [None, 3], ids=["full", "reduced"])
+def test_kneighbors(result, n_components):
     """Test that the ported estimators identify the correct neighbors and distances."""
     method, estimator = result
-    dataset = load_moscow_stjoes_results(method=method)
+    dataset = load_moscow_stjoes_results(method=method, n_components=n_components)
 
-    est = estimator(n_neighbors=5).fit(dataset.X_train, dataset.y_train)
+    hyperparams = dict(n_neighbors=5)
+    hyperparams.update(
+        {"n_components": n_components} if hasattr(estimator(), "n_components") else {}
+    )
+
+    est = estimator(**hyperparams).fit(dataset.X_train, dataset.y_train)
 
     dist, nn = est.kneighbors(return_dataframe_index=True)
     assert_array_equal(nn, dataset.ref_neighbors)
@@ -43,22 +55,26 @@ def test_kneighbors(result):
     assert_array_almost_equal(dist, dataset.trg_distances, decimal=3)
 
 
+@pytest.mark.uncollect_if(func=estimator_does_not_support_n_components)
 @pytest.mark.parametrize(
     "result", ESTIMATOR_RESULTS.items(), ids=ESTIMATOR_RESULTS.keys()
 )
+@pytest.mark.parametrize("n_components", [None, 3], ids=["full", "reduced"])
 @pytest.mark.parametrize("weighted", [False, True], ids=["unweighted", "weighted"])
-def test_predict(result, weighted):
+def test_predict(result, n_components, weighted):
     """Test that the ported estimators predict the correct values."""
     method, estimator = result
-    dataset = load_moscow_stjoes_results(method=method)
+    dataset = load_moscow_stjoes_results(method=method, n_components=n_components)
 
     weights = yaimpute_weights if weighted else None
     trg_predicted = (
         dataset.trg_predicted_weighted if weighted else dataset.trg_predicted_unweighted
     )
 
-    est = estimator(n_neighbors=5, weights=weights).fit(
-        dataset.X_train, dataset.y_train
+    hyperparams = dict(n_neighbors=5, weights=weights)
+    hyperparams.update(
+        {"n_components": n_components} if hasattr(estimator(), "n_components") else {}
     )
+    est = estimator(**hyperparams).fit(dataset.X_train, dataset.y_train)
     prd = est.predict(dataset.X_test)
     assert_array_almost_equal(prd, trg_predicted, decimal=3)

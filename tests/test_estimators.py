@@ -72,9 +72,8 @@ def test_estimators_support_dataframe_indexes(estimator):
     assert_array_equal(idx.ravel(), moscow.index)
 
 
-@pytest.mark.parametrize("with_names", [True, False])
 @pytest.mark.parametrize("estimator", TEST_ESTIMATORS)
-def test_estimators_support_dataframes(estimator, with_names):
+def test_estimators_support_dataframes(estimator):
     """All estimators should fit and predict data stored as dataframes."""
     X, y = load_moscow_stjoes(return_X_y=True, as_frame=True)
     estimator = estimator().fit(X, y)
