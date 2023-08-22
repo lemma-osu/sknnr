@@ -22,6 +22,7 @@ class CCorATransformer(ComponentReducerMixin, TransformerMixin, BaseEstimator):
 
     def transform(self, X, y=None):
         check_is_fitted(self)
+        self._validate_data(X, reset=False, force_all_finite=True)
         return self.scaler_.transform(X) @ self.ordination_.projector(
             n_components=self.n_components_
         )
