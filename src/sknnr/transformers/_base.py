@@ -16,12 +16,12 @@ class StandardScalerWithDOF(StandardScaler):
         super().__init__()
         self.ddof = ddof
 
-    def fit(self, X, y=None, sample_weight=None):
-        scaler = super().fit(X, y, sample_weight)
+    def fit(self, X, y=None):
+        scaler = super().fit(X, y)
 
         X = self._validate_data(
             X,
-            accept_sparse=("csr", "csc"),
+            accept_sparse=False,
             dtype=FLOAT_DTYPES,
             force_all_finite="allow-nan",
             reset=False,
