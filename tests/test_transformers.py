@@ -26,7 +26,6 @@ TEST_ORDINATION_TRANSFORMERS = [
 ]
 
 
-@pytest.mark.xfail(reason="Incrementally fixing.")
 @parametrize_with_checks([cls() for cls in TEST_TRANSFORMERS])
 def test_sklearn_transformer_checks(estimator, check):
     check(estimator)
