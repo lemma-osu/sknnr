@@ -23,7 +23,6 @@ TEST_ESTIMATORS = [
 ]
 
 
-@pytest.mark.xfail(reason="Incrementally fixing.")
 @pytest.mark.filterwarnings("ignore:divide by zero encountered")
 @parametrize_with_checks([cls() for cls in TEST_ESTIMATORS])
 def test_sklearn_estimator_checks(estimator, check):
