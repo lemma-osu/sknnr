@@ -47,12 +47,23 @@ class TransformedKNeighborsMixin:
     def feature_names_in_(self):
         return self.transform_.feature_names_in_
 
+    @property
+    def n_features_in_(self):
+        return self.transform_.n_features_in_
+
     def _check_feature_names(self, X, *, reset):
         """Override BaseEstimator._check_feature_names to prevent errors.
 
         This check would fail during fitting because `feature_names_in_` stores original
         names while X contains transformed names. We instead rely on the transformer to
         check feature names and warn or raise for mismatches.
+        """
+        return
+
+    def _check_n_features(self, X, *, reset):
+        """Override BaseEstimator._check_n_features to prevent errors.
+
+        See _check_feature_names.
         """
         return
 

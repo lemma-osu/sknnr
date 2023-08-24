@@ -1,7 +1,8 @@
 import pytest
 from numpy.testing import assert_array_equal
-from sklearn import set_config
+from sklearn import config_context
 from sklearn.preprocessing import StandardScaler
+from sklearn.utils.estimator_checks import parametrize_with_checks
 from sklearn.utils.validation import NotFittedError
 
 from sknnr.datasets import load_moscow_stjoes
@@ -23,6 +24,11 @@ TEST_ORDINATION_TRANSFORMERS = [
     CCATransformer,
     CCorATransformer,
 ]
+
+
+@parametrize_with_checks([cls() for cls in TEST_TRANSFORMERS])
+def test_sklearn_transformer_checks(estimator, check):
+    check(estimator)
 
 
 @pytest.mark.parametrize("transformer", TEST_TRANSFORMERS)
@@ -50,14 +56,15 @@ def test_transformer_output_type_consistency(
     ref_transformer = StandardScaler()
 
     if config_type == "global":
-        set_config(transform_output=output_mode)
-
+        global_config = {"transform_output": output_mode}
     else:
+        global_config = {}
         transformer.set_output(transform=output_mode)
         ref_transformer.set_output(transform=output_mode)
 
-    sknnr_type = type(transformer.fit_transform(X, y))
-    ref_type = type(ref_transformer.fit_transform(X, y))
+    with config_context(**global_config):
+        sknnr_type = type(transformer.fit_transform(X, y))
+        ref_type = type(ref_transformer.fit_transform(X, y))
 
     assert sknnr_type is ref_type  # noqa: E721
 
@@ -73,19 +80,20 @@ def test_transformer_feature_consistency(config_type, output_mode, x_type, trans
     ref_transformer = StandardScaler()
 
     if config_type == "global":
-        set_config(transform_output=output_mode)
-
+        global_config = {"transform_output": output_mode}
     else:
+        global_config = {}
         transformer.set_output(transform=output_mode)
         ref_transformer.set_output(transform=output_mode)
 
-    if hasattr(ref_transformer.fit(X, y), "feature_names_in_"):
-        assert_array_equal(
-            transformer.fit(X, y).feature_names_in_,
-            ref_transformer.fit(X, y).feature_names_in_,
-        )
-    else:
-        assert not hasattr(transformer.fit(X, y), "feature_names_in_")
+    with config_context(**global_config):
+        if hasattr(ref_transformer.fit(X, y), "feature_names_in_"):
+            assert_array_equal(
+                transformer.fit(X, y).feature_names_in_,
+                ref_transformer.fit(X, y).feature_names_in_,
+            )
+        else:
+            assert not hasattr(transformer.fit(X, y), "feature_names_in_")
 
 
 @pytest.mark.parametrize("transformer", TEST_TRANSFORMERS)
