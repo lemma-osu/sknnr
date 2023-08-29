@@ -88,14 +88,14 @@ def _load_csv_data(
     return index, data, data_names
 
 
-def _load_dataset_from_filenames(
+def _load_dataset_from_csv_filenames(
     *,
     data_filename: str,
     target_filename: str,
     return_X_y: bool = False,
     as_frame: bool = False,
 ) -> tuple[NDArray[np.float64], NDArray[np.float64]] | Dataset:
-    """Generic loader for datasets with separate data and target files.
+    """Load separate data and target CSV files into a dataset or paired NumPy arrays.
 
     Parameters
     ----------
@@ -116,6 +116,12 @@ def _load_dataset_from_filenames(
     Dataset or tuple of ndarray
         A Dataset object containing the data, target, and feature names. If return_X_y
         is True, return a tuple of data and target arrays instead.
+
+    Notes
+    -----
+    Both CSV files must be formatted with plot IDs in the first column and data values
+    in the remaining columns. The first row in each file must contain the column names.
+    The plot IDs in each file are expected to match and be in the same order.
     """
     index, data, feature_names = _load_csv_data(file_name=data_filename)
     _, target, target_names = _load_csv_data(file_name=target_filename)
@@ -173,7 +179,7 @@ def load_moscow_stjoes(
     Rocky Mountain Research Station.
     https://www.fs.usda.gov/rds/archive/Catalog/RDS-2010-0012
     """
-    return _load_dataset_from_filenames(
+    return _load_dataset_from_csv_filenames(
         data_filename="moscow_env.csv",
         target_filename="moscow_spp.csv",
         return_X_y=return_X_y,
@@ -216,7 +222,7 @@ def load_swo_ecoplot(
     ---------
     TBD
     """
-    return _load_dataset_from_filenames(
+    return _load_dataset_from_csv_filenames(
         data_filename="swo_ecoplot_env.csv",
         target_filename="swo_ecoplot_spp.csv",
         return_X_y=return_X_y,
