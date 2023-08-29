@@ -18,19 +18,19 @@ class DatasetConfiguration:
     n_features: int
 
 
-CONFIGURATIONS = [
-    DatasetConfiguration(
+CONFIGURATIONS = {
+    "moscow_stjoes": DatasetConfiguration(
         load_function=load_moscow_stjoes, n_samples=165, n_targets=35, n_features=28
     ),
-    DatasetConfiguration(
+    "swo_ecoplot": DatasetConfiguration(
         load_function=load_swo_ecoplot, n_samples=3005, n_targets=25, n_features=18
     ),
-]
-
-CONFIGURATION_IDS = ["moscow_stjoes", "swo_ecoplot"]
+}
 
 
-@pytest.mark.parametrize("configuration", CONFIGURATIONS, ids=CONFIGURATION_IDS)
+@pytest.mark.parametrize(
+    "configuration", CONFIGURATIONS.values(), ids=CONFIGURATIONS.keys()
+)
 def test_load_dataset(configuration: DatasetConfiguration):
     """Test that the dataset is loaded with correct shapes and dtypes."""
     dataset = configuration.load_function()
@@ -49,7 +49,9 @@ def test_load_dataset(configuration: DatasetConfiguration):
     assert isinstance(dataset.target_names, list)
 
 
-@pytest.mark.parametrize("configuration", CONFIGURATIONS, ids=CONFIGURATION_IDS)
+@pytest.mark.parametrize(
+    "configuration", CONFIGURATIONS.values(), ids=CONFIGURATIONS.keys()
+)
 def test_load_dataset_as_frame(configuration: DatasetConfiguration):
     """Test that the dataset is loaded as a dataframe."""
     dataset = configuration.load_function(as_frame=True)
@@ -67,7 +69,9 @@ def test_load_dataset_as_frame(configuration: DatasetConfiguration):
     assert_array_equal(dataset.frame.index.values, dataset.index)
 
 
-@pytest.mark.parametrize("configuration", CONFIGURATIONS, ids=CONFIGURATION_IDS)
+@pytest.mark.parametrize(
+    "configuration", CONFIGURATIONS.values(), ids=CONFIGURATIONS.keys()
+)
 def test_load_dataset_as_xy(configuration: DatasetConfiguration):
     """Test that the dataset is loaded as X y arrays."""
     X, y = configuration.load_function(return_X_y=True)
@@ -75,7 +79,9 @@ def test_load_dataset_as_xy(configuration: DatasetConfiguration):
     assert y.shape == (configuration.n_samples, configuration.n_targets)
 
 
-@pytest.mark.parametrize("configuration", CONFIGURATIONS, ids=CONFIGURATION_IDS)
+@pytest.mark.parametrize(
+    "configuration", CONFIGURATIONS.values(), ids=CONFIGURATIONS.keys()
+)
 def test_load_dataset_as_xy_as_frame(configuration: DatasetConfiguration):
     """Test that the dataset is loaded as X y dataframes."""
     X, y = configuration.load_function(return_X_y=True, as_frame=True)
@@ -89,7 +95,9 @@ def test_load_dataset_as_xy_as_frame(configuration: DatasetConfiguration):
     assert_array_equal(y.index.values, data.index)
 
 
-@pytest.mark.parametrize("configuration", CONFIGURATIONS, ids=CONFIGURATION_IDS)
+@pytest.mark.parametrize(
+    "configuration", CONFIGURATIONS.values(), ids=CONFIGURATIONS.keys()
+)
 def test_asframe_raises_without_pandas(configuration: DatasetConfiguration):
     """Test that as_frame=True raises a helpful error if pandas is not installed."""
     with mock.patch.dict(sys.modules, {"pandas": None}), pytest.raises(
@@ -98,7 +106,9 @@ def test_asframe_raises_without_pandas(configuration: DatasetConfiguration):
         configuration.load_function(as_frame=True)
 
 
-@pytest.mark.parametrize("configuration", CONFIGURATIONS, ids=CONFIGURATION_IDS)
+@pytest.mark.parametrize(
+    "configuration", CONFIGURATIONS.values(), ids=CONFIGURATIONS.keys()
+)
 def test_dataset_repr(configuration: DatasetConfiguration):
     dataset = configuration.load_function()
     assert (
