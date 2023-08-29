@@ -1,4 +1,5 @@
 import sys
+from dataclasses import dataclass
 from unittest import mock
 
 import numpy as np
@@ -6,69 +7,102 @@ import pandas as pd
 import pytest
 from numpy.testing import assert_array_equal
 
-from sknnr.datasets import load_moscow_stjoes
+from sknnr.datasets import load_moscow_stjoes, load_swo_ecoplot
 
 
-def test_load_moscow_stjoes():
+@dataclass
+class DatasetConfiguration:
+    load_function: callable
+    n_samples: int
+    n_targets: int
+    n_features: int
+
+
+CONFIGURATIONS = [
+    DatasetConfiguration(
+        load_function=load_moscow_stjoes, n_samples=165, n_targets=35, n_features=28
+    ),
+    DatasetConfiguration(
+        load_function=load_swo_ecoplot, n_samples=3005, n_targets=25, n_features=18
+    ),
+]
+
+CONFIGURATION_IDS = ["moscow_stjoes", "swo_ecoplot"]
+
+
+@pytest.mark.parametrize("configuration", CONFIGURATIONS, ids=CONFIGURATION_IDS)
+def test_load_dataset(configuration: DatasetConfiguration):
     """Test that the dataset is loaded with correct shapes and dtypes."""
-    moscow = load_moscow_stjoes()
+    dataset = configuration.load_function()
 
-    assert moscow.index.shape == (165,)
-    assert moscow.data.shape == (165, 28)
-    assert moscow.target.shape == (165, 35)
-    assert len(moscow.feature_names) == 28
-    assert len(moscow.target_names) == 35
-    assert moscow.frame is None
+    assert dataset.index.shape == (configuration.n_samples,)
+    assert dataset.data.shape == (configuration.n_samples, configuration.n_features)
+    assert dataset.target.shape == (configuration.n_samples, configuration.n_targets)
+    assert len(dataset.feature_names) == configuration.n_features
+    assert len(dataset.target_names) == configuration.n_targets
+    assert dataset.frame is None
 
-    assert moscow.index.dtype == np.int64
-    assert moscow.data.dtype == np.float64
-    assert moscow.target.dtype == np.float64
-    assert isinstance(moscow.feature_names, list)
-    assert isinstance(moscow.target_names, list)
+    assert dataset.index.dtype == np.int64
+    assert dataset.data.dtype == np.float64
+    assert dataset.target.dtype == np.float64
+    assert isinstance(dataset.feature_names, list)
+    assert isinstance(dataset.target_names, list)
 
 
-def test_load_moscow_stjoes_as_frame():
+@pytest.mark.parametrize("configuration", CONFIGURATIONS, ids=CONFIGURATION_IDS)
+def test_load_dataset_as_frame(configuration: DatasetConfiguration):
     """Test that the dataset is loaded as a dataframe."""
-    moscow = load_moscow_stjoes(as_frame=True)
+    dataset = configuration.load_function(as_frame=True)
 
-    assert isinstance(moscow.frame, pd.DataFrame)
-    assert isinstance(moscow.data, pd.DataFrame)
-    assert isinstance(moscow.target, pd.DataFrame)
+    assert isinstance(dataset.frame, pd.DataFrame)
+    assert isinstance(dataset.data, pd.DataFrame)
+    assert isinstance(dataset.target, pd.DataFrame)
 
-    assert moscow.data.shape == (165, 28)
-    assert moscow.target.shape == (165, 35)
-    assert moscow.frame.shape == (165, 28 + 35)
-    assert_array_equal(moscow.frame.index.values, moscow.index)
+    assert dataset.data.shape == (configuration.n_samples, configuration.n_features)
+    assert dataset.target.shape == (configuration.n_samples, configuration.n_targets)
+    assert dataset.frame.shape == (
+        configuration.n_samples,
+        configuration.n_features + configuration.n_targets,
+    )
+    assert_array_equal(dataset.frame.index.values, dataset.index)
 
 
-def test_load_moscow_stjoes_as_xy():
+@pytest.mark.parametrize("configuration", CONFIGURATIONS, ids=CONFIGURATION_IDS)
+def test_load_dataset_as_xy(configuration: DatasetConfiguration):
     """Test that the dataset is loaded as X y arrays."""
-    X, y = load_moscow_stjoes(return_X_y=True)
-    assert X.shape == (165, 28)
-    assert y.shape == (165, 35)
+    X, y = configuration.load_function(return_X_y=True)
+    assert X.shape == (configuration.n_samples, configuration.n_features)
+    assert y.shape == (configuration.n_samples, configuration.n_targets)
 
 
-def test_load_moscow_stjoes_as_xy_as_frame():
+@pytest.mark.parametrize("configuration", CONFIGURATIONS, ids=CONFIGURATION_IDS)
+def test_load_dataset_as_xy_as_frame(configuration: DatasetConfiguration):
     """Test that the dataset is loaded as X y dataframes."""
-    X, y = load_moscow_stjoes(return_X_y=True, as_frame=True)
-    data = load_moscow_stjoes()
+    X, y = configuration.load_function(return_X_y=True, as_frame=True)
+    data = configuration.load_function()
 
     assert isinstance(X, pd.DataFrame)
     assert isinstance(y, pd.DataFrame)
-    assert X.shape == (165, 28)
-    assert y.shape == (165, 35)
+    assert X.shape == (configuration.n_samples, configuration.n_features)
+    assert y.shape == (configuration.n_samples, configuration.n_targets)
     assert_array_equal(X.index.values, data.index)
     assert_array_equal(y.index.values, data.index)
 
 
-def test_asframe_raises_without_pandas():
+@pytest.mark.parametrize("configuration", CONFIGURATIONS, ids=CONFIGURATION_IDS)
+def test_asframe_raises_without_pandas(configuration: DatasetConfiguration):
     """Test that as_frame=True raises a helpful error if pandas is not installed."""
     with mock.patch.dict(sys.modules, {"pandas": None}), pytest.raises(
         ImportError, match="pip install pandas"
     ):
-        load_moscow_stjoes(as_frame=True)
+        configuration.load_function(as_frame=True)
 
 
-def test_dataset_repr():
-    moscow = load_moscow_stjoes()
-    assert repr(moscow) == "Dataset(n=165, features=28, targets=35)"
+@pytest.mark.parametrize("configuration", CONFIGURATIONS, ids=CONFIGURATION_IDS)
+def test_dataset_repr(configuration: DatasetConfiguration):
+    dataset = configuration.load_function()
+    assert (
+        repr(dataset)
+        == f"Dataset(n={configuration.n_samples}, features={configuration.n_features},"
+        f" targets={configuration.n_targets})"
+    )

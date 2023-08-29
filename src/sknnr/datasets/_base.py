@@ -88,6 +88,53 @@ def _load_csv_data(
     return index, data, data_names
 
 
+def _load_dataset_from_filenames(
+    *,
+    data_filename: str,
+    target_filename: str,
+    return_X_y: bool = False,
+    as_frame: bool = False,
+) -> tuple[NDArray[np.float64], NDArray[np.float64]] | Dataset:
+    """Generic loader for datasets with separate data and target files.
+
+    Parameters
+    ----------
+    data_filename: str, required
+        The filename of the data CSV file.
+    target_filename: str, required
+        The filename of the target CSV file.
+    return_X_y : bool, default=False
+        If True, return the data and target as NumPy arrays instead of a Dataset.
+    as_frame : bool, default=False
+        If True, the `data` and `target` attributes of the returned Dataset will be
+        DataFrames instead of NumPy arrays. The `frame` attribute will also be added as
+        a DataFrame with the dataset index. Pandas must be installed for this
+        option.
+
+    Returns
+    -------
+    Dataset or tuple of ndarray
+        A Dataset object containing the data, target, and feature names. If return_X_y
+        is True, return a tuple of data and target arrays instead.
+    """
+    index, data, feature_names = _load_csv_data(file_name=data_filename)
+    _, target, target_names = _load_csv_data(file_name=target_filename)
+
+    dataset = Dataset(
+        index=index,
+        data=data,
+        target=target,
+        feature_names=feature_names,
+        target_names=target_names,
+        frame=None,
+    )
+
+    if as_frame:
+        dataset = _dataset_as_frame(dataset)
+
+    return (dataset.data, dataset.target) if return_X_y else dataset
+
+
 def load_moscow_stjoes(
     return_X_y: bool = False, as_frame: bool = False
 ) -> tuple[NDArray[np.float64], NDArray[np.float64]] | Dataset:
@@ -126,22 +173,55 @@ def load_moscow_stjoes(
     Rocky Mountain Research Station.
     https://www.fs.usda.gov/rds/archive/Catalog/RDS-2010-0012
     """
-    index, data, feature_names = _load_csv_data(file_name="moscow_env.csv")
-    _, target, target_names = _load_csv_data(file_name="moscow_spp.csv")
-
-    moscow_stjoes = Dataset(
-        index=index,
-        data=data,
-        target=target,
-        feature_names=feature_names,
-        target_names=target_names,
-        frame=None,
+    return _load_dataset_from_filenames(
+        data_filename="moscow_env.csv",
+        target_filename="moscow_spp.csv",
+        return_X_y=return_X_y,
+        as_frame=as_frame,
     )
 
-    if as_frame:
-        moscow_stjoes = _dataset_as_frame(moscow_stjoes)
 
-    return (moscow_stjoes.data, moscow_stjoes.target) if return_X_y else moscow_stjoes
+def load_swo_ecoplot(
+    return_X_y: bool = False, as_frame: bool = False
+) -> tuple[NDArray[np.float64], NDArray[np.float64]] | Dataset:
+    """Load the southwest Oregon (SWO) R6 Ecoplot dataset (TBD).
+
+    The dataset contains 3,005 plots with environmental, Landsat, and forest cover
+    measurements. Ocular measurements of tree cover (COV) are categorized by
+    major tree species present in southwest Oregon.  All data were collected in 2000
+    and Landsat imagery processed through the CCDC algorithm was extracted for the
+    same year.
+
+    Parameters
+    ----------
+    return_X_y : bool, default=False
+        If True, return the data and target as NumPy arrays instead of a Dataset.
+    as_frame : bool, default=False
+        If True, the `data` and `target` attributes of the returned Dataset will be
+        DataFrames instead of NumPy arrays. The `frame` attribute will also be added as
+        a DataFrame with the dataset index. Pandas must be installed for this
+        option.
+
+    Returns
+    -------
+    Dataset or tuple of ndarray
+        A Dataset object containing the data, target, and feature names. If return_X_y
+        is True, return a tuple of data and target arrays instead.
+
+    Notes
+    -----
+    TBD
+
+    Reference
+    ---------
+    TBD
+    """
+    return _load_dataset_from_filenames(
+        data_filename="swo_ecoplot_env.csv",
+        target_filename="swo_ecoplot_spp.csv",
+        return_X_y=return_X_y,
+        as_frame=as_frame,
+    )
 
 
 def _import_pandas():
