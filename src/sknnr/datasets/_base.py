@@ -190,7 +190,7 @@ def load_moscow_stjoes(
 def load_swo_ecoplot(
     return_X_y: bool = False, as_frame: bool = False
 ) -> tuple[NDArray[np.float64], NDArray[np.float64]] | Dataset:
-    """Load the southwest Oregon (SWO) R6 Ecoplot dataset (TBD).
+    """Load the southwest Oregon (SWO) USFS Region 6 Ecoplot dataset.
 
     The dataset contains 3,005 plots with environmental, Landsat, and forest cover
     measurements. Ocular measurements of tree cover (COV) are categorized by
@@ -216,11 +216,18 @@ def load_swo_ecoplot(
 
     Notes
     -----
-    TBD
+    These data are a subset of the larger USDA Forest Service Region 6 Ecoplot
+    database, which holds 28,000 plots on Region 6 National Forests across Oregon
+    and Washington.  The larger database is managed by Patricia Hochhalter (USFS Region
+    6 Ecology Program) and used by permission.  Ecoplots were originally used to
+    develop plant association guides and are used for a wide array of applications.
+    This subset represents plots that were collected in southwest Oregon in 2000.
 
     Reference
     ---------
-    TBD
+    Atzet, T, DE White, LA McCrimmon, PA Martinez, PR Fong, and VD Randall. 1996.
+    Field guide to the forested plant associations of southwestern Oregon.
+    USDA Forest Service. Pacific Northwest Region, Technical Paper R6-NR-ECOL-TP-17-96.
     """
     return _load_dataset_from_csv_filenames(
         data_filename="swo_ecoplot_env.csv",
