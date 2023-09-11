@@ -23,6 +23,8 @@ class CCATransformer(ComponentReducerMixin, TransformerMixin, BaseEstimator):
         y = np.asarray(y)
         self.ordination_ = CCA(X, y)
         self.set_n_components()
+        self.env_center_ = self.ordination_.env_center
+        self.projector_ = self.ordination_.projector(n_components=self.n_components_)
         return self
 
     def transform(self, X, y=None):
@@ -35,10 +37,7 @@ class CCATransformer(ComponentReducerMixin, TransformerMixin, BaseEstimator):
             ensure_min_features=2,
             ensure_min_samples=1,
         )
-
-        return (X - self.ordination_.env_center) @ self.ordination_.projector(
-            n_components=self.n_components_
-        )
+        return (X - self.env_center_) @ self.projector_
 
     def fit_transform(self, X, y):
         return self.fit(X, y).transform(X)

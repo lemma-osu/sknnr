@@ -70,7 +70,6 @@ class TransformedKNeighborsMixin:
     def _apply_transform(self, X) -> NDArray:
         """Apply the stored transform to the input data."""
         check_is_fitted(self, "transform_")
-        self.transform_._validate_data(X, reset=False)
         return self.transform_.transform(X)
 
     def fit(self, X, y):
