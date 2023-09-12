@@ -1,7 +1,11 @@
 from sklearn.neighbors import KNeighborsRegressor
 
-from ._base import KNeighborsDFIndexCrosswalkMixin
+from ._base import IndependentPredictionMixin, KNeighborsDFIndexCrosswalkMixin
 
 
-class RawKNNRegressor(KNeighborsDFIndexCrosswalkMixin, KNeighborsRegressor):
+class RawKNNRegressor(
+    KNeighborsDFIndexCrosswalkMixin,
+    IndependentPredictionMixin,
+    KNeighborsRegressor,
+):
     pass

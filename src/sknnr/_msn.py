@@ -1,11 +1,18 @@
 from sklearn.neighbors import KNeighborsRegressor
 
-from ._base import KNeighborsDFIndexCrosswalkMixin, TransformedKNeighborsMixin
+from ._base import (
+    IndependentPredictionMixin,
+    KNeighborsDFIndexCrosswalkMixin,
+    TransformedKNeighborsMixin,
+)
 from .transformers import CCorATransformer
 
 
 class MSNRegressor(
-    KNeighborsDFIndexCrosswalkMixin, TransformedKNeighborsMixin, KNeighborsRegressor
+    KNeighborsDFIndexCrosswalkMixin,
+    TransformedKNeighborsMixin,
+    IndependentPredictionMixin,
+    KNeighborsRegressor,
 ):
     def __init__(self, n_components=None, **kwargs):
         super().__init__(**kwargs)

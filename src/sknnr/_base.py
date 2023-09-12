@@ -83,3 +83,16 @@ class TransformedKNeighborsMixin:
         return super().kneighbors(
             X=X_transformed, n_neighbors=n_neighbors, return_distance=return_distance
         )
+
+
+class IndependentPredictionMixin:
+    """
+    Mixin for KNeighborsRegressor derived classes that return predictions
+    that don't include itself in the nearest neighbors.
+    """
+
+    def predict_independent(self):
+        return super().predict(X=None)
+
+    def score_independent(self, y):
+        return super().score(X=None, y=y)
