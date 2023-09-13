@@ -61,21 +61,22 @@ def test_kneighbors(result, n_components):
     "result", ESTIMATOR_RESULTS.items(), ids=ESTIMATOR_RESULTS.keys()
 )
 @pytest.mark.parametrize("n_components", [None, 3], ids=["full", "reduced"])
-@pytest.mark.parametrize("weighted", [False, True], ids=["unweighted", "weighted"])
-@pytest.mark.parametrize("training", [True, False], ids=["training", "testing"])
-def test_predict(result, n_components, weighted, training):
+@pytest.mark.parametrize("weighted", [True, False], ids=["weighted", "unweighted"])
+@pytest.mark.parametrize("reference", [True, False], ids=["reference", "target"])
+def test_predict(result, n_components, weighted, reference):
     """Test that the ported estimators predict the correct values."""
     method, estimator = result
     dataset = load_moscow_stjoes_results(method=method, n_components=n_components)
 
     weights = yaimpute_weights if weighted else None
-    validation_dataset = {
-        (True, True): dataset.ref_predicted_weighted,
-        (True, False): dataset.ref_predicted_unweighted,
-        (False, True): dataset.trg_predicted_weighted,
-        (False, False): dataset.trg_predicted_unweighted,
-    }
-    predicted = validation_dataset[(training, weighted)]
+    if weighted and reference:
+        expected_pred = dataset.ref_predicted_weighted
+    elif weighted and not reference:
+        expected_pred = dataset.trg_predicted_weighted
+    elif not weighted and reference:
+        expected_pred = dataset.ref_predicted_unweighted
+    else:
+        expected_pred = dataset.trg_predicted_unweighted
 
     hyperparams = dict(n_neighbors=5, weights=weights)
     hyperparams.update(
@@ -83,8 +84,8 @@ def test_predict(result, n_components, weighted, training):
     )
     est = estimator(**hyperparams).fit(dataset.X_train, dataset.y_train)
 
-    prd = est.predict_independent() if training else est.predict(dataset.X_test)
-    assert_array_almost_equal(prd, predicted, decimal=3)
+    pred = est.independent_prediction_ if reference else est.predict(dataset.X_test)
+    assert_array_almost_equal(pred, expected_pred, decimal=3)
 
 
 @pytest.mark.uncollect_if(func=estimator_does_not_support_n_components)
@@ -108,5 +109,4 @@ def test_score_independent(result, n_components, weighted):
         {"n_components": n_components} if hasattr(estimator(), "n_components") else {}
     )
     est = estimator(**hyperparams).fit(dataset.X_train, dataset.y_train)
-    score = est.score_independent(dataset.y_train)
-    assert score == pytest.approx(expected_score, abs=0.001)
+    assert est.independent_score_ == pytest.approx(expected_score, abs=0.001)

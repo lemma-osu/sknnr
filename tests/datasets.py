@@ -86,18 +86,6 @@ def load_moscow_stjoes_results(
         trg_predicted_weighted=trg_predicted_weighted.iloc[:, 1:].values,
         trg_predicted_unweighted=trg_predicted_unweighted.iloc[:, 1:].values,
     )
-    return KNNTestDataset(
-        X_train=X_train,
-        X_test=X_test,
-        y_train=y_train,
-        y_test=y_test,
-        ref_distances=ref_distances.loc[:, cols].values,
-        ref_neighbors=ref_neighbors.loc[:, cols].values,
-        trg_distances=trg_distances.loc[:, cols].values,
-        trg_neighbors=trg_neighbors.loc[:, cols].values,
-        trg_predicted_weighted=trg_predicted_weighted.iloc[:, 1:].values,
-        trg_predicted_unweighted=trg_predicted_unweighted.iloc[:, 1:].values,
-    )
 
 
 def _load_test_data(filename: str) -> pd.DataFrame:

@@ -91,8 +91,8 @@ class IndependentPredictionMixin:
     that don't include itself in the nearest neighbors.
     """
 
-    def predict_independent(self):
-        return super().predict(X=None)
-
-    def score_independent(self, y):
-        return super().score(X=None, y=y)
+    def fit(self, X, y):
+        self = super().fit(X, y)
+        self.independent_prediction_ = super().predict(X=None)
+        self.independent_score_ = super().score(X=None, y=y)
+        return self
