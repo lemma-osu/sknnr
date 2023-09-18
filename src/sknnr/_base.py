@@ -24,15 +24,12 @@ class IndependentPredictorMixin:
         self.independent_score_ = super().score(X=None, y=y)
 
 
-class _KNeighborsRegressor(
+class RawKNNRegressor(
     DFIndexCrosswalkMixin, IndependentPredictorMixin, KNeighborsRegressor
 ):
     """
     Subclass of `sklearn.neighbors.KNeighborsRegressor` to support independent
     prediction and scoring and crosswalk array indices to dataframe indexes.
-
-    This class serves as a superclass for many estimators in this package, but
-    should not be instantiated directly.
     """
 
     def fit(self, X, y):
@@ -62,7 +59,7 @@ class _KNeighborsRegressor(
         return (neigh_dist, neigh_ind) if return_distance else neigh_ind
 
 
-class _TransformedKNeighborsRegressor(_KNeighborsRegressor):
+class _TransformedKNeighborsRegressor(RawKNNRegressor):
     """
     Subclass for KNeighbors regressors that apply transformations to the feature data.
 
