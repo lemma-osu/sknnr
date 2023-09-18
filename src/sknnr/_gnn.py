@@ -41,7 +41,6 @@ class GNNRegressor(YFitMixin, TransformedKNeighborsRegressor):
                 "check_fit2d_predict1d": unsupported_1d,
                 "check_fit2d_1sample": unsupported_1d,
                 "check_estimators_nan_inf": unsupported_1d,
-                "check_requires_y_none": unsupported_1d,
                 "check_regressor_multioutput": "Row sums must be greater than 0.",
             },
         }
