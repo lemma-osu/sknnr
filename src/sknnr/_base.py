@@ -47,9 +47,6 @@ class RawKNNRegressor(
     """
     Subclass of `sklearn.neighbors.KNeighborsRegressor` to support independent
     prediction and scoring and crosswalk array indices to dataframe indexes.
-
-    This class serves as a superclass for many estimators in this package, but
-    should not be instantiated directly.
     """
 
     def fit(self, X, y):
