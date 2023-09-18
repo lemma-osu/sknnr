@@ -1,5 +1,6 @@
+from abc import ABC, abstractmethod
+
 import numpy as np
-from numpy.typing import NDArray
 from sklearn.base import TransformerMixin
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.utils.validation import check_is_fitted
@@ -24,7 +25,23 @@ class IndependentPredictorMixin:
         self.independent_score_ = super().score(X=None, y=y)
 
 
-class _KNeighborsRegressor(
+class YFitMixin:
+    """Mixin for transformed estimators that use an optional y_fit to fit their
+    transformer."""
+
+    def _set_fit_transform(self, X, y):
+        """Fit and store the transformer, using stored y_fit data if available."""
+        y_fit = self.y_fit_ if self.y_fit_ is not None else y
+        self.transformer_ = self._get_transformerer().fit(X, y_fit)
+
+    def fit(self, X, y, y_fit=None):
+        """Fit using transformed feature data. If y_fit is provided, it will be used
+        to fit the transformer."""
+        self.y_fit_ = y_fit
+        return super().fit(X, y)
+
+
+class RawKNNRegressor(
     DFIndexCrosswalkMixin, IndependentPredictorMixin, KNeighborsRegressor
 ):
     """
@@ -62,7 +79,7 @@ class _KNeighborsRegressor(
         return (neigh_dist, neigh_ind) if return_distance else neigh_ind
 
 
-class _TransformedKNeighborsRegressor(_KNeighborsRegressor):
+class TransformedKNeighborsRegressor(RawKNNRegressor, ABC):
     """
     Subclass for KNeighbors regressors that apply transformations to the feature data.
 
@@ -72,13 +89,23 @@ class _TransformedKNeighborsRegressor(_KNeighborsRegressor):
 
     transform_: TransformerMixin
 
+    @abstractmethod
+    def _get_transformerer(self) -> TransformerMixin:
+        """Return the transformer to use for fitting. Must be implemented by
+        subclasses."""
+        ...
+
+    def _set_fitted_transformer(self, X, y) -> TransformerMixin:
+        """Fit and store the transformer."""
+        self.transformer_ = self._get_transformerer().fit(X, y)
+
     @property
     def feature_names_in_(self):
-        return self.transform_.feature_names_in_
+        return self.transformer_.feature_names_in_
 
     @property
     def n_features_in_(self):
-        return self.transform_.n_features_in_
+        return self.transformer_.n_features_in_
 
     def _check_feature_names(self, X, *, reset):
         """Override BaseEstimator._check_feature_names to prevent errors.
@@ -96,15 +123,13 @@ class _TransformedKNeighborsRegressor(_KNeighborsRegressor):
         """
         return
 
-    def _apply_transform(self, X) -> NDArray:
-        """Apply the stored transform to the input data."""
-        check_is_fitted(self, "transform_")
-        return self.transform_.transform(X)
-
     def fit(self, X, y):
         """Fit using transformed feature data."""
+        self._validate_data(X, y, force_all_finite=True, multi_output=True)
         self._set_dataframe_index_in(X)
-        X_transformed = self._apply_transform(X)
+        self._set_fitted_transformer(X, y)
+
+        X_transformed = self.transformer_.transform(X)
         return super().fit(X_transformed, y)
 
     def kneighbors(
@@ -115,7 +140,8 @@ class _TransformedKNeighborsRegressor(_KNeighborsRegressor):
         return_dataframe_index=False,
     ):
         """Return neighbor indices and distances using transformed feature data."""
-        X_transformed = self._apply_transform(X) if X is not None else X
+        check_is_fitted(self, "transform_")
+        X_transformed = self.transformer_.transform(X) if X is not None else X
         return super().kneighbors(
             X=X_transformed,
             n_neighbors=n_neighbors,

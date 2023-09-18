@@ -1,17 +1,14 @@
-from ._base import _TransformedKNeighborsRegressor
+from ._base import TransformedKNeighborsRegressor, YFitMixin
 from .transformers import CCorATransformer
 
 
-class MSNRegressor(_TransformedKNeighborsRegressor):
+class MSNRegressor(YFitMixin, TransformedKNeighborsRegressor):
     def __init__(self, n_components=None, **kwargs):
         super().__init__(**kwargs)
         self.n_components = n_components
 
-    def fit(self, X, y, y_fit=None):
-        y_fit = y_fit if y_fit is not None else y
-        self._validate_data(X, y, multi_output=True)
-        self.transform_ = CCorATransformer(self.n_components).fit(X, y=y_fit)
-        return super().fit(X, y)
+    def _get_transformer(self):
+        return CCorATransformer(self.n_components)
 
     def _more_tags(self):
         return {

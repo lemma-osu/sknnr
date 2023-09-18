@@ -1,8 +1,9 @@
-from ._base import _TransformedKNeighborsRegressor
+from sklearn.base import TransformerMixin
+
+from ._base import TransformedKNeighborsRegressor
 from .transformers import StandardScalerWithDOF
 
 
-class EuclideanKNNRegressor(_TransformedKNeighborsRegressor):
-    def fit(self, X, y):
-        self.transform_ = StandardScalerWithDOF(ddof=1).fit(X)
-        return super().fit(X, y)
+class EuclideanKNNRegressor(TransformedKNeighborsRegressor):
+    def _get_transformer(self) -> TransformerMixin:
+        return StandardScalerWithDOF(ddof=1)
