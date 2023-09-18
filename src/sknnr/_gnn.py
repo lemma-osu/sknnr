@@ -1,12 +1,8 @@
-from sklearn.neighbors import KNeighborsRegressor
-
-from ._base import KNeighborsDFIndexCrosswalkMixin, TransformedKNeighborsMixin
+from ._base import _TransformedKNeighborsRegressor
 from .transformers import CCATransformer
 
 
-class GNNRegressor(
-    KNeighborsDFIndexCrosswalkMixin, TransformedKNeighborsMixin, KNeighborsRegressor
-):
+class GNNRegressor(_TransformedKNeighborsRegressor):
     def __init__(self, n_components=None, **kwargs):
         super().__init__(**kwargs)
         self.n_components = n_components

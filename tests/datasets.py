@@ -21,6 +21,8 @@ class KNNTestDataset:
     y_test: NDArray[np.float64]
     ref_distances: NDArray[np.float64]
     ref_neighbors: NDArray[np.float64]
+    ref_predicted_weighted: NDArray[np.float64]
+    ref_predicted_unweighted: NDArray[np.float64]
     trg_distances: NDArray[np.float64]
     trg_neighbors: NDArray[np.float64]
     trg_predicted_weighted: NDArray[np.float64]
@@ -49,6 +51,12 @@ def load_moscow_stjoes_results(
     ref_neighbors = _load_test_data(
         f"{method}_moscow_ref_neighbors_k{k}{n_components_str}.csv"
     )
+    ref_predicted_weighted = _load_test_data(
+        f"{method}_moscow_ref_predicted_weighted_k{k}{n_components_str}.csv"
+    )
+    ref_predicted_unweighted = _load_test_data(
+        f"{method}_moscow_ref_predicted_unweighted_k{k}{n_components_str}.csv"
+    )
     trg_distances = _load_test_data(
         f"{method}_moscow_trg_distances_k{k}{n_components_str}.csv"
     )
@@ -71,6 +79,8 @@ def load_moscow_stjoes_results(
         y_test=y_test,
         ref_distances=ref_distances.loc[:, cols].values,
         ref_neighbors=ref_neighbors.loc[:, cols].values,
+        ref_predicted_weighted=ref_predicted_weighted.iloc[:, 1:].values,
+        ref_predicted_unweighted=ref_predicted_unweighted.iloc[:, 1:].values,
         trg_distances=trg_distances.loc[:, cols].values,
         trg_neighbors=trg_neighbors.loc[:, cols].values,
         trg_predicted_weighted=trg_predicted_weighted.iloc[:, 1:].values,
