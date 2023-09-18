@@ -29,7 +29,7 @@ class YFitMixin:
     """Mixin for transformed estimators that use an optional y_fit to fit their
     transformer."""
 
-    def _set_fit_transform(self, X, y):
+    def _set_fitted_transformer(self, X, y):
         """Fit and store the transformer, using stored y_fit data if available."""
         y_fit = self.y_fit_ if self.y_fit_ is not None else y
         self.transformer_ = self._get_transformer().fit(X, y_fit)
