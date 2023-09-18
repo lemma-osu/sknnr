@@ -32,7 +32,7 @@ class YFitMixin:
     def _set_fit_transform(self, X, y):
         """Fit and store the transformer, using stored y_fit data if available."""
         y_fit = self.y_fit_ if self.y_fit_ is not None else y
-        self.transformer_ = self._get_transformerer().fit(X, y_fit)
+        self.transformer_ = self._get_transformer().fit(X, y_fit)
 
     def fit(self, X, y, y_fit=None):
         """Fit using transformed feature data. If y_fit is provided, it will be used
@@ -84,17 +84,17 @@ class TransformedKNeighborsRegressor(RawKNNRegressor, ABC):
     should not be instantiated directly.
     """
 
-    transform_: TransformerMixin
+    transformer_: TransformerMixin
 
     @abstractmethod
-    def _get_transformerer(self) -> TransformerMixin:
+    def _get_transformer(self) -> TransformerMixin:
         """Return the transformer to use for fitting. Must be implemented by
         subclasses."""
         ...
 
     def _set_fitted_transformer(self, X, y) -> TransformerMixin:
         """Fit and store the transformer."""
-        self.transformer_ = self._get_transformerer().fit(X, y)
+        self.transformer_ = self._get_transformer().fit(X, y)
 
     @property
     def feature_names_in_(self):
@@ -137,7 +137,7 @@ class TransformedKNeighborsRegressor(RawKNNRegressor, ABC):
         return_dataframe_index=False,
     ):
         """Return neighbor indices and distances using transformed feature data."""
-        check_is_fitted(self, "transform_")
+        check_is_fitted(self, "transformer_")
         X_transformed = self.transformer_.transform(X) if X is not None else X
         return super().kneighbors(
             X=X_transformed,
