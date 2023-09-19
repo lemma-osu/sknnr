@@ -92,7 +92,7 @@ class TransformedKNeighborsRegressor(RawKNNRegressor, ABC):
         subclasses."""
         ...
 
-    def _set_fitted_transformer(self, X, y) -> TransformerMixin:
+    def _set_fitted_transformer(self, X, y):
         """Fit and store the transformer."""
         self.transformer_ = self._get_transformer().fit(X, y)
 

@@ -1,3 +1,5 @@
+from sklearn.base import TransformerMixin
+
 from ._base import TransformedKNeighborsRegressor, YFitMixin
 from .transformers import CCATransformer
 
@@ -7,7 +9,7 @@ class GNNRegressor(YFitMixin, TransformedKNeighborsRegressor):
         super().__init__(**kwargs)
         self.n_components = n_components
 
-    def _get_transformer(self):
+    def _get_transformer(self) -> TransformerMixin:
         return CCATransformer(self.n_components)
 
     def _more_tags(self):
