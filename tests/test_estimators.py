@@ -22,6 +22,8 @@ TEST_ESTIMATORS = [
     GNNRegressor,
 ]
 
+TEST_YFIT_ESTIMATORS = [MSNRegressor, GNNRegressor]
+
 
 @pytest.mark.filterwarnings("ignore:divide by zero encountered")
 @parametrize_with_checks([cls() for cls in TEST_ESTIMATORS])
@@ -118,3 +120,33 @@ def test_estimator_output_type_consistency(output_mode, x_type, estimator):
         ref_type = type(ref_estimator.fit(X, y).predict(X))
 
     assert sknnr_type is ref_type  # noqa: E721
+
+
+@pytest.mark.parametrize("estimator", TEST_YFIT_ESTIMATORS)
+def test_yfit_is_stored(estimator):
+    """Test that y_fit is stored when passed."""
+    X, y = load_moscow_stjoes(return_X_y=True)
+    # Arbitrary split with a fixed constant to prevent zero sum rows
+    y_fit = y[:, 10:] + 0.1
+    y = y[:, :10] + 0.1
+
+    est = estimator().fit(X, y)
+    assert est.y_fit_ is None
+    est.fit(X, y, y_fit=y_fit)
+    assert_array_equal(est.y_fit_, y_fit)
+
+
+@pytest.mark.parametrize("estimator", TEST_YFIT_ESTIMATORS)
+def test_yfit_affects_prediction(estimator):
+    """Test that y_fit affects predictions when passed."""
+    X, y = load_moscow_stjoes(return_X_y=True)
+    # Arbitrary split with a fixed constant to prevent zero sum rows
+    y_fit = y[:, 10:] + 0.1
+    y = y[:, :10] + 0.1
+
+    est = estimator()
+    with_y_fit_pred = est.fit(X, y, y_fit=y_fit).independent_prediction_
+    without_y_fit_pred = est.fit(X, y).independent_prediction_
+
+    with pytest.raises(AssertionError):
+        assert_array_equal(with_y_fit_pred, without_y_fit_pred)
