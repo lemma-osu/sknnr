@@ -16,11 +16,10 @@ class CCATransformer(ComponentReducerMixin, TransformerMixin, BaseEstimator):
             ensure_min_features=2,
             ensure_min_samples=1,
         )
-
-        if not hasattr(y, "shape") or len(y.shape) < 2:
+        y = np.asarray(y)
+        if len(y.shape) < 2:
             raise ValueError("`y` must be a 2D array.")
 
-        y = np.asarray(y)
         self.ordination_ = CCA(X, y)
         self.set_n_components()
         self.env_center_ = self.ordination_.env_center
