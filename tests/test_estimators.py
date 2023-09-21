@@ -93,6 +93,14 @@ def test_estimators_support_dataframe_indexes(estimator):
 
 
 @pytest.mark.parametrize("estimator", TEST_ESTIMATORS)
+def test_estimators_support_lists(estimator):
+    """All estimators should fit and predict data stored as lists."""
+    X, y = load_moscow_stjoes(return_X_y=True)
+    estimator = estimator().fit(X.tolist(), y.tolist())
+    estimator.predict(X.tolist())
+
+
+@pytest.mark.parametrize("estimator", TEST_ESTIMATORS)
 def test_estimators_support_dataframes(estimator):
     """All estimators should fit and predict data stored as dataframes."""
     X, y = load_moscow_stjoes(return_X_y=True, as_frame=True)
