@@ -1,5 +1,8 @@
+from __future__ import annotations
+
 import pytest
 from numpy.testing import assert_array_equal
+from numpy.typing import NDArray
 from sklearn import config_context
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.utils.estimator_checks import parametrize_with_checks
@@ -23,6 +26,16 @@ TEST_ESTIMATORS = [
 ]
 
 TEST_YFIT_ESTIMATORS = [MSNRegressor, GNNRegressor]
+
+
+@pytest.fixture()
+def X_y_yfit() -> tuple[NDArray, NDArray, NDArray]:
+    """Return X, y, and y_fit arrays for testing y_fit compatible estimators."""
+    X, y = load_moscow_stjoes(return_X_y=True)
+    # Arbitrary split with a constant to prevent zero sum rows
+    y_fit = y[:, 10:] + 0.1
+    y = y[:, :10] + 0.1
+    return X, y, y_fit
 
 
 @pytest.mark.filterwarnings("ignore:divide by zero encountered")
@@ -123,12 +136,9 @@ def test_estimator_output_type_consistency(output_mode, x_type, estimator):
 
 
 @pytest.mark.parametrize("estimator", TEST_YFIT_ESTIMATORS)
-def test_yfit_is_stored(estimator):
+def test_yfit_is_stored(estimator, X_y_yfit):
     """Test that y_fit is stored when passed."""
-    X, y = load_moscow_stjoes(return_X_y=True)
-    # Arbitrary split with a fixed constant to prevent zero sum rows
-    y_fit = y[:, 10:] + 0.1
-    y = y[:, :10] + 0.1
+    X, y, y_fit = X_y_yfit
 
     est = estimator().fit(X, y)
     assert est.y_fit_ is None
@@ -137,12 +147,9 @@ def test_yfit_is_stored(estimator):
 
 
 @pytest.mark.parametrize("estimator", TEST_YFIT_ESTIMATORS)
-def test_yfit_affects_prediction(estimator):
+def test_yfit_affects_prediction(estimator, X_y_yfit):
     """Test that y_fit affects predictions when passed."""
-    X, y = load_moscow_stjoes(return_X_y=True)
-    # Arbitrary split with a fixed constant to prevent zero sum rows
-    y_fit = y[:, 10:] + 0.1
-    y = y[:, :10] + 0.1
+    X, y, y_fit = X_y_yfit
 
     est = estimator()
     with_y_fit_pred = est.fit(X, y, y_fit=y_fit).independent_prediction_
