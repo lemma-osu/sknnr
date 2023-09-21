@@ -80,6 +80,10 @@ def test_estimators_support_dataframe_indexes(estimator):
     with pytest.raises(NotFittedError, match="fitted with a dataframe"):
         estimator.kneighbors(return_dataframe_index=True)
 
+    # Make sure that `list.index()` is not accidentally stored
+    estimator.fit(moscow.data.tolist(), moscow.target)
+    assert not hasattr(estimator, "dataframe_index_in_")
+
     estimator.fit(X_df, moscow.target)
     assert_array_equal(estimator.dataframe_index_in_, moscow.index)
 

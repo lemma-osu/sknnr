@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 import numpy as np
 from sklearn.base import TransformerMixin
 from sklearn.neighbors import KNeighborsRegressor
-from sklearn.utils.validation import check_is_fitted
+from sklearn.utils.validation import _is_arraylike, check_is_fitted
 
 
 class DFIndexCrosswalkMixin:
@@ -11,8 +11,9 @@ class DFIndexCrosswalkMixin:
 
     def _set_dataframe_index_in(self, X):
         """Store dataframe indexes if X is a dataframe."""
-        if hasattr(X, "index"):
-            self.dataframe_index_in_ = np.asarray(X.index)
+        index = getattr(X, "index", None)
+        if _is_arraylike(index):
+            self.dataframe_index_in_ = np.asarray(index)
 
 
 class IndependentPredictorMixin:
