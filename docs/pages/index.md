@@ -19,7 +19,7 @@ X, y = load_swo_ecoplot(return_X_y=True, as_frame=True)
 ```
 4. Train, predict, and score [as usual](https://scikit-learn.org/stable/getting_started.html#fitting-and-predicting-estimator-basics).
 ```python
-from sklearn.model_selection import train_test_splot
+from sklearn.model_selection import train_test_split
 
 X_train, X_test, y_train, y_test = train_test_split(X, y)
 

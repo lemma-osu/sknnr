@@ -66,21 +66,13 @@ Documentation is built with [mkdocs](https://www.mkdocs.org/). During developmen
 $ hatch run docs:serve
 ```
 
-To build the documentation locally, use:
-
-```bash
-$ hatch run docs:build
-```
-
-!!! warning
-
-    The built docs do not need to be committed, as they are automatically built upon deployment to ReadTheDocs.
-
 The API reference is generated from Numpy-style docstrings using [mkdocstrings](https://mkdocstrings.github.io/). New classes can be added to the API reference by creating a new markdown file in the `docs/pages/api` directory, adding that file to the [`nav` tree](https://www.mkdocs.org/user-guide/configuration/#nav) in `docs/mkdocs.yml`, and [including the docstring](https://mkdocstrings.github.io/python/usage/#injecting-documentation) in the markdown file:
 
 ```markdown
 ::: sknnr.module.class
 ```
+
+Whenever the docs are updated, they will be automatically rebuilt and deployed by [ReadTheDocs](https://about.readthedocs.com). Build status can be monitored [here](https://readthedocs.org/projects/sknnr/builds/).
 
 ### Releasing
 
