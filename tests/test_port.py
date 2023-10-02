@@ -4,6 +4,7 @@ from sklearn.metrics import r2_score
 
 from sknnr import (
     EuclideanKNNRegressor,
+    GNNRDARegressor,
     GNNRegressor,
     MahalanobisKNNRegressor,
     MSNRegressor,
@@ -17,6 +18,7 @@ ESTIMATOR_RESULTS = {
     "euclidean": EuclideanKNNRegressor,
     "mahalanobis": MahalanobisKNNRegressor,
     "gnn": GNNRegressor,
+    "gnn_rda": GNNRDARegressor,
     "msn": MSNRegressor,
 }
 
