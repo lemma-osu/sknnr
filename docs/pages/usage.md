@@ -92,7 +92,7 @@ Most estimators in `sknnr` work by applying specialized transformers like [CCA](
 from sknnr.transformers import CCATransformer
 
 cca = CCATransformer(n_components=3)
-cca.fit_transform(X, y)
+print(cca.fit_transform(X, y))
 ```
 
 `sknnr` currently provides the following transformers:
