@@ -79,6 +79,24 @@ est = GNNRegressor(n_components=3).fit(X, y)
 !!! warning
     The maximum number of components depends on the input data and the estimator. Specifying `n_components` greater than the maximum number of components will raise an error.
 
+### Custom Transformers
+
+Most estimators in `sknnr` work by applying specialized transformers like [CCA](api/transformers/cca.md) and [CCorA](api/transformers/ccora.md) to the input data. These transformers can be used independently of the estimators, like any other `sklearn` transformer.
+
+```python
+from sknnr.transformers import CCATransformer
+
+cca = CCATransformer(n_components=3)
+cca.fit_transform(X, y)
+```
+
+`sknnr` currently provides the following transformers:
+
+- [StandardScalerWithDOF](api/transformers/standardscalerwithdof.md)
+- [MahalanobisTransformer](api/transformers/mahalanobis.md)
+- [CCATransformer](api/transformers/cca.md)
+- [CCorATransformer](api/transformers/ccora.md)
+
 ## Datasets
 
 `sknnr` estimators can be used for any multi-output regression problem, but they excel at predicting forest attributes. The `sknnr.datasets` module contains a number of test datasets with plot-based forest measurements and environmental attributes.
