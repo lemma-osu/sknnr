@@ -58,7 +58,7 @@ dependencies = [
 ]
 
 [tool.hatch.envs.docs.scripts]
-serve = "mkdocs serve --config-file docs/mkdocs.yml"
+serve = "mkdocs serve --config-file docs/mkdocs.yml --watch ./README.md"
 build = "mkdocs build --config-file docs/mkdocs.yml"
 
 [tool.pytest.ini_options]
