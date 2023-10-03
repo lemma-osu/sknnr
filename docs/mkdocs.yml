@@ -1,4 +1,4 @@
-site_name: SKNNR Documentation
+site_name: sknnr
 repo_url: https://github.com/lemma-osu/scikit-learn-knn-regression
 repo_name: lemma-osu/scikit-learn-knn-regression
 docs_dir: pages/

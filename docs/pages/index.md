@@ -1,4 +1,4 @@
-# SKNNR Docs
+# sknnr
 
 `scikit-learn-knn-regression` (a.k.a. `sknnr`) is a package for running k-nearest neighbor imputation methods, including GNN (Ohmann & Gregory, 2002), MSN (Moeur & Stage 1995), and RFNN (Crookston & Finley, 2008), using estimators that are fully compatible with [`scikit-learn`](https://scikit-learn.org/stable/).
 
