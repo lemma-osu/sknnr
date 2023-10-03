@@ -19,7 +19,7 @@ X, y = load_swo_ecoplot(return_X_y=True)
 X_train, X_test, y_train, y_test = train_test_split(X, y)
 est = EuclideanKNNRegressor(n_neighbors=3).fit(X_train, y_train)
 
-print(est.score(X_test, y_test)) 
+print(est.score(X_test, y_test))
 # 0.11496218649569434
 ```
 
@@ -36,7 +36,7 @@ print(est.independent_score_)
 
 ### Retrieving Dataframe Indexes
 
-In `sklearn`, the `KNeighborsRegressor.kneighbors` method can identify the array index of the nearest neighbor to a given sample. Estimators in `sknnr` offer an additional parameter `return_dataframe_index` that allows neighbor plots to be identified directly by their index.
+In `sklearn`, the `KNeighborsRegressor.kneighbors` method can identify the array index of the nearest neighbor to a given sample. Estimators in `sknnr` offer an additional parameter `return_dataframe_index` that allows neighbor samples to be identified directly by their index.
 
 ```python
 X, y = load_swo_ecoplot(return_X_y=True, as_frame=True)
@@ -58,9 +58,14 @@ print(y.loc[neighbor_ids[0]])
 !!! warning
     An estimator must be fit with a `DataFrame` in order to use `return_dataframe_index=True`.
 
+!!! tip
+    In forestry applications, users typically store a unique inventory plot identification number as the index in the dataframe.
+
 ### Y-Fit Data
 
 The [GNNRegressor](api/estimators/gnn.md) and [MSNRegressor](api/estimators/msn.md) estimators can be fit with `X` and `y` data, but they also accept an optional `y_fit` parameter. If provided, `y_fit` is used to fit the ordination transformer while `y` is used to fit the kNN regressor.
+
+In forest attribute estimation, the underlying ordination transformations for these two estimators (CCA for GNN and CCorA for MSN) typically use a matrix of species abundances or presence/absence information to relate the species data to environmental covariates, but often the user wants predictions based not on these features, but rather attributes that describe forest structure (e.g. biomass) or composition (e.g. species richness). In this case, the species matrix would be specified as `y_fit` and the stand attributes would be specified as `y`.
 
 ```python
 from sknnr import GNNRegressor
@@ -70,7 +75,7 @@ est = GNNRegressor().fit(X, y, y_fit=y_fit)
 
 ### Dimensionality Reduction
 
-The ordination transformers used by the [GNNRegressor](api/estimators/gnn.md) and [MSNRegressor](api/estimators/msn.md) estimators apply dimensionality reduction to label data. Dimensionality can be further reduced by specifying `n_components` when instantiating the estimator.
+The ordination transformers used by the [GNNRegressor](api/estimators/gnn.md) and [MSNRegressor](api/estimators/msn.md) estimators apply dimensionality reduction by creating components that are linear combinations of the features in the `X` data. For both transformers, components that explain more variation present in the `y` (or `y_fit`) matrix are ordered first. Users can further reduce the number of components that are used to determine nearest neighbors by specifying `n_components` when instantiating the estimator.
 
 ```python
 est = GNNRegressor(n_components=3).fit(X, y)
