@@ -4,7 +4,6 @@ from sklearn.metrics import r2_score
 
 from sknnr import (
     EuclideanKNNRegressor,
-    GNNRDARegressor,
     GNNRegressor,
     MahalanobisKNNRegressor,
     MSNRegressor,
@@ -18,7 +17,6 @@ ESTIMATOR_RESULTS = {
     "euclidean": EuclideanKNNRegressor,
     "mahalanobis": MahalanobisKNNRegressor,
     "gnn": GNNRegressor,
-    "gnn_rda": GNNRDARegressor,
     "msn": MSNRegressor,
 }
 
@@ -27,22 +25,44 @@ def yaimpute_weights(d):
     return 1.0 / (1.0 + d)
 
 
-def estimator_does_not_support_n_components(result, n_components, **kwargs):
+def estimator_does_not_support_constrained_method(
+    result, *, constrained_method, **kwargs
+):
+    _, estimator = result
+    return (constrained_method is not None and not hasattr(estimator(), "method")) or (
+        constrained_method is None and hasattr(estimator(), "method")
+    )
+
+
+def estimator_does_not_support_n_components(result, *, n_components, **kwargs):
     _, estimator = result
     return n_components is not None and not hasattr(estimator(), "n_components")
 
 
-@pytest.mark.uncollect_if(func=estimator_does_not_support_n_components)
+def estimator_does_not_support_parametrization(result, **kwargs):
+    return estimator_does_not_support_constrained_method(
+        result, **kwargs
+    ) or estimator_does_not_support_n_components(result, **kwargs)
+
+
+@pytest.mark.uncollect_if(func=estimator_does_not_support_parametrization)
 @pytest.mark.parametrize(
     "result", ESTIMATOR_RESULTS.items(), ids=ESTIMATOR_RESULTS.keys()
 )
+@pytest.mark.parametrize(
+    "constrained_method", [None, "cca", "rda"], ids=["default", "cca", "rda"]
+)
 @pytest.mark.parametrize("n_components", [None, 3], ids=["full", "reduced"])
-def test_kneighbors(result, n_components):
+def test_kneighbors(result, constrained_method, n_components):
     """Test that the ported estimators identify the correct neighbors and distances."""
     method, estimator = result
+    method = method if constrained_method is None else f"{method}_{constrained_method}"
     dataset = load_moscow_stjoes_results(method=method, n_components=n_components)
 
     hyperparams = dict(n_neighbors=5)
+    hyperparams.update(
+        {"method": constrained_method} if hasattr(estimator(), "method") else {}
+    )
     hyperparams.update(
         {"n_components": n_components} if hasattr(estimator(), "n_components") else {}
     )
@@ -58,16 +78,20 @@ def test_kneighbors(result, n_components):
     assert_array_almost_equal(dist, dataset.trg_distances, decimal=3)
 
 
-@pytest.mark.uncollect_if(func=estimator_does_not_support_n_components)
+@pytest.mark.uncollect_if(func=estimator_does_not_support_parametrization)
 @pytest.mark.parametrize(
     "result", ESTIMATOR_RESULTS.items(), ids=ESTIMATOR_RESULTS.keys()
+)
+@pytest.mark.parametrize(
+    "constrained_method", [None, "cca", "rda"], ids=["default", "cca", "rda"]
 )
 @pytest.mark.parametrize("n_components", [None, 3], ids=["full", "reduced"])
 @pytest.mark.parametrize("weighted", [True, False], ids=["weighted", "unweighted"])
 @pytest.mark.parametrize("reference", [True, False], ids=["reference", "target"])
-def test_predict(result, n_components, weighted, reference):
+def test_predict(result, constrained_method, n_components, weighted, reference):
     """Test that the ported estimators predict the correct values."""
     method, estimator = result
+    method = method if constrained_method is None else f"{method}_{constrained_method}"
     dataset = load_moscow_stjoes_results(method=method, n_components=n_components)
 
     weights = yaimpute_weights if weighted else None
@@ -82,6 +106,9 @@ def test_predict(result, n_components, weighted, reference):
 
     hyperparams = dict(n_neighbors=5, weights=weights)
     hyperparams.update(
+        {"method": constrained_method} if hasattr(estimator(), "method") else {}
+    )
+    hyperparams.update(
         {"n_components": n_components} if hasattr(estimator(), "n_components") else {}
     )
     est = estimator(**hyperparams).fit(dataset.X_train, dataset.y_train)
@@ -90,16 +117,21 @@ def test_predict(result, n_components, weighted, reference):
     assert_array_almost_equal(pred, expected_pred, decimal=3)
 
 
-@pytest.mark.uncollect_if(func=estimator_does_not_support_n_components)
+@pytest.mark.uncollect_if(func=estimator_does_not_support_parametrization)
 @pytest.mark.parametrize(
     "result", ESTIMATOR_RESULTS.items(), ids=ESTIMATOR_RESULTS.keys()
 )
+@pytest.mark.parametrize(
+    "constrained_method", [None, "cca", "rda"], ids=["default", "cca", "rda"]
+)
 @pytest.mark.parametrize("n_components", [None, 3], ids=["full", "reduced"])
 @pytest.mark.parametrize("weighted", [False, True], ids=["unweighted", "weighted"])
-def test_score_independent(result, n_components, weighted):
+def test_score_independent(result, constrained_method, n_components, weighted):
     """Test that the ported estimators produce the correct score."""
     method, estimator = result
+    method = method if constrained_method is None else f"{method}_{constrained_method}"
     dataset = load_moscow_stjoes_results(method=method, n_components=n_components)
+
     weights = yaimpute_weights if weighted else None
     predicted = (
         dataset.ref_predicted_weighted if weighted else dataset.ref_predicted_unweighted
@@ -107,6 +139,9 @@ def test_score_independent(result, n_components, weighted):
     expected_score = r2_score(dataset.y_train, predicted).mean()
 
     hyperparams = dict(n_neighbors=5, weights=weights)
+    hyperparams.update(
+        {"method": constrained_method} if hasattr(estimator(), "method") else {}
+    )
     hyperparams.update(
         {"n_components": n_components} if hasattr(estimator(), "n_components") else {}
     )

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import Union
 
 import numpy as np
@@ -38,7 +40,7 @@ class ComponentReducerMixin:
 
     ordination_: Ordination
 
-    def __init__(self, n_components=None):
+    def __init__(self, n_components: int | None = None):
         self.n_components = n_components
 
     def get_feature_names_out(self) -> NDArray:

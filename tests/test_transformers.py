@@ -7,8 +7,8 @@ from sklearn.utils.validation import NotFittedError
 
 from sknnr.datasets import load_moscow_stjoes
 from sknnr.transformers import (
-    CCATransformer,
     CCorATransformer,
+    ConstrainedTransformer,
     MahalanobisTransformer,
     StandardScalerWithDOF,
 )
@@ -16,12 +16,12 @@ from sknnr.transformers import (
 TEST_TRANSFORMERS = [
     StandardScalerWithDOF,
     MahalanobisTransformer,
-    CCATransformer,
+    ConstrainedTransformer,
     CCorATransformer,
 ]
 
 TEST_ORDINATION_TRANSFORMERS = [
-    CCATransformer,
+    ConstrainedTransformer,
     CCorATransformer,
 ]
 
