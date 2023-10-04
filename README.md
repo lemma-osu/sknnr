@@ -6,7 +6,7 @@
 
 `sknnr` is a package for running k-nearest neighbor (kNN) imputation methods using estimators that are fully compatible with [`scikit-learn`](https://scikit-learn.org/stable/). Notably, common methods such as most similar neighbor (MSN, Moeur & Stage 1995), gradient nearest neighbor (GNN, Ohmann & Gregory, 2002), and random forest nearest neighbors (RFNN, Crookston & Finley, 2008) are included in this package.
 
-## Why the name "sknnr"?
+## Why the Name "sknnr"?
 
 `sknnr` is an acronym of its main three components:
 
