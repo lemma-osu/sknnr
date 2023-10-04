@@ -4,7 +4,7 @@
 
 ## What is sknnr?
 
-`sknnr` is a package for running k-nearest neighbor (kNN) imputation methods using estimators that are fully compatible with [`scikit-learn`](https://scikit-learn.org/stable/). Notably, common methods such as most similar neighbor (MSN, Moeur & Stage 1995), gradient nearest neighbor (GNN, Ohmann & Gregory, 2002), and random forest nearest neighbors (RFNN, Crookston & Finley, 2008) are included in this package.
+`sknnr` is a package for running k-nearest neighbor (kNN) imputation[^1] methods using estimators that are fully compatible with [`scikit-learn`](https://scikit-learn.org/stable/). Notably, common methods such as most similar neighbor (MSN, Moeur & Stage 1995), gradient nearest neighbor (GNN, Ohmann & Gregory, 2002), and random forest nearest neighbors (RFNN, Crookston & Finley, 2008) are included in this package.
 
 ## Why the Name "sknnr"?
 
@@ -74,3 +74,5 @@ Thanks to Andrew Hudak (USDA Forest Service Rocky Mountain Research Station) for
 - Hudak, A.T. 2010. Field plot measures and predictive maps for "Nearest neighbor imputation of species-level, plot-scale forest structure attributes from LiDAR data". Fort Collins, CO: U.S. Department of Agriculture, Forest Service, Rocky Mountain Research Station. https://www.fs.usda.gov/rds/archive/Catalog/RDS-2010-0012.
 - Moeur M, Stage AR. 1995. Most Similar Neighbor: An Improved Sampling Inference Procedure for Natural Resources Planning. Forest Science, 41(2), 337–359.
 - Ohmann JL, Gregory MJ. 2002. Predictive Mapping of Forest Composition and Structure with Direct Gradient Analysis and Nearest Neighbor Imputation in Coastal Oregon, USA. Canadian Journal of Forest Research, 32, 725–741.
+
+[^1]: In a mapping context, kNN imputation refers to predicting feature values for a target from its k-nearest neighbors, and should not be confused with the usual `scikit-learn` usage as a pre-filling strategy for missing input data, e.g. [`KNNImputer`](https://scikit-learn.org/stable/modules/generated/sklearn.impute.KNNImputer.html).
