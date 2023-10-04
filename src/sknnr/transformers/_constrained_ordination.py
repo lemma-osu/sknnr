@@ -67,3 +67,27 @@ class ConstrainedOrdination(ABC):
             self.coefficients[:, :n_components]
             @ self.axis_weights[:n_components, :n_components]
         )
+
+
+class CCA(ConstrainedOrdination):
+    def _transform_X(self):
+        self.env_center = np.average(self.X, axis=0, weights=self.rw)
+        X_scale = self.X - self.env_center
+        self.X = X_scale * np.sqrt(self.rw)[:, np.newaxis]
+
+    def _transform_Y(self):
+        normalized = self.Y / self.Y.sum()
+        self.rw = normalized.sum(axis=1)
+        self.cw = normalized.sum(axis=0)
+        rc = np.outer(self.rw, self.cw)
+        self.Y = (normalized - rc) / np.sqrt(rc)
+
+
+class RDA(ConstrainedOrdination):
+    def _transform_X(self):
+        self.env_center = np.average(self.X, axis=0)
+        self.X = self.X - self.env_center
+
+    def _transform_Y(self):
+        self.Y = self.Y - self.Y.mean(axis=0)
+        self.Y /= np.sqrt(self.Y.shape[0] - 1)

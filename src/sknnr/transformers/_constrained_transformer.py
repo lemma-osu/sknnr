@@ -6,8 +6,7 @@ from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.utils.validation import FLOAT_DTYPES, check_is_fitted
 
 from . import ComponentReducerMixin
-from ._cca import CCA
-from ._rda import RDA
+from ._constrained_ordination import CCA, RDA
 
 
 class ConstrainedTransformer(ComponentReducerMixin, TransformerMixin, BaseEstimator):

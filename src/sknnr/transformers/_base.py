@@ -7,10 +7,10 @@ from numpy.typing import NDArray
 from sklearn.preprocessing import StandardScaler
 from sklearn.utils.validation import FLOAT_DTYPES, check_is_fitted
 
-from ._cca import CCA
 from ._ccora import CCorA
+from ._constrained_ordination import CCA, RDA
 
-Ordination = Union[CCA, CCorA]
+Ordination = Union[CCA, CCorA, RDA]
 
 
 class StandardScalerWithDOF(StandardScaler):
