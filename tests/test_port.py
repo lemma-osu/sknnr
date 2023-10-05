@@ -29,9 +29,10 @@ def estimator_does_not_support_constrained_method(
     result, *, constrained_method, **kwargs
 ):
     _, estimator = result
-    return (constrained_method is not None and not hasattr(estimator(), "method")) or (
-        constrained_method is None and hasattr(estimator(), "method")
-    )
+    return (
+        constrained_method is not None
+        and not hasattr(estimator(), "constrained_method")
+    ) or (constrained_method is None and hasattr(estimator(), "constrained_method"))
 
 
 def estimator_does_not_support_n_components(result, *, n_components, **kwargs):
@@ -61,7 +62,9 @@ def test_kneighbors(result, constrained_method, n_components):
 
     hyperparams = dict(n_neighbors=5)
     hyperparams.update(
-        {"method": constrained_method} if hasattr(estimator(), "method") else {}
+        {"constrained_method": constrained_method}
+        if hasattr(estimator(), "constrained_method")
+        else {}
     )
     hyperparams.update(
         {"n_components": n_components} if hasattr(estimator(), "n_components") else {}
@@ -106,7 +109,9 @@ def test_predict(result, constrained_method, n_components, weighted, reference):
 
     hyperparams = dict(n_neighbors=5, weights=weights)
     hyperparams.update(
-        {"method": constrained_method} if hasattr(estimator(), "method") else {}
+        {"constrained_method": constrained_method}
+        if hasattr(estimator(), "constrained_method")
+        else {}
     )
     hyperparams.update(
         {"n_components": n_components} if hasattr(estimator(), "n_components") else {}
@@ -140,7 +145,9 @@ def test_score_independent(result, constrained_method, n_components, weighted):
 
     hyperparams = dict(n_neighbors=5, weights=weights)
     hyperparams.update(
-        {"method": constrained_method} if hasattr(estimator(), "method") else {}
+        {"constrained_method": constrained_method}
+        if hasattr(estimator(), "constrained_method")
+        else {}
     )
     hyperparams.update(
         {"n_components": n_components} if hasattr(estimator(), "n_components") else {}

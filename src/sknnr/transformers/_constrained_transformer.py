@@ -10,10 +10,17 @@ from ._constrained_ordination import CCA, RDA
 
 
 class ConstrainedTransformer(ComponentReducerMixin, TransformerMixin, BaseEstimator):
+    CONSTRAINED_METHODS = {
+        "cca": CCA,
+        "rda": RDA,
+    }
+
     def __init__(
-        self, method: Literal["cca", "rda"] = "cca", n_components: int | None = None
+        self,
+        constrained_method: Literal["cca", "rda"] = "cca",
+        n_components: int | None = None,
     ):
-        self.method = method
+        self.constrained_method = constrained_method
         super().__init__(n_components=n_components)
 
     def fit(self, X, y):
@@ -26,12 +33,13 @@ class ConstrainedTransformer(ComponentReducerMixin, TransformerMixin, BaseEstima
             ensure_min_samples=1,
         )
 
-        if self.method == "cca":
-            self.ordination_ = CCA(X, y)
-        elif self.method == "rda":
-            self.ordination_ = RDA(X, y)
-        else:
-            raise ValueError("`method` must be one of 'cca' or 'rda'.")
+        method_cls = self.CONSTRAINED_METHODS.get(self.constrained_method)
+        if method_cls is None:
+            raise ValueError(
+                f"`method` must be one of {self.CONSTRAINED_METHODS.keys()}, not"
+                f" {self.constrained_method}."
+            )
+        self.ordination_ = method_cls(X, y)
 
         self.set_n_components()
         self.env_center_ = self.ordination_.env_center

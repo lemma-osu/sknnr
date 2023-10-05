@@ -11,17 +11,17 @@ from .transformers import ConstrainedTransformer
 class GNNRegressor(YFitMixin, TransformedKNeighborsRegressor):
     def __init__(
         self,
-        method: Literal["cca", "rda"] = "cca",
+        constrained_method: Literal["cca", "rda"] = "cca",
         n_components: int | None = None,
         **kwargs,
     ):
         super().__init__(**kwargs)
-        self.method = method
+        self.constrained_method = constrained_method
         self.n_components = n_components
 
     def _get_transformer(self) -> TransformerMixin:
         return ConstrainedTransformer(
-            method=self.method, n_components=self.n_components
+            constrained_method=self.constrained_method, n_components=self.n_components
         )
 
     def _more_tags(self):
