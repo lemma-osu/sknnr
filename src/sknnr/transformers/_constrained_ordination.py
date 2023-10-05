@@ -41,7 +41,8 @@ class ConstrainedOrdination(ABC):
         by subclasses."""
         ...
 
-    def _check_inputs(self, X: NDArray, Y: NDArray) -> tuple[NDArray, NDArray]:
+    @staticmethod
+    def _check_inputs(X: NDArray, Y: NDArray) -> tuple[NDArray, NDArray]:
         """Verify that X and Y are valid inputs in preparation for ordination."""
         if not is_2d_numeric_array(arr=X):
             raise ValueError("X must be a 2D numeric numpy array")
