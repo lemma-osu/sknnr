@@ -4,14 +4,14 @@
 
 ## What is sknnr?
 
-`sknnr` is a package for running k-nearest neighbor (kNN) imputation[^1] methods using estimators that are fully compatible with [`scikit-learn`](https://scikit-learn.org/stable/). Notably, common methods such as most similar neighbor (MSN, Moeur & Stage 1995), gradient nearest neighbor (GNN, Ohmann & Gregory, 2002), and random forest nearest neighbors[^2] (RFNN, Crookston & Finley, 2008) are included in this package.
+`sknnr` is a package for running k-nearest neighbor (kNN) imputation[^imputation] methods using estimators that are fully compatible with [`scikit-learn`](https://scikit-learn.org/stable/). Notably, common methods such as most similar neighbor (MSN, Moeur & Stage 1995), gradient nearest neighbor (GNN, Ohmann & Gregory, 2002), and random forest nearest neighbors[^rfnn] (RFNN, Crookston & Finley, 2008) are included in this package.
 
 ## Features
 
 - 🤝 Tight integration with the [`scikit-learn`](https://scikit-learn.org/stable/) API
 - 🐼 Native support for [`pandas`](https://pandas.pydata.org/) dataframes
 - 📊 [Multi-output](https://scikit-learn.org/stable/modules/multiclass.html) estimators for [regression and classification](https://sknnr.readthedocs.io/usage/#regression-and-classification)
-- 📝 Results validated against [yaImpute](https://cran.r-project.org/web/packages/yaImpute/index.html) (Crookston & Finley 2008)[^3]
+- 📝 Results validated against [yaImpute](https://cran.r-project.org/web/packages/yaImpute/index.html) (Crookston & Finley 2008)[^validation]
 
 ## Why the Name "sknnr"?
 
@@ -82,6 +82,6 @@ Thanks to Andrew Hudak (USDA Forest Service Rocky Mountain Research Station) for
 - Moeur M, Stage AR. 1995. Most Similar Neighbor: An Improved Sampling Inference Procedure for Natural Resources Planning. Forest Science, 41(2), 337–359.
 - Ohmann JL, Gregory MJ. 2002. Predictive Mapping of Forest Composition and Structure with Direct Gradient Analysis and Nearest Neighbor Imputation in Coastal Oregon, USA. Canadian Journal of Forest Research, 32, 725–741.
 
-[^1]: In a mapping context, kNN imputation refers to predicting feature values for a target from its k-nearest neighbors, and should not be confused with the usual `scikit-learn` usage as a pre-filling strategy for missing input data, e.g. [`KNNImputer`](https://scikit-learn.org/stable/modules/generated/sklearn.impute.KNNImputer.html).
-[^2]: In [development](https://github.com/lemma-osu/scikit-learn-knn-regression/issues/24)!
-[^3]: All estimators and parameters with equivalent functionality in `yaImpute` are tested to 3 decimal places against the R package.
+[^imputation]: In a mapping context, kNN imputation refers to predicting feature values for a target from its k-nearest neighbors, and should not be confused with the usual `scikit-learn` usage as a pre-filling strategy for missing input data, e.g. [`KNNImputer`](https://scikit-learn.org/stable/modules/generated/sklearn.impute.KNNImputer.html).
+[^rfnn]: In [development](https://github.com/lemma-osu/scikit-learn-knn-regression/issues/24)!
+[^validation]: All estimators and parameters with equivalent functionality in `yaImpute` are tested to 3 decimal places against the R package.
