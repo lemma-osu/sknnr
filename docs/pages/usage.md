@@ -1,6 +1,6 @@
 ## Estimators
 
-`sknnr` provides estimators that are fully compatible, drop-in replacements for `scikit-learn` estimators:
+`sknnr` provides five estimators that are fully compatible, drop-in replacements for `scikit-learn` estimators:
 
 - [RawKNNRegressor](api/estimators/raw.md)
 - [EuclideanKNNRegressor](api/estimators/euclidean.md)
@@ -8,7 +8,9 @@
 - [GNNRegressor](api/estimators/gnn.md)
 - [MSNRegressor](api/estimators/msn.md)
 
-These estimators can be used [like any other `sklearn` regressor](https://scikit-learn.org/stable/getting_started.html#fitting-and-predicting-estimator-basics):
+These estimators can be used like any other `sklearn` regressor (or [classifier](#regression-and-classification))[^sklearn-docs].
+
+[^sklearn-docs]: Check out the [sklearn docs](https://scikit-learn.org/stable/getting_started.html#fitting-and-predicting-estimator-basics) for a refresher on estimator basics.
 
 ```python
 from sknnr import EuclideanKNNRegressor
@@ -24,6 +26,10 @@ print(est.score(X_test, y_test))
 ```
 
 In addition to their core functionality of fitting, predicting, and scoring, `sknnr` estimators offer a number of other features, detailed below.
+
+### Regression and Classification
+
+The estimators in `sknnr` are all initialized with an optional parameter `n_neighbors` that determines how many plots a target plot's attributes will be predicted from. When `n_neighbors>1`, a plot's attributes are calculated as weighted averages of each of its _k_ nearest neighbors. Predicted values can fall anywhere between the observed plot values, making this "regression mode" suitable for continuous attributes (e.g. basal area). To maintain categorical attributes (e.g. dominant species type), the estimators can be run in "classification mode" with `n_neighbors=1`, where each attribute is imputed directly from another plot. To predict a combination of continuous and categorical attributes, it's possible to use two estimators and concatenate their predictions manually. 
 
 ### Independent Scores and Predictions
 

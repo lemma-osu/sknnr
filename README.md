@@ -10,7 +10,7 @@
 
 - 🤝 Tight integration with the [`scikit-learn`](https://scikit-learn.org/stable/) API
 - 🐼 Native support for [`pandas`](https://pandas.pydata.org/) dataframes
-- 📊 [Multi-output](https://scikit-learn.org/stable/modules/multiclass.html) estimators for regression and classification
+- 📊 [Multi-output](https://scikit-learn.org/stable/modules/multiclass.html) estimators for [regression and classification](https://sknnr.readthedocs.io/usage/#regression-and-classification)
 - 📝 Results validated against [yaImpute](https://cran.r-project.org/web/packages/yaImpute/index.html) (Crookston & Finley 2008)[^3]
 
 ## Why the Name "sknnr"?
