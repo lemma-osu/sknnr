@@ -10,7 +10,7 @@
 
 - 🤝 Tight integration with the [`scikit-learn`](https://scikit-learn.org/stable/) API
 - 🐼 Native support for [`pandas`](https://pandas.pydata.org/) dataframes
-- 📊 [Multi-output](https://scikit-learn.org/stable/modules/multiclass.html) estimators for [regression and classification](https://sknnr.readthedocs.io/usage/#regression-and-classification)
+- 📊 [Multi-output](https://scikit-learn.org/stable/modules/multiclass.html) estimators for [regression and classification](https://sknnr.readthedocs.io/en/latest/usage/#regression-and-classification)
 - 📝 Results validated against [yaImpute](https://cran.r-project.org/web/packages/yaImpute/index.html) (Crookston & Finley 2008)[^validation]
 
 ## Why the Name "sknnr"?
@@ -23,14 +23,14 @@
 
 ## Quick-Start
 
-1. Follow the [installation guide](https://sknnr.readthedocs.io/installation).
-2. Import any `sknnr` estimator, like [MSNRegressor](https://sknnr.readthedocs.io/api/estimators/msn), as a drop-in replacement for a `scikit-learn` regressor.
+1. Follow the [installation guide](https://sknnr.readthedocs.io/en/latest/installation).
+2. Import any `sknnr` estimator, like [MSNRegressor](https://sknnr.readthedocs.io/en/latest/api/estimators/msn), as a drop-in replacement for a `scikit-learn` regressor.
 ```python
 from sknnr import MSNRegressor
 
 est = MSNRegressor()
 ```
-3. Load a custom dataset like [SWO Ecoplot](https://sknnr.readthedocs.io/api/datasets/swo_ecoplot) (or bring your own).
+3. Load a custom dataset like [SWO Ecoplot](https://sknnr.readthedocs.io/en/latest/api/datasets/swo_ecoplot) (or bring your own).
 ```python
 from sknnr.datasets import load_swo_ecoplot
 
@@ -45,7 +45,7 @@ X_train, X_test, y_train, y_test = train_test_split(X, y)
 est = est.fit(X_train, y_train)
 est.score(X_test, y_test)
 ```
-5. Check out the additional features like [independent scoring](https://sknnr.readthedocs.io/usage/#independent-scores-and-predictions), [dataframe indexing](https://sknnr.readthedocs.io/usage/#retrieving-dataframe-indexes), and [dimensionality reduction](https://sknnr.readthedocs.io/usage/#dimensionality-reduction).
+5. Check out the additional features like [independent scoring](https://sknnr.readthedocs.io/en/latest/usage/#independent-scores-and-predictions), [dataframe indexing](https://sknnr.readthedocs.io/en/latest/usage/#retrieving-dataframe-indexes), and [dimensionality reduction](https://sknnr.readthedocs.io/en/latest/usage/#dimensionality-reduction).
 ```python
 # Evaluate the model using the second-nearest neighbor in the test set
 print(est.fit(X, y).independent_score_)
@@ -68,7 +68,7 @@ To that end, `sknnr` ports and expands the functionality present in `yaImpute` i
 
 ## Acknowledgements
 
-Thanks to Andrew Hudak (USDA Forest Service Rocky Mountain Research Station) for the inclusion of the [Moscow Mountain / St. Joes dataset](https://sknnr.readthedocs.io/api/datasets/moscow_stjoes) (Hudak 2010), and the USDA Forest Service Region 6 Ecology Team for the inclusion of the [SWO Ecoplot dataset](https://sknnr.readthedocs.io/api/datasets/swo_ecoplot) (Atzet et al., 1996). Development of this package was funded by:
+Thanks to Andrew Hudak (USDA Forest Service Rocky Mountain Research Station) for the inclusion of the [Moscow Mountain / St. Joes dataset](https://sknnr.readthedocs.io/en/latest/api/datasets/moscow_stjoes) (Hudak 2010), and the USDA Forest Service Region 6 Ecology Team for the inclusion of the [SWO Ecoplot dataset](https://sknnr.readthedocs.io/en/latest/api/datasets/swo_ecoplot) (Atzet et al., 1996). Development of this package was funded by:
 
 - an appointment to the United States Forest Service (USFS) Research Participation Program administered by the Oak Ridge Institute for Science and Education (ORISE) through an interagency agreement between the U.S. Department of Energy (DOE) and the U.S. Department of Agriculture (USDA).
 - a joint venture agreement between USFS Pacific Northwest Research Station and Oregon State University (agreement 19-JV-11261959-064).
