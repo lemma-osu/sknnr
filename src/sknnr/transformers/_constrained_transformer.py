@@ -36,7 +36,7 @@ class ConstrainedTransformer(ComponentReducerMixin, TransformerMixin, BaseEstima
         method_cls = self.CONSTRAINED_METHODS.get(self.constrained_method)
         if method_cls is None:
             raise ValueError(
-                f"`method` must be one of {self.CONSTRAINED_METHODS.keys()}, not"
+                f"`method` must be one of {list(self.CONSTRAINED_METHODS.keys())}, not"
                 f" {self.constrained_method}."
             )
         self.ordination_ = method_cls(X, y)
