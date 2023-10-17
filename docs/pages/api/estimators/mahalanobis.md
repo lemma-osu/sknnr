@@ -1,0 +1,1 @@
+::: sknnr.MahalanobisKNNRegressor
