@@ -1,0 +1,1 @@
+::: sknnr.datasets.load_swo_ecoplot
