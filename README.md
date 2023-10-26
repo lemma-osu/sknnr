@@ -1,5 +1,7 @@
 # sknnr
 
+[![ReadTheDocs](https://readthedocs.org/projects/sknnr/badge/?version=latest)](https://sknnr.readthedocs.io/en/latest)
+
 > ⚠️ **WARNING: sknnr is in active development!** ⚠️
 
 ## What is sknnr?
