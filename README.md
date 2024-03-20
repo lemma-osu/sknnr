@@ -85,5 +85,5 @@ Thanks to Andrew Hudak (USDA Forest Service Rocky Mountain Research Station) for
 - Ohmann JL, Gregory MJ. 2002. Predictive Mapping of Forest Composition and Structure with Direct Gradient Analysis and Nearest Neighbor Imputation in Coastal Oregon, USA. Canadian Journal of Forest Research, 32, 725–741.
 
 [^imputation]: In a mapping context, kNN imputation refers to predicting feature values for a target from its k-nearest neighbors, and should not be confused with the usual `scikit-learn` usage as a pre-filling strategy for missing input data, e.g. [`KNNImputer`](https://scikit-learn.org/stable/modules/generated/sklearn.impute.KNNImputer.html).
-[^rfnn]: In [development](https://github.com/lemma-osu/scikit-learn-knn-regression/issues/24)!
+[^rfnn]: In [development](https://github.com/lemma-osu/sknnr/issues/24)!
 [^validation]: All estimators and parameters with equivalent functionality in `yaImpute` are tested to 3 decimal places against the R package.

@@ -1,12 +1,12 @@
 # Installation
 
-!!! info
-    `sknnr` will be available through PyPI and conda-forge once it is ready for release. Until then, you can install it from source.
+## From PyPI
 
-## From Source
+!!! info
+    `sknnr` is currently in pre-release on PyPI, so you'll need to use the `--pre` flag to install it.
 
 ```bash
-pip install git+https://github.com/lemma-osu/scikit-learn-knn-regression@main
+pip install sknnr --pre
 ```
 
 ## Dependencies

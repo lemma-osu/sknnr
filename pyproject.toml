@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "scikit-learn-knn-regression"
+name = "sknnr"
 dynamic = ["version"]
 description = "Scikit-learn estimators for kNN regression methods"
 readme = "README.md"
@@ -20,8 +20,8 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/lemma-osu/scikit-learn-knn-regression"
-Source = "https://github.com/lemma-osu/scikit-learn-knn-regression"
+Homepage = "https://github.com/lemma-osu/sknnr"
+Source = "https://github.com/lemma-osu/sknnr"
 
 [tool.hatch.version]
 path = "src/sknnr/__about__.py"
