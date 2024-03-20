@@ -1,6 +1,6 @@
 site_name: sknnr
-repo_url: https://github.com/lemma-osu/scikit-learn-knn-regression
-repo_name: lemma-osu/scikit-learn-knn-regression
+repo_url: https://github.com/lemma-osu/sknnr
+repo_name: lemma-osu/sknnr
 docs_dir: pages/
 
 nav:
