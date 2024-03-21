@@ -76,16 +76,28 @@ Whenever the docs are updated, they will be automatically rebuilt and deployed b
 
 ### Releasing
 
-First, use `hatch` to [update the version number](https://hatch.pypa.io/latest/version/#updating).
+First, use `hatch` to [update the version number](https://hatch.pypa.io/latest/version/#updating). For pre-releases, release candidates, or other non-standard version numbers, set the version manually in `src/sknnr/__about__.py` instead.
 
 ```bash
 $ hatch version [major|minor|patch]
 ```
 
-Then, [build](https://hatch.pypa.io/latest/build/#building) and [publish](https://hatch.pypa.io/latest/publish/#publishing) the release to PyPI with:
+Next, tag the release:
 
 ```bash
-$ hatch clean
-$ hatch build
+$ git tag "$(hatch version)"
+$ git push --tags
+```
+
+Finally, [build](https://hatch.pypa.io/latest/build/#building) and [publish](https://hatch.pypa.io/latest/publish/#publishing) the release to PyPI with:
+
+```bash
+$ hatch build -c
 $ hatch publish
+```
+
+If needed, your PyPI API token can be passed as an argument to `hatch publish` with the username `__token__`:
+
+```bash
+hatch publish -a [api token] -u __token__
 ```
