@@ -23,24 +23,24 @@ This will install development dependencies in an isolated environment and drop y
 Use [pre-commit](https://pre-commit.com/) to run linting, type-checking, and formatting:
 
 ```bash
-$ pre-commit run --all-files
+$ hatch run pre-commit run --all-files
 ```
 
 ...or install it to run automatically before every commit with:
 
 ```bash
-$ pre-commit install
+$ hatch run pre-commit install
 ```
 
-You can run pre-commit hooks separately and pass additional arguments to them. For example, to run `black` on a single file:
+You can run pre-commit hooks separately and pass additional arguments to them. For example, to run `ruff-format` on a single file:
 
 ```bash
-$ pre-commit run black --files=src/sknnr/_base.py
+$ hatch run pre-commit run ruff-format --files=src/sknnr/_base.py
 ```
 
 ### Testing
 
-Unit tests are *not* run by `pre-commit`, but can be run manually using `hatch` [scripts](https://hatch.pypa.io/latest/config/environment/overview/#scripts):
+Unit tests are _not_ run by `pre-commit`, but can be run manually using `hatch` [scripts](https://hatch.pypa.io/latest/config/environment/overview/#scripts):
 
 ```bash
 $ hatch run test:all

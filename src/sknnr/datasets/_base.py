@@ -4,7 +4,7 @@ import csv
 import sys
 from dataclasses import dataclass
 from importlib import resources
-from typing import TYPE_CHECKING, TextIO
+from typing import IO, TYPE_CHECKING
 
 import numpy as np
 from numpy.typing import NDArray
@@ -54,7 +54,7 @@ def _dataset_as_frame(dataset: Dataset) -> Dataset:
     )
 
 
-def _open_text(module_name: str, file_name: str) -> TextIO:
+def _open_text(module_name: str, file_name: str) -> IO[str]:
     """Open a file as text.
 
     This is a compatibility port for importlib.resources.open_text, which is deprecated
@@ -68,7 +68,7 @@ def _open_text(module_name: str, file_name: str) -> TextIO:
 
 def _load_csv_data(
     file_name: str,
-) -> tuple[NDArray[np.int64], NDArray[np.float64], NDArray[np.unicode_]]:
+) -> tuple[NDArray[np.int64], NDArray[np.float64], NDArray[np.str_]]:
     """Load data from a CSV file in the data module.
 
     Notes
