@@ -11,13 +11,9 @@ license = ""
 requires-python = ">=3.8"
 authors = [
     { name = "Matt Gregory", email = "matt.gregory@oregonstate.edu" },
-    { name = "Aaron Zuspan", email = "aaron.zuspan@oregonstate.edu" }
+    { name = "Aaron Zuspan", email = "aaron.zuspan@oregonstate.edu" },
 ]
-dependencies = [
-    "numpy",
-    "scikit-learn>=1.2",
-    "scipy",
-]
+dependencies = ["numpy", "scikit-learn>=1.2", "scipy"]
 
 [project.urls]
 Homepage = "https://github.com/lemma-osu/sknnr"
@@ -30,32 +26,20 @@ path = "src/sknnr/__about__.py"
 packages = ["src/sknnr"]
 
 [tool.hatch.build.targets.sdist]
-include = [
-    "/src",
-]
+include = ["/src"]
 
 [tool.hatch.envs.default]
-dependencies = [
-    "pre-commit",
-]
+dependencies = ["pre-commit"]
 
 [tool.hatch.envs.test]
-dependencies = [
-    "pytest",
-    "pytest-cov",
-    "pandas"
-]
+dependencies = ["pytest", "pytest-cov", "pandas"]
 
 [tool.hatch.envs.test.scripts]
 all = "pytest {args}"
 coverage = "pytest --cov=src/sknnr {args}"
 
 [tool.hatch.envs.docs]
-dependencies = [
-    "mkdocs",
-    "mkdocs-material",
-    "mkdocstrings[python]"
-]
+dependencies = ["mkdocs", "mkdocs-material", "mkdocstrings[python]"]
 
 [tool.hatch.envs.docs.scripts]
 serve = "mkdocs serve --config-file docs/mkdocs.yml --watch ./README.md"
@@ -69,9 +53,25 @@ markers = [
 
 [tool.ruff]
 target-version = "py38"
-select = ["E", "I", "F", "B", "FA", "UP", "ISC", "PT", "NPY", "Q", "RET", "SIM", "PERF"]
 fix = true
 show-fixes = true
 
-[tool.ruff.isort]
+[tool.ruff.lint]
+select = [
+    "E",
+    "I",
+    "F",
+    "B",
+    "FA",
+    "UP",
+    "ISC",
+    "PT",
+    "NPY",
+    "Q",
+    "RET",
+    "SIM",
+    "PERF",
+]
+
+[tool.ruff.lint.isort]
 known-first-party = ["sknnr"]
