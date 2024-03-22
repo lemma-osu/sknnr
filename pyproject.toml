@@ -35,8 +35,8 @@ dependencies = ["pre-commit"]
 dependencies = ["pytest", "pytest-cov", "pandas"]
 
 [tool.hatch.envs.test.scripts]
-all = "pytest {args}"
-coverage = "pytest --cov=src/sknnr {args}"
+all = "pytest . {args} --doctest-modules"
+coverage = "pytest . --cov=src/sknnr {args} --doctest-modules"
 
 [tool.hatch.envs.docs]
 dependencies = ["mkdocs", "mkdocs-material", "mkdocstrings[python]"]
