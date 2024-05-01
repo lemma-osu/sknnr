@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import Union
 
 import numpy as np
@@ -5,10 +7,10 @@ from numpy.typing import NDArray
 from sklearn.preprocessing import StandardScaler
 from sklearn.utils.validation import FLOAT_DTYPES, check_is_fitted
 
-from ._cca import CCA
 from ._ccora import CCorA
+from ._constrained_ordination import CCA, RDA
 
-Ordination = Union[CCA, CCorA]
+Ordination = Union[CCA, CCorA, RDA]
 
 
 class StandardScalerWithDOF(StandardScaler):
@@ -38,7 +40,7 @@ class ComponentReducerMixin:
 
     ordination_: Ordination
 
-    def __init__(self, n_components=None):
+    def __init__(self, n_components: int | None = None):
         self.n_components = n_components
 
     def get_feature_names_out(self) -> NDArray:

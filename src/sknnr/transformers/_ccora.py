@@ -57,8 +57,8 @@ class CCorA:
     P_VAL = 0.05
 
     def __init__(self, X, y):
-        self.X = np.array(X)
-        self.y = np.array(y)
+        self.X = np.asarray(X)
+        self.y = np.asarray(y)
         self.k = min(self.X.shape[1], self.y.shape[1])
 
     def _apply_svd_with_tolerance(self, arr):
