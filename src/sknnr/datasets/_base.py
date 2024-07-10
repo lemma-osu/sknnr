@@ -66,17 +66,35 @@ def _open_text(module_name: str, file_name: str) -> IO[str]:
     return resources.open_text(module_name, file_name)
 
 
-def _load_csv_data(
+def load_csv_data(
     file_name: str,
+    *,
+    data_module: str = DATA_MODULE,
 ) -> tuple[NDArray[np.int64], NDArray[np.float64], NDArray[np.str_]]:
-    """Load data from a CSV file in the data module.
+    """Load data from a CSV file from the specified data_module.
+
+    Parameters
+    ----------
+    file_name: str, required
+        The filename of the CSV file to load from `data_module/file_name`.
+    data_module: str or module, default='sknnr.datasets.data'
+        The module where the data file is located.
+
+    Returns
+    -------
+    index: ndarray
+        The plot IDs from the first column of the CSV file.
+    data: ndarray
+        The data values from the remaining columns of the CSV file.
+    data_names: ndarray
+        The column names from the first row of the CSV file.
 
     Notes
     -----
     The CSV must be formatted with plot IDs in the first column and data values in the
     remaining columns. The first row must contain the column names.
     """
-    with _open_text(DATA_MODULE, file_name) as csv_file:
+    with _open_text(data_module, file_name) as csv_file:
         data_file = csv.reader(csv_file)
         headers = next(data_file)
         rows = list(iter(data_file))
@@ -88,12 +106,13 @@ def _load_csv_data(
     return index, data, data_names
 
 
-def _load_dataset_from_csv_filenames(
+def load_dataset_from_csv_filenames(
     *,
     data_filename: str,
     target_filename: str,
     return_X_y: bool = False,
     as_frame: bool = False,
+    data_module: str = DATA_MODULE,
 ) -> tuple[NDArray[np.float64], NDArray[np.float64]] | Dataset:
     """Load separate data and target CSV files into a dataset or paired NumPy arrays.
 
@@ -110,6 +129,8 @@ def _load_dataset_from_csv_filenames(
         DataFrames instead of NumPy arrays. The `frame` attribute will also be added as
         a DataFrame with the dataset index. Pandas must be installed for this
         option.
+    data_module: str or module, default='sknnr.datasets.data'
+        The module where the data files are located.
 
     Returns
     -------
@@ -123,8 +144,12 @@ def _load_dataset_from_csv_filenames(
     in the remaining columns. The first row in each file must contain the column names.
     The plot IDs in each file are expected to match and be in the same order.
     """
-    index, data, feature_names = _load_csv_data(file_name=data_filename)
-    _, target, target_names = _load_csv_data(file_name=target_filename)
+    index, data, feature_names = load_csv_data(
+        file_name=data_filename, data_module=data_module
+    )
+    _, target, target_names = load_csv_data(
+        file_name=target_filename, data_module=data_module
+    )
 
     dataset = Dataset(
         index=index,
@@ -179,7 +204,7 @@ def load_moscow_stjoes(
     Rocky Mountain Research Station.
     https://www.fs.usda.gov/rds/archive/Catalog/RDS-2010-0012
     """
-    return _load_dataset_from_csv_filenames(
+    return load_dataset_from_csv_filenames(
         data_filename="moscow_env.csv",
         target_filename="moscow_spp.csv",
         return_X_y=return_X_y,
@@ -229,7 +254,7 @@ def load_swo_ecoplot(
     Field guide to the forested plant associations of southwestern Oregon.
     USDA Forest Service. Pacific Northwest Region, Technical Paper R6-NR-ECOL-TP-17-96.
     """
-    return _load_dataset_from_csv_filenames(
+    return load_dataset_from_csv_filenames(
         data_filename="swo_ecoplot_env.csv",
         target_filename="swo_ecoplot_spp.csv",
         return_X_y=return_X_y,
