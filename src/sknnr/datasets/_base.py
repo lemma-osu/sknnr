@@ -68,15 +68,15 @@ def _open_text(module_name: str | types.ModuleType, file_name: str) -> IO[str]:
 
 
 def load_csv_data(
-    file_name: str, *, data_module: str | types.ModuleType = DATA_MODULE
+    file_name: str, *, module_name: str | types.ModuleType = DATA_MODULE
 ) -> tuple[NDArray[np.int64], NDArray[np.float64], NDArray[np.str_]]:
-    """Load data from a CSV file from the specified data_module.
+    """Load data from a CSV file from the specified module_name.
 
     Parameters
     ----------
     file_name: str, required
-        The filename of the CSV file to load from `data_module/file_name`.
-    data_module: str or module, default='sknnr.datasets.data'
+        The filename of the CSV file to load from `module_name/file_name`.
+    module_name: str or module, default='sknnr.datasets.data'
         The module where the data file is located.
 
     Returns
@@ -93,7 +93,7 @@ def load_csv_data(
     The CSV must be formatted with plot IDs in the first column and data values in the
     remaining columns. The first row must contain the column names.
     """
-    with _open_text(data_module, file_name) as csv_file:
+    with _open_text(module_name, file_name) as csv_file:
         data_file = csv.reader(csv_file)
         headers = next(data_file)
         rows = list(iter(data_file))
@@ -111,7 +111,7 @@ def load_dataset_from_csv_filenames(
     target_filename: str,
     return_X_y: bool = False,
     as_frame: bool = False,
-    data_module: str | types.ModuleType = DATA_MODULE,
+    module_name: str | types.ModuleType = DATA_MODULE,
 ) -> tuple[NDArray[np.float64], NDArray[np.float64]] | Dataset:
     """Load separate data and target CSV files into a dataset or paired NumPy arrays.
 
@@ -128,7 +128,7 @@ def load_dataset_from_csv_filenames(
         DataFrames instead of NumPy arrays. The `frame` attribute will also be added as
         a DataFrame with the dataset index. Pandas must be installed for this
         option.
-    data_module: str or module, default='sknnr.datasets.data'
+    module_name: str or module, default='sknnr.datasets.data'
         The module where the data files are located.
 
     Returns
@@ -144,10 +144,10 @@ def load_dataset_from_csv_filenames(
     The plot IDs in each file are expected to match and be in the same order.
     """
     index, data, feature_names = load_csv_data(
-        file_name=data_filename, data_module=data_module
+        file_name=data_filename, module_name=module_name
     )
     _, target, target_names = load_csv_data(
-        file_name=target_filename, data_module=data_module
+        file_name=target_filename, module_name=module_name
     )
 
     dataset = Dataset(

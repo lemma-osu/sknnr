@@ -32,14 +32,14 @@ def test_passing_module_type():
     """Test that passing a module type to load_csv_data works."""
     import sknnr.datasets.data as data_module
 
-    load_csv_data("moscow_env.csv", data_module=data_module)
+    load_csv_data("moscow_env.csv", module_name=data_module)
 
 
 def test_incorrect_module_raises_on_load_csv():
     """Test that load_csv_data raises when given an invalid module name."""
     invalid_module = "sknnr.datasets.invalid_module"
     with pytest.raises(ModuleNotFoundError, match="No module named"):
-        load_csv_data("moscow_env.csv", data_module=invalid_module)
+        load_csv_data("moscow_env.csv", module_name=invalid_module)
 
 
 @pytest.mark.parametrize(
