@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import csv
 import sys
+import types
 from dataclasses import dataclass
 from importlib import resources
 from typing import IO, TYPE_CHECKING
@@ -54,7 +55,7 @@ def _dataset_as_frame(dataset: Dataset) -> Dataset:
     )
 
 
-def _open_text(module_name: str, file_name: str) -> IO[str]:
+def _open_text(module_name: str | types.ModuleType, file_name: str) -> IO[str]:
     """Open a file as text.
 
     This is a compatibility port for importlib.resources.open_text, which is deprecated
@@ -67,9 +68,7 @@ def _open_text(module_name: str, file_name: str) -> IO[str]:
 
 
 def load_csv_data(
-    file_name: str,
-    *,
-    data_module: str = DATA_MODULE,
+    file_name: str, *, data_module: str | types.ModuleType = DATA_MODULE
 ) -> tuple[NDArray[np.int64], NDArray[np.float64], NDArray[np.str_]]:
     """Load data from a CSV file from the specified data_module.
 
@@ -112,7 +111,7 @@ def load_dataset_from_csv_filenames(
     target_filename: str,
     return_X_y: bool = False,
     as_frame: bool = False,
-    data_module: str = DATA_MODULE,
+    data_module: str | types.ModuleType = DATA_MODULE,
 ) -> tuple[NDArray[np.float64], NDArray[np.float64]] | Dataset:
     """Load separate data and target CSV files into a dataset or paired NumPy arrays.
 
