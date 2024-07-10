@@ -102,7 +102,7 @@ def test_score_independent(result, n_components, weighted):
     predicted = (
         dataset.ref_predicted_weighted if weighted else dataset.ref_predicted_unweighted
     )
-    expected_score = r2_score(dataset.y_train, predicted).mean()
+    expected_score = r2_score(dataset.y_train, predicted)
 
     hyperparams = dict(n_neighbors=5, weights=weights)
     hyperparams.update(
