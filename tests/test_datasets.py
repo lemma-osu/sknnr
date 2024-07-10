@@ -7,7 +7,7 @@ import pandas as pd
 import pytest
 from numpy.testing import assert_array_equal
 
-from sknnr.datasets import load_moscow_stjoes, load_swo_ecoplot
+from sknnr.datasets import load_csv_data, load_moscow_stjoes, load_swo_ecoplot
 
 
 @dataclass
@@ -26,6 +26,20 @@ CONFIGURATIONS = {
         load_function=load_swo_ecoplot, n_samples=3005, n_targets=25, n_features=18
     ),
 }
+
+
+def test_passing_module_type():
+    """Test that passing a module type to load_csv_data works."""
+    import sknnr.datasets.data as data_module
+
+    load_csv_data("moscow_env.csv", module_name=data_module)
+
+
+def test_incorrect_module_raises_on_load_csv():
+    """Test that load_csv_data raises when given an invalid module name."""
+    invalid_module = "sknnr.datasets.invalid_module"
+    with pytest.raises(ModuleNotFoundError, match="No module named"):
+        load_csv_data("moscow_env.csv", module_name=invalid_module)
 
 
 @pytest.mark.parametrize(
