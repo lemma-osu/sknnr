@@ -76,10 +76,10 @@ Whenever the docs are updated, they will be automatically rebuilt and deployed b
 
 ### Releasing
 
-First, use `hatch` to [update the version number](https://hatch.pypa.io/latest/version/#updating). For pre-releases, release candidates, or other non-standard version numbers, set the version manually in `src/sknnr/__about__.py` instead.
+First, use `hatch` to [update the version number](https://hatch.pypa.io/latest/version/#updating) in a new release branch and merge into `main`.
 
 ```bash
-$ hatch version [major|minor|patch]
+$ hatch version [major|minor|patch|alpha|beta|rc|post|dev]
 ```
 
 Next, tag the release:
