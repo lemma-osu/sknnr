@@ -1,12 +1,28 @@
-import numpy as np
+from __future__ import annotations
+
+from typing import Literal
+
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.utils.validation import FLOAT_DTYPES, check_is_fitted
 
 from . import ComponentReducerMixin
-from ._cca import CCA
+from ._constrained_ordination import CCA, RDA
 
 
-class CCATransformer(ComponentReducerMixin, TransformerMixin, BaseEstimator):
+class ConstrainedTransformer(ComponentReducerMixin, TransformerMixin, BaseEstimator):
+    CONSTRAINED_METHODS = {
+        "cca": CCA,
+        "rda": RDA,
+    }
+
+    def __init__(
+        self,
+        constrained_method: Literal["cca", "rda"] = "cca",
+        n_components: int | None = None,
+    ):
+        self.constrained_method = constrained_method
+        super().__init__(n_components=n_components)
+
     def fit(self, X, y):
         X = self._validate_data(
             X,
@@ -16,11 +32,15 @@ class CCATransformer(ComponentReducerMixin, TransformerMixin, BaseEstimator):
             ensure_min_features=2,
             ensure_min_samples=1,
         )
-        y = np.asarray(y)
-        if len(y.shape) < 2:
-            raise ValueError("`y` must be a 2D array.")
 
-        self.ordination_ = CCA(X, y)
+        method_cls = self.CONSTRAINED_METHODS.get(self.constrained_method)
+        if method_cls is None:
+            raise ValueError(
+                f"`method` must be one of {list(self.CONSTRAINED_METHODS.keys())}, not"
+                f" {self.constrained_method}."
+            )
+        self.ordination_ = method_cls(X, y)
+
         self.set_n_components()
         self.env_center_ = self.ordination_.env_center
         self.projector_ = self.ordination_.projector(n_components=self.n_components_)
@@ -42,7 +62,7 @@ class CCATransformer(ComponentReducerMixin, TransformerMixin, BaseEstimator):
         return self.fit(X, y).transform(X)
 
     def _more_tags(self):
-        unsupported_1d = "CCA requires 2D y arrays."
+        unsupported_1d = "Constrained ordination requires 2D y arrays."
 
         return {
             "allow_nan": False,

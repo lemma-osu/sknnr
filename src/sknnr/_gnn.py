@@ -1,19 +1,31 @@
+from __future__ import annotations
+
+from typing import Literal
+
 from sklearn.base import TransformerMixin
 
 from ._base import TransformedKNeighborsRegressor, YFitMixin
-from .transformers import CCATransformer
+from .transformers import ConstrainedTransformer
 
 
 class GNNRegressor(YFitMixin, TransformedKNeighborsRegressor):
-    def __init__(self, n_components=None, **kwargs):
+    def __init__(
+        self,
+        constrained_method: Literal["cca", "rda"] = "cca",
+        n_components: int | None = None,
+        **kwargs,
+    ):
         super().__init__(**kwargs)
+        self.constrained_method = constrained_method
         self.n_components = n_components
 
     def _get_transformer(self) -> TransformerMixin:
-        return CCATransformer(self.n_components)
+        return ConstrainedTransformer(
+            constrained_method=self.constrained_method, n_components=self.n_components
+        )
 
     def _more_tags(self):
-        unsupported_1d = "CCA requires 2D y arrays."
+        unsupported_1d = "Constrained ordination requires 2D y arrays."
 
         return {
             "allow_nan": False,
