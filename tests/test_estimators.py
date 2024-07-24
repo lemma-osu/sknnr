@@ -4,6 +4,7 @@ import pytest
 from numpy.testing import assert_array_equal
 from numpy.typing import NDArray
 from sklearn import config_context
+from sklearn.model_selection import GridSearchCV
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.utils.estimator_checks import parametrize_with_checks
 from sklearn.utils.validation import NotFittedError
@@ -169,3 +170,14 @@ def test_yfit_affects_prediction(estimator, X_y_yfit):
 
     with pytest.raises(AssertionError):
         assert_array_equal(with_y_fit_pred, without_y_fit_pred)
+
+
+@pytest.mark.parametrize("estimator", TEST_ESTIMATORS)
+def test_gridsearchcv(estimator, X_y_yfit):
+    """Test that GridSearchCV works with all estimators."""
+    X, y, _ = X_y_yfit
+
+    param_grid = {"n_neighbors": [1, 3]}
+    gs = GridSearchCV(estimator(), param_grid=param_grid, cv=2)
+    gs.fit(X, y)
+    gs.predict(X)
