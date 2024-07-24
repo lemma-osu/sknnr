@@ -1,15 +1,10 @@
-from __future__ import annotations
-
-from typing import Callable, Literal
-
 from sklearn.base import TransformerMixin
-from sklearn.metrics import DistanceMetric
 
-from ._base import TransformedKNeighborsRegressor, YFitMixin
+from ._base import OrdinationKNeighborsRegressor, YFitMixin
 from .transformers import CCorATransformer
 
 
-class MSNRegressor(YFitMixin, TransformedKNeighborsRegressor):
+class MSNRegressor(YFitMixin, OrdinationKNeighborsRegressor):
     """
     Regression using Most Similar Neighbor (MSN) imputation.
 
@@ -69,31 +64,6 @@ class MSNRegressor(YFitMixin, TransformedKNeighborsRegressor):
     Moeur M, Stage AR. 1995. Most Similar Neighbor: An Improved Sampling Inference
     Procedure for Natural Resources Planning. Forest Science, 41(2), 337–359.
     """
-
-    def __init__(
-        self,
-        n_neighbors: int = 5,
-        *,
-        n_components: int | None = None,
-        weights: Literal["uniform", "distance"] | Callable = "uniform",
-        algorithm: Literal["auto", "ball_tree", "kd_tree", "brute"] = "auto",
-        leaf_size: int = 30,
-        p: int = 2,
-        metric: str | Callable | DistanceMetric = "minkowski",
-        metric_params: dict | None = None,
-        n_jobs: int | None = None,
-    ):
-        super().__init__(
-            n_neighbors=n_neighbors,
-            weights=weights,
-            algorithm=algorithm,
-            leaf_size=leaf_size,
-            p=p,
-            metric=metric,
-            metric_params=metric_params,
-            n_jobs=n_jobs,
-        )
-        self.n_components = n_components
 
     def _get_transformer(self) -> TransformerMixin:
         return CCorATransformer(self.n_components)

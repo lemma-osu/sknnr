@@ -1,15 +1,10 @@
-from __future__ import annotations
-
-from typing import Callable, Literal
-
 from sklearn.base import TransformerMixin
-from sklearn.metrics import DistanceMetric
 
-from ._base import TransformedKNeighborsRegressor, YFitMixin
+from ._base import OrdinationKNeighborsRegressor, YFitMixin
 from .transformers import CCATransformer
 
 
-class GNNRegressor(YFitMixin, TransformedKNeighborsRegressor):
+class GNNRegressor(YFitMixin, OrdinationKNeighborsRegressor):
     """
     Regression using Gradient Nearest Neighbor (GNN) imputation.
 
@@ -70,31 +65,6 @@ class GNNRegressor(YFitMixin, TransformedKNeighborsRegressor):
     with Direct Gradient Analysis and Nearest Neighbor Imputation in Coastal Oregon,
     USA. Canadian Journal of Forest Research, 32, 725–741.
     """
-
-    def __init__(
-        self,
-        n_neighbors: int = 5,
-        *,
-        n_components: int | None = None,
-        weights: Literal["uniform", "distance"] | Callable = "uniform",
-        algorithm: Literal["auto", "ball_tree", "kd_tree", "brute"] = "auto",
-        leaf_size: int = 30,
-        p: int = 2,
-        metric: str | Callable | DistanceMetric = "minkowski",
-        metric_params: dict | None = None,
-        n_jobs: int | None = None,
-    ):
-        super().__init__(
-            n_neighbors=n_neighbors,
-            weights=weights,
-            algorithm=algorithm,
-            leaf_size=leaf_size,
-            p=p,
-            metric=metric,
-            metric_params=metric_params,
-            n_jobs=n_jobs,
-        )
-        self.n_components = n_components
 
     def _get_transformer(self) -> TransformerMixin:
         return CCATransformer(self.n_components)
