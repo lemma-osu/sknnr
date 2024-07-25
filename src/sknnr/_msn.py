@@ -32,7 +32,7 @@ class MSNRegressor(YFitMixin, OrdinationKNeighborsRegressor):
     p : int, default=2
         Power parameter for the Minkowski metric.
     metric : str or callable, default='minkowski'
-        The distance metric to use for the tree, calculated in CCA space.
+        The distance metric to use for the tree, calculated in CCorA space.
     metric_params : dict, default=None
         Additional keyword arguments for the metric function.
     n_jobs : int, optional
