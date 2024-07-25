@@ -1,9 +1,16 @@
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
+from typing import TYPE_CHECKING, Callable, Literal
 
 import numpy as np
 from sklearn.base import TransformerMixin
+from sklearn.metrics import DistanceMetric
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.utils.validation import _is_arraylike, check_is_fitted
+
+if TYPE_CHECKING:
+    from .transformers._base import ComponentReducerMixin
 
 
 class DFIndexCrosswalkMixin:
@@ -146,3 +153,37 @@ class TransformedKNeighborsRegressor(RawKNNRegressor, ABC):
             return_distance=return_distance,
             return_dataframe_index=return_dataframe_index,
         )
+
+
+class OrdinationKNeighborsRegressor(TransformedKNeighborsRegressor, ABC):
+    """
+    Subclass for transformed KNeighbors regressors that apply ordination with
+    dimensionality reduction.
+    """
+
+    transformer_: ComponentReducerMixin
+
+    def __init__(
+        self,
+        n_neighbors: int = 5,
+        *,
+        n_components: int | None = None,
+        weights: Literal["uniform", "distance"] | Callable = "uniform",
+        algorithm: Literal["auto", "ball_tree", "kd_tree", "brute"] = "auto",
+        leaf_size: int = 30,
+        p: int = 2,
+        metric: str | Callable | DistanceMetric = "minkowski",
+        metric_params: dict | None = None,
+        n_jobs: int | None = None,
+    ):
+        super().__init__(
+            n_neighbors=n_neighbors,
+            weights=weights,
+            algorithm=algorithm,
+            leaf_size=leaf_size,
+            p=p,
+            metric=metric,
+            metric_params=metric_params,
+            n_jobs=n_jobs,
+        )
+        self.n_components = n_components
