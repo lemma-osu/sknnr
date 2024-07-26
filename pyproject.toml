@@ -38,6 +38,12 @@ dependencies = ["pytest", "pytest-cov", "pandas"]
 all = "pytest . {args} --doctest-modules"
 coverage = "pytest . --cov=src/sknnr {args} --doctest-modules"
 
+[tool.hatch.envs.test_matrix]
+template = "test"
+
+[[tool.hatch.envs.test_matrix.matrix]]
+python = ["3.9", "3.10", "3.11", "3.12"]
+
 [tool.hatch.envs.docs]
 dependencies = ["mkdocs", "mkdocs-material", "mkdocstrings[python]"]
 
