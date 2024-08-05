@@ -114,8 +114,9 @@ def test_load_dataset_as_xy_as_frame(configuration: DatasetConfiguration):
 )
 def test_asframe_raises_without_pandas(configuration: DatasetConfiguration):
     """Test that as_frame=True raises a helpful error if pandas is not installed."""
-    with mock.patch.dict(sys.modules, {"pandas": None}), pytest.raises(
-        ImportError, match="pip install pandas"
+    with (
+        mock.patch.dict(sys.modules, {"pandas": None}),
+        pytest.raises(ImportError, match="pip install pandas"),
     ):
         configuration.load_function(as_frame=True)
 
