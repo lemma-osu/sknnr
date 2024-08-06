@@ -1,11 +1,10 @@
 from __future__ import annotations
 
 import csv
-import sys
 import types
 from dataclasses import dataclass
 from importlib import resources
-from typing import IO, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 import numpy as np
 from numpy.typing import NDArray
@@ -55,18 +54,6 @@ def _dataset_as_frame(dataset: Dataset) -> Dataset:
     )
 
 
-def _open_text(module_name: str | types.ModuleType, file_name: str) -> IO[str]:
-    """Open a file as text.
-
-    This is a compatibility port for importlib.resources.open_text, which is deprecated
-    in Python>=3.9. This function will be removed when support for Python 3.8 is
-    dropped.
-    """
-    if sys.version_info >= (3, 9):
-        return resources.files(module_name).joinpath(file_name).open("r")
-    return resources.open_text(module_name, file_name)
-
-
 def load_csv_data(
     file_name: str, *, module_name: str | types.ModuleType = DATA_MODULE
 ) -> tuple[NDArray[np.int64], NDArray[np.float64], NDArray[np.str_]]:
@@ -93,7 +80,7 @@ def load_csv_data(
     The CSV must be formatted with plot IDs in the first column and data values in the
     remaining columns. The first row must contain the column names.
     """
-    with _open_text(module_name, file_name) as csv_file:
+    with resources.files(module_name).joinpath(file_name).open("r") as csv_file:
         data_file = csv.reader(csv_file)
         headers = next(data_file)
         rows = list(iter(data_file))

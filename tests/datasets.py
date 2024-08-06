@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from importlib import resources
 
 import numpy as np
 import pandas as pd
@@ -8,7 +9,6 @@ from numpy.typing import NDArray
 from sklearn.model_selection import train_test_split
 
 from sknnr.datasets import load_moscow_stjoes
-from sknnr.datasets._base import _open_text
 
 TEST_DATA_MODULE = "tests.data"
 
@@ -90,5 +90,5 @@ def load_moscow_stjoes_results(
 
 def _load_test_data(filename: str) -> pd.DataFrame:
     """Load a test dataset from the tests/data directory."""
-    with _open_text(TEST_DATA_MODULE, filename) as fh:
+    with resources.files(TEST_DATA_MODULE).joinpath(filename).open("r") as fh:
         return pd.read_csv(fh)
