@@ -86,7 +86,7 @@ def get_estimator_xfail_checks(estimator) -> dict[str, str]:
         )
 
     if isinstance(estimator, (GNNRegressor, MSNRegressor)):
-        # These checks fail because the transformed estimators store the number
+        # These checks fail because the transformed estimators store the number of
         # transformed features rather than raw input features as expected by sklearn.
         n_features_in_checks = [
             "check_n_features_in_after_fitting",
