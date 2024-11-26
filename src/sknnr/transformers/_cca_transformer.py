@@ -41,9 +41,10 @@ class CCATransformer(ComponentReducerMixin, TransformerMixin, BaseEstimator):
     def fit_transform(self, X, y):
         return self.fit(X, y).transform(X)
 
-    def _more_tags(self):
-        return {
-            "allow_nan": False,
-            "requires_fit": True,
-            "requires_y": True,
-        }
+    def __sklearn_tags__(self):
+        tags = super().__sklearn_tags__()
+        tags.target_tags.required = True
+        tags.target_tags.single_output = False
+        tags.target_tags.two_d_labels = True
+
+        return tags
