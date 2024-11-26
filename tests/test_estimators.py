@@ -36,7 +36,7 @@ def get_estimator_xfail_checks(estimator) -> dict[str, str]:
     These are mostly due to sklearn using test data that our estimators aren't
     compatible with, e.g. 1D labels.
 
-    Requires sklearn 1.6.
+    Requires sklearn >= 1.6.
     """
     xfail_checks = {}
 
