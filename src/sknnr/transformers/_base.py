@@ -5,6 +5,7 @@ from numpy.typing import NDArray
 from sklearn.preprocessing import StandardScaler
 from sklearn.utils.validation import FLOAT_DTYPES, check_is_fitted
 
+from .._base import _validate_data
 from ._cca import CCA
 from ._ccora import CCorA
 
@@ -19,11 +20,12 @@ class StandardScalerWithDOF(StandardScaler):
     def fit(self, X, y=None):
         scaler = super().fit(X, y)
 
-        X = self._validate_data(
+        X = _validate_data(
+            self,
             X,
             accept_sparse=False,
             dtype=FLOAT_DTYPES,
-            force_all_finite="allow-nan",
+            ensure_all_finite="allow-nan",
             reset=False,
             ensure_min_samples=self.ddof + 1,
         )

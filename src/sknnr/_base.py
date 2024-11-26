@@ -13,6 +13,22 @@ if TYPE_CHECKING:
     from .transformers._base import ComponentReducerMixin
 
 
+def _validate_data(estimator, *args, **kwargs):
+    """
+    Compatibility wrapper around sklearn's _validate_data function.
+
+    scikit-learn >= 1.6.0 moved _validate_data from a method of BaseEstimator to a
+    public utility function. This function wraps the utility function if available,
+    and falls back to the method if not.
+    """
+    try:
+        from sklearn.utils.validation import validate_data
+    except ImportError:
+        return estimator._validate_data(*args, **kwargs)
+
+    return validate_data(estimator, *args, **kwargs)
+
+
 class DFIndexCrosswalkMixin:
     """Mixin to crosswalk array indices to dataframe indexes."""
 
@@ -130,7 +146,7 @@ class TransformedKNeighborsRegressor(RawKNNRegressor, ABC):
 
     def fit(self, X, y):
         """Fit using transformed feature data."""
-        self._validate_data(X, y, force_all_finite=True, multi_output=True)
+        _validate_data(self, X, y, ensure_all_finite=True, multi_output=True)
         self._set_dataframe_index_in(X)
         self._set_fitted_transformer(X, y)
 
