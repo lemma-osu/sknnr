@@ -29,6 +29,80 @@ TEST_ESTIMATORS = [
 TEST_YFIT_ESTIMATORS = [MSNRegressor, GNNRegressor]
 
 
+def get_estimator_xfail_checks(estimator) -> dict[str, str]:
+    """
+    Return tests that are expected to fail with explanations.
+
+    These are mostly due to sklearn using test data that our estimators aren't
+    compatible with, e.g. 1D labels.
+
+    Requires sklearn 1.6.
+    """
+    xfail_checks = {}
+
+    if isinstance(estimator, GNNRegressor):
+        # These checks fail due to input data constraints for the CCA ordination that
+        # aren't followed by the sklearn checks.
+        one_d_checks = [
+            "check_estimators_dtypes",
+            "check_dtype_object",
+            "check_estimators_fit_returns_self",
+            "check_pipeline_consistency",
+            "check_estimators_overwrite_params",
+            "check_fit_score_takes_y",
+            "check_estimators_pickle",
+            "check_regressors_train",
+            "check_regressor_data_not_an_array",
+            "check_regressors_no_decision_function",
+            "check_supervised_y_2d",
+            "check_regressors_int",
+            "check_methods_sample_order_invariance",
+            "check_methods_subset_invariance",
+            "check_dict_unchanged",
+            "check_dont_overwrite_parameters",
+            "check_fit_idempotent",
+            "check_fit_check_is_fitted",
+            "check_n_features_in",
+            "check_fit2d_predict1d",
+            "check_fit2d_1sample",
+            "check_estimators_nan_inf",
+        ]
+
+        row_sum_checks = [
+            "check_regressor_multioutput",
+            "check_readonly_memmap_input",
+            "check_n_features_in_after_fitting",
+            "check_f_contiguous_array_estimator",
+        ]
+
+        xfail_checks.update(
+            {
+                **{check: "CCA requires 2D y arrays." for check in one_d_checks},
+                **{
+                    check: "Row sums must be greater than 0."
+                    for check in row_sum_checks
+                },
+            }
+        )
+
+    if isinstance(estimator, (GNNRegressor, MSNRegressor)):
+        # These checks fail because the transformed estimators store the number
+        # transformed features rather than raw input features as expected by sklearn.
+        n_features_in_checks = [
+            "check_n_features_in_after_fitting",
+            "check_n_features_in",
+        ]
+
+        xfail_checks.update(
+            {
+                check: "Estimator stores transformed n_features_in_"
+                for check in n_features_in_checks
+            }
+        )
+
+    return xfail_checks
+
+
 @pytest.fixture()
 def X_y_yfit() -> tuple[NDArray, NDArray, NDArray]:
     """Return X, y, and y_fit arrays for testing y_fit compatible estimators."""
@@ -40,7 +114,10 @@ def X_y_yfit() -> tuple[NDArray, NDArray, NDArray]:
 
 
 @pytest.mark.filterwarnings("ignore:divide by zero encountered")
-@parametrize_with_checks([cls() for cls in TEST_ESTIMATORS])
+@parametrize_with_checks(
+    [cls() for cls in TEST_ESTIMATORS],
+    expected_failed_checks=get_estimator_xfail_checks,
+)
 def test_sklearn_estimator_checks(estimator, check):
     check(estimator)
 
