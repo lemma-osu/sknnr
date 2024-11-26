@@ -26,6 +26,13 @@ TEST_ESTIMATORS = [
     GNNRegressor,
 ]
 
+TEST_TRANSFORMED_ESTIMATORS = [
+    EuclideanKNNRegressor,
+    MahalanobisKNNRegressor,
+    MSNRegressor,
+    GNNRegressor,
+]
+
 TEST_YFIT_ESTIMATORS = [MSNRegressor, GNNRegressor]
 
 
@@ -185,8 +192,6 @@ def test_estimators_support_dataframes(estimator):
     estimator = estimator().fit(X, y)
     estimator.predict(X)
 
-    assert_array_equal(getattr(estimator, "feature_names_in_", None), X.columns)
-
 
 @pytest.mark.parametrize("fit_names", [True, False])
 @pytest.mark.parametrize("estimator", TEST_ESTIMATORS)
@@ -258,3 +263,17 @@ def test_gridsearchcv(estimator, X_y_yfit):
     gs = GridSearchCV(estimator(), param_grid=param_grid, cv=2)
     gs.fit(X, y)
     gs.predict(X)
+
+
+@pytest.mark.parametrize("estimator", TEST_TRANSFORMED_ESTIMATORS)
+def test_n_features_in(estimator, X_y_yfit):
+    """
+    Test that estimators store the number of transformed features.
+    """
+    X, y, _ = X_y_yfit
+
+    est = estimator().fit(X, y)
+    transformed_features = est.transformer_.get_feature_names_out()
+
+    assert est.transformer_.n_features_in_ == X.shape[1]
+    assert est.n_features_in_ == len(transformed_features)
