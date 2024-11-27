@@ -11,7 +11,7 @@ class CCATransformer(ComponentReducerMixin, TransformerMixin, BaseEstimator):
     def fit(self, X, y):
         X = _validate_data(
             self,
-            X,
+            X=X,
             reset=True,
             dtype=FLOAT_DTYPES,
             ensure_all_finite=True,
@@ -32,7 +32,7 @@ class CCATransformer(ComponentReducerMixin, TransformerMixin, BaseEstimator):
         check_is_fitted(self)
         X = _validate_data(
             self,
-            X,
+            X=X,
             reset=False,
             dtype=FLOAT_DTYPES,
             ensure_all_finite=True,

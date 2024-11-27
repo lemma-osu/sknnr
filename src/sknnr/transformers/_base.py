@@ -22,7 +22,7 @@ class StandardScalerWithDOF(StandardScaler):
 
         X = _validate_data(
             self,
-            X,
+            X=X,
             accept_sparse=False,
             dtype=FLOAT_DTYPES,
             ensure_all_finite="allow-nan",

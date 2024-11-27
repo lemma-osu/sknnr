@@ -13,20 +13,21 @@ if TYPE_CHECKING:
     from .transformers._base import ComponentReducerMixin
 
 
-def _validate_data(estimator, *args, **kwargs):
+def _validate_data(estimator, *, ensure_all_finite: bool = True, **kwargs):
     """
     Compatibility wrapper around sklearn's _validate_data function.
 
     scikit-learn >= 1.6.0 moved _validate_data from a method of BaseEstimator to a
     public utility function. This function wraps the utility function if available,
-    and falls back to the method if not.
+    and falls back to the method if not. `force_all_finite` was also renamed to
+    `ensure_all_finite`.
     """
     try:
         from sklearn.utils.validation import validate_data
     except ImportError:
-        return estimator._validate_data(*args, **kwargs)
+        return estimator._validate_data(force_all_finite=ensure_all_finite, **kwargs)
 
-    return validate_data(estimator, *args, **kwargs)
+    return validate_data(estimator, ensure_all_finite=ensure_all_finite, **kwargs)
 
 
 class DFIndexCrosswalkMixin:
@@ -122,7 +123,7 @@ class TransformedKNeighborsRegressor(RawKNNRegressor, ABC):
 
     def fit(self, X, y):
         """Fit using transformed feature data."""
-        _validate_data(self, X, y, ensure_all_finite=True, multi_output=True)
+        _validate_data(self, X=X, y=y, ensure_all_finite=True, multi_output=True)
         self._set_dataframe_index_in(X)
         self._set_fitted_transformer(X, y)
 
