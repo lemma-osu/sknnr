@@ -69,7 +69,6 @@ def get_estimator_xfail_checks(estimator) -> dict[str, str]:
             "check_dont_overwrite_parameters",
             "check_fit_idempotent",
             "check_fit_check_is_fitted",
-            "check_n_features_in",
             "check_fit2d_predict1d",
             "check_fit2d_1sample",
             "check_estimators_nan_inf",
@@ -78,7 +77,6 @@ def get_estimator_xfail_checks(estimator) -> dict[str, str]:
         row_sum_checks = [
             "check_regressor_multioutput",
             "check_readonly_memmap_input",
-            "check_n_features_in_after_fitting",
             "check_f_contiguous_array_estimator",
         ]
 
