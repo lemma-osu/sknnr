@@ -21,6 +21,8 @@ def _validate_data(estimator, *, ensure_all_finite: bool = True, **kwargs):
     public utility function. This function wraps the utility function if available,
     and falls back to the method if not. `force_all_finite` was also renamed to
     `ensure_all_finite`.
+
+    TODO: Remove when sklearn < 1.6.0 support is dropped.
     """
     try:
         from sklearn.utils.validation import validate_data
