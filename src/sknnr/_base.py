@@ -13,6 +13,25 @@ if TYPE_CHECKING:
     from .transformers._base import ComponentReducerMixin
 
 
+def _validate_data(estimator, *, ensure_all_finite: bool = True, **kwargs):
+    """
+    Compatibility wrapper around sklearn's _validate_data function.
+
+    scikit-learn >= 1.6.0 moved _validate_data from a method of BaseEstimator to a
+    public utility function. This function wraps the utility function if available,
+    and falls back to the method if not. `force_all_finite` was also renamed to
+    `ensure_all_finite`.
+
+    TODO: Remove when sklearn < 1.6.0 support is dropped.
+    """
+    try:
+        from sklearn.utils.validation import validate_data
+    except ImportError:
+        return estimator._validate_data(force_all_finite=ensure_all_finite, **kwargs)
+
+    return validate_data(estimator, ensure_all_finite=ensure_all_finite, **kwargs)
+
+
 class DFIndexCrosswalkMixin:
     """Mixin to crosswalk array indices to dataframe indexes."""
 
@@ -104,33 +123,9 @@ class TransformedKNeighborsRegressor(RawKNNRegressor, ABC):
         """Fit and store the transformer."""
         self.transformer_ = self._get_transformer().fit(X, y)
 
-    @property
-    def feature_names_in_(self):
-        return self.transformer_.feature_names_in_
-
-    @property
-    def n_features_in_(self):
-        return self.transformer_.n_features_in_
-
-    def _check_feature_names(self, X, *, reset):
-        """Override BaseEstimator._check_feature_names to prevent errors.
-
-        This check would fail during fitting because `feature_names_in_` stores original
-        names while X contains transformed names. We instead rely on the transformer to
-        check feature names and warn or raise for mismatches.
-        """
-        return
-
-    def _check_n_features(self, X, *, reset):
-        """Override BaseEstimator._check_n_features to prevent errors.
-
-        See _check_feature_names.
-        """
-        return
-
     def fit(self, X, y):
         """Fit using transformed feature data."""
-        self._validate_data(X, y, force_all_finite=True, multi_output=True)
+        _validate_data(self, X=X, y=y, ensure_all_finite=True, multi_output=True)
         self._set_dataframe_index_in(X)
         self._set_fitted_transformer(X, y)
 
@@ -153,6 +148,12 @@ class TransformedKNeighborsRegressor(RawKNNRegressor, ABC):
             return_distance=return_distance,
             return_dataframe_index=return_dataframe_index,
         )
+
+    def __sklearn_tags__(self):
+        tags = super().__sklearn_tags__()
+        tags.regressor_tags.multi_label = True
+
+        return tags
 
 
 class OrdinationKNeighborsRegressor(TransformedKNeighborsRegressor, ABC):

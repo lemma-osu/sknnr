@@ -7,7 +7,6 @@ name = "sknnr"
 dynamic = ["version"]
 description = "Scikit-learn estimators for kNN regression methods"
 readme = "README.md"
-license = ""
 requires-python = ">=3.9"
 authors = [
     { name = "Matt Gregory", email = "matt.gregory@oregonstate.edu" },
@@ -32,7 +31,7 @@ include = ["/src"]
 dependencies = ["pre-commit"]
 
 [tool.hatch.envs.test]
-dependencies = ["pytest", "pytest-cov", "pandas"]
+dependencies = ["scikit-learn>=1.6.0rc1", "pytest", "pytest-cov", "pandas"]
 
 [tool.hatch.envs.test.scripts]
 all = "pytest . {args} --doctest-modules"

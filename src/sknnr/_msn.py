@@ -67,9 +67,3 @@ class MSNRegressor(YFitMixin, OrdinationKNeighborsRegressor):
 
     def _get_transformer(self) -> TransformerMixin:
         return CCorATransformer(self.n_components)
-
-    def _more_tags(self):
-        return {
-            "multioutput": True,
-            "requires_y": True,
-        }

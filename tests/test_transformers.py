@@ -26,7 +26,58 @@ TEST_ORDINATION_TRANSFORMERS = [
 ]
 
 
-@parametrize_with_checks([cls() for cls in TEST_TRANSFORMERS])
+def get_transformer_xfail_checks(transformer) -> dict[str, str]:
+    """
+    Return tests that are expected to fail with explanations.
+
+    These are mostly due to sklearn using test data that our estimators aren't
+    compatible with, e.g. 1D labels.
+
+    Requires sklearn >= 1.6.
+    """
+    xfail_checks = {}
+
+    if isinstance(transformer, CCATransformer):
+        # These checks fail due to input data constraints for the CCA ordination that
+        # aren't followed by the sklearn checks.
+        one_d_checks = [
+            "check_estimators_dtypes",
+            "check_dtype_object",
+            "check_estimators_fit_returns_self",
+            "check_pipeline_consistency",
+            "check_estimators_overwrite_params",
+            "check_fit_score_takes_y",
+            "check_estimators_pickle",
+            "check_transformer_data_not_an_array",
+            "check_transformer_general",
+            "check_transformer_preserve_dtypes",
+            "check_methods_sample_order_invariance",
+            "check_methods_subset_invariance",
+            "check_dict_unchanged",
+            "check_dont_overwrite_parameters",
+            "check_fit_idempotent",
+            "check_fit_check_is_fitted",
+            "check_n_features_in",
+            "check_fit2d_predict1d",
+            "check_fit2d_1sample",
+            "check_estimators_nan_inf",
+            "check_requires_y_none",
+            "check_readonly_memmap_input",
+            "check_n_features_in_after_fitting",
+            "check_f_contiguous_array_estimator",
+        ]
+
+        xfail_checks.update(
+            {check: "CCA requires 2D y arrays." for check in one_d_checks}
+        )
+
+    return xfail_checks
+
+
+@parametrize_with_checks(
+    [cls() for cls in TEST_TRANSFORMERS],
+    expected_failed_checks=get_transformer_xfail_checks,
+)
 def test_sklearn_transformer_checks(estimator, check):
     check(estimator)
 
