@@ -68,10 +68,3 @@ class GNNRegressor(YFitMixin, OrdinationKNeighborsRegressor):
 
     def _get_transformer(self) -> TransformerMixin:
         return CCATransformer(self.n_components)
-
-    def __sklearn_tags__(self):
-        tags = super().__sklearn_tags__()
-        tags.target_tags.single_output = False
-        tags.target_tags.two_d_labels = True
-
-        return tags
