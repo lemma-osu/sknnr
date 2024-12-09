@@ -149,12 +149,6 @@ class TransformedKNeighborsRegressor(RawKNNRegressor, ABC):
             return_dataframe_index=return_dataframe_index,
         )
 
-    def __sklearn_tags__(self):
-        tags = super().__sklearn_tags__()
-        tags.regressor_tags.multi_label = True
-
-        return tags
-
 
 class OrdinationKNeighborsRegressor(TransformedKNeighborsRegressor, ABC):
     """

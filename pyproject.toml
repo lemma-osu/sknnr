@@ -31,7 +31,7 @@ include = ["/src"]
 dependencies = ["pre-commit"]
 
 [tool.hatch.envs.test]
-dependencies = ["scikit-learn>=1.6.0rc1", "pytest", "pytest-cov", "pandas"]
+dependencies = ["scikit-learn>=1.6.0", "pytest", "pytest-cov", "pandas"]
 
 [tool.hatch.envs.test.scripts]
 all = "pytest . {args} --doctest-modules"
