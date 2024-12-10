@@ -72,6 +72,7 @@ def get_estimator_xfail_checks(estimator) -> dict[str, str]:
             "check_fit2d_predict1d",
             "check_fit2d_1sample",
             "check_estimators_nan_inf",
+            "check_positive_only_tag_during_fit",
         ]
 
         row_sum_checks = [

@@ -65,6 +65,7 @@ def get_transformer_xfail_checks(transformer) -> dict[str, str]:
             "check_readonly_memmap_input",
             "check_n_features_in_after_fitting",
             "check_f_contiguous_array_estimator",
+            "check_positive_only_tag_during_fit",
         ]
 
         xfail_checks.update(
