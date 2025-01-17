@@ -12,7 +12,7 @@ authors = [
     { name = "Matt Gregory", email = "matt.gregory@oregonstate.edu" },
     { name = "Aaron Zuspan", email = "aaron.zuspan@oregonstate.edu" },
 ]
-dependencies = ["numpy", "scikit-learn>=1.2", "scipy"]
+dependencies = ["numpy", "rpy2", "scikit-learn>=1.2", "scipy"]
 
 [project.urls]
 Homepage = "https://github.com/lemma-osu/sknnr"

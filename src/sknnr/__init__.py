@@ -4,6 +4,7 @@ from ._euclidean import EuclideanKNNRegressor
 from ._gnn import GNNRegressor
 from ._mahalanobis import MahalanobisKNNRegressor
 from ._msn import MSNRegressor
+from ._rfnn import RFNNRegressor
 
 __all__ = [
     "RawKNNRegressor",
@@ -11,4 +12,5 @@ __all__ = [
     "MahalanobisKNNRegressor",
     "MSNRegressor",
     "GNNRegressor",
+    "RFNNRegressor",
 ]

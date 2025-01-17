@@ -8,6 +8,7 @@ from sknnr import (
     MahalanobisKNNRegressor,
     MSNRegressor,
     RawKNNRegressor,
+    RFNNRegressor,
 )
 
 from .datasets import load_moscow_stjoes_results
@@ -18,6 +19,7 @@ ESTIMATOR_RESULTS = {
     "mahalanobis": MahalanobisKNNRegressor,
     "gnn": GNNRegressor,
     "msn": MSNRegressor,
+    "randomForest": RFNNRegressor,
 }
 
 
