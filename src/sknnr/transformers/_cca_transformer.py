@@ -47,5 +47,6 @@ class CCATransformer(ComponentReducerMixin, TransformerMixin, BaseEstimator):
     def __sklearn_tags__(self):
         tags = super().__sklearn_tags__()
         tags.target_tags.required = True
+        tags.target_tags.positive_only = True
 
         return tags
