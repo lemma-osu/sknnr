@@ -28,7 +28,7 @@ packages = ["src/sknnr"]
 include = ["/src"]
 
 [tool.hatch.envs.default]
-dependencies = ["pandas", "pre-commit", "rpy2"]
+dependencies = ["pre-commit", "rpy2"]
 
 [tool.hatch.envs.test]
 dependencies = ["scikit-learn>=1.6.0", "pytest", "pytest-cov", "pandas", "rpy2"]
