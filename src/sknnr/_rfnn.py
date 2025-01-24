@@ -17,6 +17,7 @@ class RFNNRegressor(YFitMixin, TransformedKNeighborsRegressor):
         *,
         n_estimators: int = 500,
         mtry: int | None = None,
+        method: Literal["rpy2", "sklearn"] = "sklearn",
         weights: Literal["uniform", "distance"] | Callable = "uniform",
         algorithm: Literal["auto", "ball_tree", "kd_tree", "brute"] = "auto",
         leaf_size: int = 30,
@@ -32,6 +33,9 @@ class RFNNRegressor(YFitMixin, TransformedKNeighborsRegressor):
         )
         self.n_estimators = n_estimators
         self.mtry = mtry
+        self.method = method
 
     def _get_transformer(self) -> TransformerMixin:
-        return RFNodeTransformer()
+        return RFNodeTransformer(
+            n_estimators=self.n_estimators, mtry=self.mtry, method=self.method
+        )
