@@ -15,9 +15,8 @@ class RFNNRegressor(YFitMixin, TransformedKNeighborsRegressor):
         self,
         n_neighbors: int = 5,
         *,
-        n_estimators: int = 500,
-        mtry: int | None = None,
-        method: Literal["rpy2", "sklearn"] = "sklearn",
+        n_estimators_per_forest: int = 50,
+        max_features: Literal["sqrt", "log2"] | int | float | None = "sqrt",
         weights: Literal["uniform", "distance"] | Callable = "uniform",
         algorithm: Literal["auto", "ball_tree", "kd_tree", "brute"] = "auto",
         leaf_size: int = 30,
@@ -31,11 +30,11 @@ class RFNNRegressor(YFitMixin, TransformedKNeighborsRegressor):
             metric="hamming",
             n_jobs=n_jobs,
         )
-        self.n_estimators = n_estimators
-        self.mtry = mtry
-        self.method = method
+        self.n_estimators_per_forest = n_estimators_per_forest
+        self.max_features = max_features
 
     def _get_transformer(self) -> TransformerMixin:
         return RFNodeTransformer(
-            n_estimators=self.n_estimators, mtry=self.mtry, method=self.method
+            n_estimators_per_forest=self.n_estimators_per_forest,
+            max_features=self.max_features,
         )
