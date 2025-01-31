@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Literal
 
 import numpy as np
+from numpy.typing import NDArray
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.utils.validation import check_is_fitted
@@ -20,16 +21,9 @@ class RFNodeTransformer(TransformerMixin, BaseEstimator):
         self.max_features = max_features
 
     def fit(self, X, y=None):
-        X = _validate_data(
-            self,
-            X=X,
-            reset=True,
-            ensure_min_features=1,
-            ensure_min_samples=1,
-        )
-        y = np.asarray(y)
-        if len(y.shape) < 2:
-            raise ValueError("`y` must be a 2D array.")
+        _, y = _validate_data(self, X=X, y=y, reset=True, multi_output=True)
+        if y.ndim == 1:
+            y = y.reshape(-1, 1)
 
         self.rfs_ = [
             RandomForestRegressor(
@@ -42,9 +36,20 @@ class RFNodeTransformer(TransformerMixin, BaseEstimator):
         ]
         return self
 
+    def get_feature_names_out(self) -> NDArray:
+        check_is_fitted(self, "rfs_")
+        return np.asarray(
+            [
+                f"node_{i}_{j}"
+                for i in range(len(self.rfs_))
+                for j in range(self.rfs_[i].n_estimators)
+            ],
+            dtype=object,
+        )
+
     def transform(self, X):
         check_is_fitted(self)
-        X = _validate_data(
+        _validate_data(
             self,
             X=X,
             reset=False,
@@ -55,3 +60,10 @@ class RFNodeTransformer(TransformerMixin, BaseEstimator):
 
     def fit_transform(self, X, y=None):
         return self.fit(X, y).transform(X)
+
+    def __sklearn_tags__(self):
+        tags = super().__sklearn_tags__()
+        tags.target_tags.required = True
+        tags.transformer_tags.preserves_dtype = []
+
+        return tags
