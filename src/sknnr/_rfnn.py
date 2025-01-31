@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Callable, Literal
 
+from numpy.random import RandomState
 from sklearn.base import TransformerMixin
 
 from ._base import TransformedKNeighborsRegressor, YFitMixin
@@ -32,6 +33,9 @@ class RFNNRegressor(YFitMixin, TransformedKNeighborsRegressor):
         Number of trees in each random forest.
     max_features : {'sqrt', 'log2', None}, int or float, default='sqrt'
         Number of features to consider when looking for the best split.
+    random_state : int, RandomState instance or None, default=None
+        Controls the random seed given to each forest.  See
+        `RandomForestRegressor` for more information.
     weights : {'uniform', 'distance'} or callable, default='uniform'
         Weight function used in prediction.
     algorithm : {'auto', 'ball_tree', 'kd_tree', 'brute'}, default='auto'
@@ -81,6 +85,7 @@ class RFNNRegressor(YFitMixin, TransformedKNeighborsRegressor):
         *,
         n_estimators_per_forest: int = 50,
         max_features: Literal["sqrt", "log2"] | int | float | None = "sqrt",
+        random_state: int | RandomState | None = None,
         weights: Literal["uniform", "distance"] | Callable = "uniform",
         algorithm: Literal["auto", "ball_tree", "kd_tree", "brute"] = "auto",
         leaf_size: int = 30,
@@ -96,9 +101,11 @@ class RFNNRegressor(YFitMixin, TransformedKNeighborsRegressor):
         )
         self.n_estimators_per_forest = n_estimators_per_forest
         self.max_features = max_features
+        self.random_state = random_state
 
     def _get_transformer(self) -> TransformerMixin:
         return RFNodeTransformer(
             n_estimators_per_forest=self.n_estimators_per_forest,
             max_features=self.max_features,
+            random_state=self.random_state,
         )

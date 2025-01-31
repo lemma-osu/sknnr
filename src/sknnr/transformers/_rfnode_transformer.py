@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Literal
 
 import numpy as np
+from numpy.random import RandomState
 from numpy.typing import NDArray
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.ensemble import RandomForestRegressor
@@ -30,6 +31,9 @@ class RFNodeTransformer(TransformerMixin, BaseEstimator):
         Number of trees in each random forest.
     max_features : {'sqrt', 'log2', None}, int or float, default='sqrt'
         Number of features to consider when looking for the best split.
+    random_state : int, RandomState instance or None, default=None
+        Controls the random seed given to each forest.  See
+        `RandomForestRegressor` for more information.
 
     Attributes
     ----------
@@ -46,9 +50,11 @@ class RFNodeTransformer(TransformerMixin, BaseEstimator):
         self,
         n_estimators_per_forest: int = 50,
         max_features: Literal["sqrt", "log2"] | int | float | None = "sqrt",
+        random_state: int | RandomState | None = None,
     ):
         self.n_estimators_per_forest = n_estimators_per_forest
         self.max_features = max_features
+        self.random_state = random_state
 
     def fit(self, X, y=None):
         _, y = _validate_data(self, X=X, y=y, reset=True, multi_output=True)
@@ -59,7 +65,7 @@ class RFNodeTransformer(TransformerMixin, BaseEstimator):
             RandomForestRegressor(
                 n_estimators=self.n_estimators_per_forest,
                 max_features=self.max_features,
-                random_state=42,
+                random_state=self.random_state,
                 min_samples_leaf=5,
             ).fit(X, y[:, i])
             for i in range(y.shape[1])
