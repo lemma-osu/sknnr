@@ -12,6 +12,36 @@ from .._base import _validate_data
 
 
 class RFNodeTransformer(TransformerMixin, BaseEstimator):
+    """
+    Transformer to capture node indexes for samples across multiple
+    random forests.
+
+    A random forest is fit to each feature in the training set using
+    `RandomForestRegressor`.  The transformation captures the node indexes
+    for each tree in each forest for each training or target sample.
+
+    This transformer is intended to be used in conjunction with `RFNNRegressor`
+    which captures similarity between node indexes of training and target data
+    and creates predictions using nearest neighbors.
+
+    Parameters
+    ----------
+    n_estimators_per_forest : int, default=50
+        Number of trees in each random forest.
+    max_features : {'sqrt', 'log2', None}, int or float, default='sqrt'
+        Number of features to consider when looking for the best split.
+
+    Attributes
+    ----------
+    n_features_in_ : int
+        Number of features seen during `fit`.
+    feature_names_in_ : ndarray of shape (`n_features_in_`)
+        Names of features seen during fit. Defined only when `X` has feature
+        names that are all strings.
+    rfs_ : list of `RandomForestRegressor`
+        The random forests associated with each feature in `y` during `fit`.
+    """
+
     def __init__(
         self,
         n_estimators_per_forest: int = 50,
