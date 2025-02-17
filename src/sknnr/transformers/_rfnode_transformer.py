@@ -56,7 +56,7 @@ class RFNodeTransformer(TransformerMixin, BaseEstimator):
         self.max_features = max_features
         self.random_state = random_state
 
-    def fit(self, X, y=None):
+    def fit(self, X, y):
         _, y = _validate_data(self, X=X, y=y, reset=True, multi_output=True)
         if y.ndim == 1:
             y = y.reshape(-1, 1)
@@ -76,7 +76,7 @@ class RFNodeTransformer(TransformerMixin, BaseEstimator):
         check_is_fitted(self, "rfs_")
         return np.asarray(
             [
-                f"node_{i}_{j}"
+                f"rf{i}_tree{j}"
                 for i in range(len(self.rfs_))
                 for j in range(self.rfs_[i].n_estimators)
             ],
@@ -94,12 +94,12 @@ class RFNodeTransformer(TransformerMixin, BaseEstimator):
         )
         return np.hstack([rf.apply(X) for rf in self.rfs_])
 
-    def fit_transform(self, X, y=None):
+    def fit_transform(self, X, y):
         return self.fit(X, y).transform(X)
 
     def __sklearn_tags__(self):
         tags = super().__sklearn_tags__()
         tags.target_tags.required = True
-        tags.transformer_tags.preserves_dtype = []
+        tags.transformer_tags.preserves_dtype = ["int64"]
 
         return tags
