@@ -10,6 +10,7 @@ from sknnr.transformers import (
     CCATransformer,
     CCorATransformer,
     MahalanobisTransformer,
+    RFNodeTransformer,
     StandardScalerWithDOF,
 )
 
@@ -18,6 +19,7 @@ TEST_TRANSFORMERS = [
     MahalanobisTransformer,
     CCATransformer,
     CCorATransformer,
+    RFNodeTransformer,
 ]
 
 TEST_ORDINATION_TRANSFORMERS = [

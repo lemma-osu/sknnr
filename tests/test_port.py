@@ -8,6 +8,7 @@ from sknnr import (
     MahalanobisKNNRegressor,
     MSNRegressor,
     RawKNNRegressor,
+    RFNNRegressor,
 )
 
 from .datasets import load_moscow_stjoes_results
@@ -18,6 +19,7 @@ ESTIMATOR_RESULTS = {
     "mahalanobis": MahalanobisKNNRegressor,
     "gnn": GNNRegressor,
     "msn": MSNRegressor,
+    "randomForest": RFNNRegressor,
 }
 
 
@@ -43,6 +45,9 @@ def test_kneighbors(result, n_components):
     hyperparams = dict(n_neighbors=5)
     hyperparams.update(
         {"n_components": n_components} if hasattr(estimator(), "n_components") else {}
+    )
+    hyperparams.update(
+        {"random_state": 42} if hasattr(estimator(), "random_state") else {}
     )
 
     est = estimator(**hyperparams).fit(dataset.X_train, dataset.y_train)
@@ -82,6 +87,9 @@ def test_predict(result, n_components, weighted, reference):
     hyperparams.update(
         {"n_components": n_components} if hasattr(estimator(), "n_components") else {}
     )
+    hyperparams.update(
+        {"random_state": 42} if hasattr(estimator(), "random_state") else {}
+    )
     est = estimator(**hyperparams).fit(dataset.X_train, dataset.y_train)
 
     pred = est.independent_prediction_ if reference else est.predict(dataset.X_test)
@@ -107,6 +115,9 @@ def test_score_independent(result, n_components, weighted):
     hyperparams = dict(n_neighbors=5, weights=weights)
     hyperparams.update(
         {"n_components": n_components} if hasattr(estimator(), "n_components") else {}
+    )
+    hyperparams.update(
+        {"random_state": 42} if hasattr(estimator(), "random_state") else {}
     )
     est = estimator(**hyperparams).fit(dataset.X_train, dataset.y_train)
     assert est.independent_score_ == pytest.approx(expected_score, abs=0.001)

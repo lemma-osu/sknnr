@@ -15,6 +15,7 @@ from sknnr import (
     MahalanobisKNNRegressor,
     MSNRegressor,
     RawKNNRegressor,
+    RFNNRegressor,
 )
 from sknnr.datasets import load_moscow_stjoes
 
@@ -24,6 +25,7 @@ TEST_ESTIMATORS = [
     MahalanobisKNNRegressor,
     MSNRegressor,
     GNNRegressor,
+    RFNNRegressor,
 ]
 
 TEST_TRANSFORMED_ESTIMATORS = [
@@ -31,9 +33,10 @@ TEST_TRANSFORMED_ESTIMATORS = [
     MahalanobisKNNRegressor,
     MSNRegressor,
     GNNRegressor,
+    RFNNRegressor,
 ]
 
-TEST_YFIT_ESTIMATORS = [MSNRegressor, GNNRegressor]
+TEST_YFIT_ESTIMATORS = [MSNRegressor, GNNRegressor, RFNNRegressor]
 
 
 def get_estimator_xfail_checks(estimator) -> dict[str, str]:
@@ -91,7 +94,7 @@ def get_estimator_xfail_checks(estimator) -> dict[str, str]:
             }
         )
 
-    if isinstance(estimator, (GNNRegressor, MSNRegressor)):
+    if isinstance(estimator, (GNNRegressor, MSNRegressor, RFNNRegressor)):
         # These checks fail because the transformed estimators store the number of
         # transformed features rather than raw input features as expected by sklearn.
         n_features_in_checks = [
