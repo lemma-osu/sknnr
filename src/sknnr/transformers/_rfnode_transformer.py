@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Literal
+from typing import Callable, Literal
 
 import numpy as np
 from numpy.random import RandomState
@@ -48,13 +48,45 @@ class RFNodeTransformer(TransformerMixin, BaseEstimator):
 
     def __init__(
         self,
-        n_estimators_per_forest: int = 50,
+        n_estimators: int = 50,
+        criterion: Literal[
+            "squared_error", "absolute_error", "friedman_mse", "poisson"
+        ] = "squared_error",
+        max_depth: int | None = None,
+        min_samples_split: int | float = 2,
+        min_samples_leaf: int | float = 5,
+        min_weight_fraction_leaf: float = 0.0,
         max_features: Literal["sqrt", "log2"] | int | float | None = "sqrt",
+        max_leaf_nodes: int | None = None,
+        min_impurity_decrease: float = 0.0,
+        bootstrap: bool = True,
+        oob_score: bool | Callable = False,
+        n_jobs: int | None = None,
         random_state: int | RandomState | None = None,
+        verbose: int = 0,
+        warm_start: bool = False,
+        ccp_alpha: float = 0.0,
+        max_samples: int | float | None = None,
+        monotonic_cst: list[int] | None = None,
     ):
-        self.n_estimators_per_forest = n_estimators_per_forest
+        self.n_estimators = n_estimators
+        self.criterion = criterion
+        self.max_depth = max_depth
+        self.min_samples_split = min_samples_split
+        self.min_samples_leaf = min_samples_leaf
+        self.min_weight_fraction_leaf = min_weight_fraction_leaf
         self.max_features = max_features
+        self.max_leaf_nodes = max_leaf_nodes
+        self.min_impurity_decrease = min_impurity_decrease
+        self.bootstrap = bootstrap
+        self.oob_score = oob_score
+        self.n_jobs = n_jobs
         self.random_state = random_state
+        self.verbose = verbose
+        self.warm_start = warm_start
+        self.ccp_alpha = ccp_alpha
+        self.max_samples = max_samples
+        self.monotonic_cst = monotonic_cst
 
     def fit(self, X, y):
         _, y = _validate_data(self, X=X, y=y, reset=True, multi_output=True)
@@ -63,10 +95,24 @@ class RFNodeTransformer(TransformerMixin, BaseEstimator):
 
         self.rfs_ = [
             RandomForestRegressor(
-                n_estimators=self.n_estimators_per_forest,
+                n_estimators=self.n_estimators,
+                criterion=self.criterion,
+                max_depth=self.max_depth,
+                min_samples_split=self.min_samples_split,
+                min_samples_leaf=self.min_samples_leaf,
+                min_weight_fraction_leaf=self.min_weight_fraction_leaf,
                 max_features=self.max_features,
+                max_leaf_nodes=self.max_leaf_nodes,
+                min_impurity_decrease=self.min_impurity_decrease,
+                bootstrap=self.bootstrap,
+                oob_score=self.oob_score,
+                n_jobs=self.n_jobs,
                 random_state=self.random_state,
-                min_samples_leaf=5,
+                verbose=self.verbose,
+                warm_start=self.warm_start,
+                ccp_alpha=self.ccp_alpha,
+                max_samples=self.max_samples,
+                monotonic_cst=self.monotonic_cst,
             ).fit(X, y[:, i])
             for i in range(y.shape[1])
         ]
