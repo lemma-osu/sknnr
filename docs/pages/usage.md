@@ -63,10 +63,10 @@ print(y.loc[neighbor_ids[0]])
 | 56253 |          0 |           0 |      22.8948 |           0 |           0 |
 
 !!! warning
-An estimator must be fit with a `DataFrame` in order to use `return_dataframe_index=True`.
+    An estimator must be fit with a `DataFrame` in order to use `return_dataframe_index=True`.
 
 !!! tip
-In forestry applications, users typically store a unique inventory plot identification number as the index in the dataframe.
+    In forestry applications, users typically store a unique inventory plot identification number as the index in the dataframe.
 
 ### Y-Fit Data
 
@@ -91,7 +91,7 @@ est = GNNRegressor(n_components=3).fit(X, y)
 ```
 
 !!! warning
-The maximum number of components depends on the input data and the estimator. Specifying `n_components` greater than the maximum number of components will raise an error.
+    The maximum number of components depends on the input data and the estimator. Specifying `n_components` greater than the maximum number of components will raise an error.
 
 ### RFNN Distance Metric
 
@@ -158,4 +158,4 @@ print(X_df.head())
 | 52494 |  720     |  778.556 |   2678.11 |   658.556 | 8638    |  -386.667 |  3065.78 |  1396    | 262     | 191.778 | 1345.67 | 16672.1 |   2      |   0.4444 | 214.667 |  58.5556 | -88.1111 | 294.222 |
 
 !!! note
-`pandas` must be installed to use `as_frame=True`.
+    `pandas` must be installed to use `as_frame=True`.
