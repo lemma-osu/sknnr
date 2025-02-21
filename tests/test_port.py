@@ -1,3 +1,5 @@
+import inspect
+
 import pytest
 from numpy.testing import assert_array_almost_equal, assert_array_equal
 from sklearn.metrics import r2_score
@@ -32,6 +34,18 @@ def estimator_does_not_support_n_components(result, n_components, **kwargs):
     return n_components is not None and not hasattr(estimator(), "n_components")
 
 
+def get_default_hyperparams(estimator, **kwargs) -> dict:
+    """Return valid parameters for the given estimator, including common defaults."""
+    default_params = dict(
+        n_neighbors=5,
+        random_state=42,
+        **kwargs,
+    )
+
+    valid_params = inspect.signature(estimator).parameters
+    return {k: v for k, v in default_params.items() if k in valid_params}
+
+
 @pytest.mark.uncollect_if(func=estimator_does_not_support_n_components)
 @pytest.mark.parametrize(
     "result", ESTIMATOR_RESULTS.items(), ids=ESTIMATOR_RESULTS.keys()
@@ -42,14 +56,7 @@ def test_kneighbors(result, n_components):
     method, estimator = result
     dataset = load_moscow_stjoes_results(method=method, n_components=n_components)
 
-    hyperparams = dict(n_neighbors=5)
-    hyperparams.update(
-        {"n_components": n_components} if hasattr(estimator(), "n_components") else {}
-    )
-    hyperparams.update(
-        {"random_state": 42} if hasattr(estimator(), "random_state") else {}
-    )
-
+    hyperparams = get_default_hyperparams(estimator, n_components=n_components)
     est = estimator(**hyperparams).fit(dataset.X_train, dataset.y_train)
 
     dist, nn = est.kneighbors(return_dataframe_index=True)
@@ -83,12 +90,8 @@ def test_predict(result, n_components, weighted, reference):
     else:
         expected_pred = dataset.trg_predicted_unweighted
 
-    hyperparams = dict(n_neighbors=5, weights=weights)
-    hyperparams.update(
-        {"n_components": n_components} if hasattr(estimator(), "n_components") else {}
-    )
-    hyperparams.update(
-        {"random_state": 42} if hasattr(estimator(), "random_state") else {}
+    hyperparams = get_default_hyperparams(
+        estimator, n_components=n_components, weights=weights
     )
     est = estimator(**hyperparams).fit(dataset.X_train, dataset.y_train)
 
@@ -112,12 +115,8 @@ def test_score_independent(result, n_components, weighted):
     )
     expected_score = r2_score(dataset.y_train, predicted)
 
-    hyperparams = dict(n_neighbors=5, weights=weights)
-    hyperparams.update(
-        {"n_components": n_components} if hasattr(estimator(), "n_components") else {}
-    )
-    hyperparams.update(
-        {"random_state": 42} if hasattr(estimator(), "random_state") else {}
+    hyperparams = get_default_hyperparams(
+        estimator, n_components=n_components, weights=weights
     )
     est = estimator(**hyperparams).fit(dataset.X_train, dataset.y_train)
     assert est.independent_score_ == pytest.approx(expected_score, abs=0.001)
