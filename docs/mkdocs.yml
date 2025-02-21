@@ -14,20 +14,22 @@ nav:
       - MahalanobisKNNRegressor: api/estimators/mahalanobis.md
       - GNNRegressor: api/estimators/gnn.md
       - MSNRegressor: api/estimators/msn.md
+      - RFNNRegressor: api/estimators/rfnn.md
     - Transformers:
       - StandardScalerWithDOF: api/transformers/standardscalerwithdof.md
       - MahalanobisTransformer: api/transformers/mahalanobis.md
       - CCATransformer: api/transformers/cca.md
       - CCorATransformer: api/transformers/ccora.md
+      - RFNodeTransformer: api/transformers/rfnode.md
     - Datasets:
       - Dataset: api/datasets/dataset.md
       - "Moscow Mountain / St. Joes": api/datasets/moscow_stjoes.md
       - "SWO Ecoplot": api/datasets/swo_ecoplot.md
   - Contributing: contributing.md
 
-theme: 
+theme:
   name: material
-  features: 
+  features:
     - search.suggest
     - search.highlight
     - navigation.instant
