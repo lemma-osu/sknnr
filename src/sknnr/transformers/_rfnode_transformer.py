@@ -25,15 +25,57 @@ class RFNodeTransformer(TransformerMixin, BaseEstimator):
     which captures similarity between node indexes of training and target data
     and creates predictions using nearest neighbors.
 
+    See `sklearn.ensemble.RandomForestRegressor` for more detail on these
+    parameters.  All parameters are passed through to `RandomForestRegressor`
+    for each random forest being built.
+
     Parameters
     ----------
-    n_estimators_per_forest : int, default=50
-        Number of trees in each random forest.
-    max_features : {'sqrt', 'log2', None}, int or float, default='sqrt'
-        Number of features to consider when looking for the best split.
+    n_estimators: int, default=50
+        The number of trees in _each_ random forest.
+    criterion : {"squared_error", "absolute_error", "friedman_mse", "poisson"},
+        default="squared_error"
+        The function to measure the quality of a split.
+    max_depth : int, default=None
+        The maximum depth of the tree.
+    min_samples_split : int or float, default=2
+        The minimum number of samples required to split an internal node.
+    min_samples_leaf : int of float, default=5
+        The minimum number of samples required to be at a leaf node.
+    min_weight_fraction_leaf : float, default=0.0
+        The minimum weighted fraction of the sum total of weights (of all the
+        input samples) required to be at a leaf node.
+    max_features : {“sqrt”, “log2”, None}, int or float, default="sqrt"
+        The number of features to consider when looking for the best split.
+    max_leaf_nodes : int, default=None
+        Grow trees with max_leaf_nodes in best-first fashion.
+    min_impurity_decrease : float, default=0.0
+        A node will be split if this split induces a decrease of the impurity
+        greater than or equal to this value.
+    bootstrap : bool, default=True
+        Whether bootstrap samples are used when building trees.
+    oob_score : bool or callable, default=False
+        Whether to use out-of-bag samples to estimate the generalization score.
+    n_jobs : int, default=None
+        The number of jobs to run in parallel.
     random_state : int, RandomState instance or None, default=None
-        Controls the random seed given to each forest.  See
-        `RandomForestRegressor` for more information.
+        Controls both the randomness of the bootstrapping of the samples
+        used when building trees (if `bootstrap=True`) and the sampling of the
+        features to consider when looking for the best split at each node
+        (if `max_features < n_features`).
+    verbose : int, default=0
+        Controls the verbosity when fitting and predicting.
+    warm_start : bool, default=False
+        When set to `True`, reuse the solution of the previous call to fit and
+        add more estimators to the ensemble, otherwise, just fit a whole
+        new forest.
+    ccp_alpha : non-negative float, default=0.0
+        Complexity parameter used for Minimal Cost-Complexity Pruning.
+    max_samples : int or float, default=None
+        If bootstrap is `True`, the number of samples to draw from X to
+        train each base estimator.
+    monotonic_cst : array-like of int of shape (n_features), default=None
+        Indicates the monotonicity constraint to enforce on each feature.
 
     Attributes
     ----------
