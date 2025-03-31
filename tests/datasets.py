@@ -70,7 +70,7 @@ def load_moscow_stjoes_results(
         f"{method}_moscow_trg_predicted_unweighted_k{k}{n_components_str}.csv"
     )
 
-    cols = [f"K{i+1}" for i in range(k)]
+    cols = [f"K{i + 1}" for i in range(k)]
 
     return KNNTestDataset(
         X_train=X_train,

@@ -112,7 +112,7 @@ def get_estimator_xfail_checks(estimator) -> dict[str, str]:
     return xfail_checks
 
 
-@pytest.fixture()
+@pytest.fixture
 def X_y_yfit() -> tuple[NDArray, NDArray, NDArray]:
     """Return X, y, and y_fit arrays for testing y_fit compatible estimators."""
     X, y = load_moscow_stjoes(return_X_y=True)
