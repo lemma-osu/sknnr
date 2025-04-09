@@ -1,15 +1,18 @@
 from __future__ import annotations
 
-from typing import Callable, Literal
+from typing import TYPE_CHECKING, Callable, Literal
 
 import numpy as np
 from numpy.random import RandomState
 from numpy.typing import NDArray
 from sklearn.base import BaseEstimator, TransformerMixin
-from sklearn.ensemble import RandomForestRegressor
+from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.utils.validation import check_is_fitted
 
 from .._base import _validate_data
+
+if TYPE_CHECKING:  # pragma: no cover
+    import pandas as pd
 
 
 class RFNodeTransformer(TransformerMixin, BaseEstimator):
@@ -88,6 +91,37 @@ class RFNodeTransformer(TransformerMixin, BaseEstimator):
         The random forests associated with each feature in `y` during `fit`.
     """
 
+    # Dictionary to map dtypes to random forest types
+    DTYPE_TO_RF_TYPE = {
+        "int": "regression",
+        "int8": "regression",
+        "int16": "regression",
+        "int32": "regression",
+        "int64": "regression",
+        "uint8": "regression",
+        "uint16": "regression",
+        "uint32": "regression",
+        "uint64": "regression",
+        "Int8": "regression",
+        "Int16": "regression",
+        "Int32": "regression",
+        "Int64": "regression",
+        "UInt8": "regression",
+        "UInt16": "regression",
+        "UInt32": "regression",
+        "UInt64": "regression",
+        "float": "regression",
+        "float16": "regression",
+        "float32": "regression",
+        "float64": "regression",
+        "Float32": "regression",
+        "Float64": "regression",
+        "category": "classification",
+        "object": "classification",
+        "str": "classification",
+        "string": "classification",
+    }
+
     def __init__(
         self,
         n_estimators: int = 50,
@@ -139,32 +173,77 @@ class RFNodeTransformer(TransformerMixin, BaseEstimator):
         self.max_samples = max_samples
         self.monotonic_cst = monotonic_cst
 
+    def _set_rf_types(self, y: NDArray | pd.Series | pd.DataFrame) -> dict[str, str]:
+        """Set the random forest type to use for each feature in `y`."""
+        try:
+            column_types = {k: v.name for k, v in y.dtypes.items()}
+            # TODO: Handle overrides from user based on names
+            column_name_to_idx = {k: i for i, k in enumerate(y.columns)}
+            column_types = {column_name_to_idx[k]: v for k, v in column_types.items()}
+        except AttributeError:
+            try:
+                column_types = {y.name: y.dtype.name}
+                # TODO: Handle overrides from user based on name
+                column_types = {0: y.dtype.name}
+            except AttributeError:
+                if y.dtype != "object":
+                    if y.ndim == 1:
+                        y = y.reshape(-1, 1)
+                    column_types = {k: y.dtype.name for k in range(y.shape[1])}
+                else:
+                    column_types = {
+                        k: type(y[0, k]).__name__ for k in range(y.shape[1])
+                    }
+                # TODO: Handle overrides from user based on index
+
+        missing_types = set(column_types.values()) - set(self.DTYPE_TO_RF_TYPE.keys())
+        if missing_types:
+            msg = f"Dtypes {missing_types} are not supported for use "
+            msg += "with random forests"
+            raise KeyError(msg)
+
+        return {k: self.DTYPE_TO_RF_TYPE[v] for k, v in column_types.items()}
+
     def fit(self, X, y):
+        self.rf_type_dict_ = self._set_rf_types(y)
         _, y = _validate_data(self, X=X, y=y, reset=True, multi_output=True)
         if y.ndim == 1:
             y = y.reshape(-1, 1)
 
+        rf_common_kwargs = dict(
+            n_estimators=self.n_estimators,
+            max_depth=self.max_depth,
+            min_samples_split=self.min_samples_split,
+            min_samples_leaf=self.min_samples_leaf,
+            min_weight_fraction_leaf=self.min_weight_fraction_leaf,
+            max_leaf_nodes=self.max_leaf_nodes,
+            min_impurity_decrease=self.min_impurity_decrease,
+            bootstrap=self.bootstrap,
+            oob_score=self.oob_score,
+            n_jobs=self.n_jobs,
+            random_state=self.random_state,
+            verbose=self.verbose,
+            warm_start=self.warm_start,
+            ccp_alpha=self.ccp_alpha,
+            max_samples=self.max_samples,
+            monotonic_cst=self.monotonic_cst,
+        )
+        rf_reg_kwargs = {
+            **rf_common_kwargs,
+            "criterion": self.criterion_reg,
+            "max_features": self.max_features_reg,
+        }
+        rf_clf_kwargs = {
+            **rf_common_kwargs,
+            "criterion": self.criterion_clf,
+            "max_features": self.max_features_clf,
+            "class_weight": self.class_weight_clf,
+        }
+
         self.rfs_ = [
-            RandomForestRegressor(
-                n_estimators=self.n_estimators,
-                criterion=self.criterion,
-                max_depth=self.max_depth,
-                min_samples_split=self.min_samples_split,
-                min_samples_leaf=self.min_samples_leaf,
-                min_weight_fraction_leaf=self.min_weight_fraction_leaf,
-                max_features=self.max_features,
-                max_leaf_nodes=self.max_leaf_nodes,
-                min_impurity_decrease=self.min_impurity_decrease,
-                bootstrap=self.bootstrap,
-                oob_score=self.oob_score,
-                n_jobs=self.n_jobs,
-                random_state=self.random_state,
-                verbose=self.verbose,
-                warm_start=self.warm_start,
-                ccp_alpha=self.ccp_alpha,
-                max_samples=self.max_samples,
-                monotonic_cst=self.monotonic_cst,
-            ).fit(X, y[:, i])
+            RandomForestRegressor(**rf_reg_kwargs).fit(X, y[:, i])
+            if self.rf_type_dict_[i] == "regression"
+            else RandomForestClassifier(**rf_clf_kwargs).fit(X, y[:, i])
             for i in range(y.shape[1])
         ]
         return self
