@@ -91,14 +91,16 @@ class RFNodeTransformer(TransformerMixin, BaseEstimator):
     def __init__(
         self,
         n_estimators: int = 50,
-        criterion: Literal[
+        criterion_reg: Literal[
             "squared_error", "absolute_error", "friedman_mse", "poisson"
         ] = "squared_error",
+        criterion_clf: Literal["gini", "entropy", "log_loss"] = "gini",
         max_depth: int | None = None,
         min_samples_split: int | float = 2,
         min_samples_leaf: int | float = 5,
         min_weight_fraction_leaf: float = 0.0,
-        max_features: Literal["sqrt", "log2"] | int | float | None = 1.0,
+        max_features_reg: Literal["sqrt", "log2"] | int | float | None = 1.0,
+        max_features_clf: Literal["sqrt", "log2"] | int | float | None = "sqrt",
         max_leaf_nodes: int | None = None,
         min_impurity_decrease: float = 0.0,
         bootstrap: bool = True,
@@ -107,17 +109,23 @@ class RFNodeTransformer(TransformerMixin, BaseEstimator):
         random_state: int | RandomState | None = None,
         verbose: int = 0,
         warm_start: bool = False,
+        class_weight_clf: Literal["balanced", "balanced_subsample"]
+        | dict[str, float]
+        | list[dict[str, float]]
+        | None = None,
         ccp_alpha: float = 0.0,
         max_samples: int | float | None = None,
         monotonic_cst: list[int] | None = None,
     ):
         self.n_estimators = n_estimators
-        self.criterion = criterion
+        self.criterion_reg = criterion_reg
+        self.criterion_clf = criterion_clf
         self.max_depth = max_depth
         self.min_samples_split = min_samples_split
         self.min_samples_leaf = min_samples_leaf
         self.min_weight_fraction_leaf = min_weight_fraction_leaf
-        self.max_features = max_features
+        self.max_features_reg = max_features_reg
+        self.max_features_clf = max_features_clf
         self.max_leaf_nodes = max_leaf_nodes
         self.min_impurity_decrease = min_impurity_decrease
         self.bootstrap = bootstrap
@@ -126,6 +134,7 @@ class RFNodeTransformer(TransformerMixin, BaseEstimator):
         self.random_state = random_state
         self.verbose = verbose
         self.warm_start = warm_start
+        self.class_weight_clf = class_weight_clf
         self.ccp_alpha = ccp_alpha
         self.max_samples = max_samples
         self.monotonic_cst = monotonic_cst
