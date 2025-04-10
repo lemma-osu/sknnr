@@ -104,6 +104,57 @@ def test_predict(result, n_components, weighted, reference):
     "result", ESTIMATOR_RESULTS.items(), ids=ESTIMATOR_RESULTS.keys()
 )
 @pytest.mark.parametrize("n_components", [None, 3], ids=["full", "reduced"])
+@pytest.mark.parametrize("reference", [True, False], ids=["reference", "target"])
+def test_kneighbors_regressions(ndarrays_regression, result, n_components, reference):
+    """Test that the ported estimators identify the correct neighbors and distances."""
+    method, estimator = result
+    dataset = load_moscow_stjoes_results(method=method, n_components=n_components)
+
+    hyperparams = get_default_hyperparams(estimator, n_components=n_components)
+    est = estimator(**hyperparams).fit(dataset.X_train, dataset.y_train)
+
+    if reference:
+        dist, nn = est.kneighbors(return_dataframe_index=True)
+    else:
+        dist, nn = est.kneighbors(dataset.X_test, return_dataframe_index=True)
+    ndarrays_regression.check(dict(dist=dist, nn=nn))
+
+
+@pytest.mark.uncollect_if(func=estimator_does_not_support_n_components)
+@pytest.mark.parametrize(
+    "result", ESTIMATOR_RESULTS.items(), ids=ESTIMATOR_RESULTS.keys()
+)
+@pytest.mark.parametrize("n_components", [None, 3], ids=["full", "reduced"])
+@pytest.mark.parametrize("weighted", [True, False], ids=["weighted", "unweighted"])
+@pytest.mark.parametrize("reference", [True, False], ids=["reference", "target"])
+def test_predict_regressions(
+    ndarrays_regression, result, n_components, weighted, reference
+):
+    """Test that the ported estimators predict the correct values."""
+    method, estimator = result
+    dataset = load_moscow_stjoes_results(method=method, n_components=n_components)
+
+    weights = yaimpute_weights if weighted else None
+
+    hyperparams = get_default_hyperparams(
+        estimator, n_components=n_components, weights=weights
+    )
+    est = estimator(**hyperparams).fit(dataset.X_train, dataset.y_train)
+
+    if reference:
+        pred = est.independent_prediction_
+        score = est.independent_score_
+        ndarrays_regression.check(dict(pred=pred, score=score))
+    else:
+        pred = est.predict(dataset.X_test)
+        ndarrays_regression.check(dict(pred=pred))
+
+
+@pytest.mark.uncollect_if(func=estimator_does_not_support_n_components)
+@pytest.mark.parametrize(
+    "result", ESTIMATOR_RESULTS.items(), ids=ESTIMATOR_RESULTS.keys()
+)
+@pytest.mark.parametrize("n_components", [None, 3], ids=["full", "reduced"])
 @pytest.mark.parametrize("weighted", [False, True], ids=["unweighted", "weighted"])
 def test_score_independent(result, n_components, weighted):
     """Test that the ported estimators produce the correct score."""
