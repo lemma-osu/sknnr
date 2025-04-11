@@ -22,6 +22,13 @@ ESTIMATORS = {
 
 
 def yaimpute_weights(d):
+    """
+    Convert distances to weights as a modified inverse.
+
+    Taken from R's `yaImpute` package, (Crookston and Finley, 2008), the
+    addition of 1.0 to the distance in the denominator prevents
+    division by zero errors.  Weights are bounded between 0 and 1.
+    """
     return 1.0 / (1.0 + d)
 
 
