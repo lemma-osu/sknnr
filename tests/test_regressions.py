@@ -11,7 +11,7 @@ from sknnr import (
     RFNNRegressor,
 )
 
-ESTIMATOR_RESULTS = {
+ESTIMATORS = {
     "raw": RawKNNRegressor,
     "euclidean": EuclideanKNNRegressor,
     "mahalanobis": MahalanobisKNNRegressor,
@@ -42,9 +42,7 @@ def get_default_hyperparams(estimator, **kwargs) -> dict:
 
 
 @pytest.mark.uncollect_if(func=estimator_does_not_support_n_components)
-@pytest.mark.parametrize(
-    "estimator", ESTIMATOR_RESULTS.values(), ids=ESTIMATOR_RESULTS.keys()
-)
+@pytest.mark.parametrize("estimator", ESTIMATORS.values(), ids=ESTIMATORS.keys())
 @pytest.mark.parametrize("n_components", [None, 3], ids=["full", "reduced"])
 @pytest.mark.parametrize("reference", [True, False], ids=["reference", "target"])
 def test_kneighbors(
@@ -64,9 +62,7 @@ def test_kneighbors(
 
 
 @pytest.mark.uncollect_if(func=estimator_does_not_support_n_components)
-@pytest.mark.parametrize(
-    "estimator", ESTIMATOR_RESULTS.values(), ids=ESTIMATOR_RESULTS.keys()
-)
+@pytest.mark.parametrize("estimator", ESTIMATORS.values(), ids=ESTIMATORS.keys())
 @pytest.mark.parametrize("n_components", [None, 3], ids=["full", "reduced"])
 @pytest.mark.parametrize("weighted", [True, False], ids=["weighted", "unweighted"])
 @pytest.mark.parametrize("reference", [True, False], ids=["reference", "target"])
