@@ -11,8 +11,6 @@ from sknnr import (
     RFNNRegressor,
 )
 
-from .datasets import load_moscow_stjoes_test_data
-
 ESTIMATOR_RESULTS = {
     "raw": RawKNNRegressor,
     "euclidean": EuclideanKNNRegressor,
@@ -49,9 +47,11 @@ def get_default_hyperparams(estimator, **kwargs) -> dict:
 )
 @pytest.mark.parametrize("n_components", [None, 3], ids=["full", "reduced"])
 @pytest.mark.parametrize("reference", [True, False], ids=["reference", "target"])
-def test_kneighbors(ndarrays_regression, estimator, n_components, reference):
+def test_kneighbors(
+    ndarrays_regression, moscow_stjoes_test_data, estimator, n_components, reference
+):
     """Test that the ported estimators identify the correct neighbors and distances."""
-    dataset = load_moscow_stjoes_test_data()
+    dataset = moscow_stjoes_test_data
 
     hyperparams = get_default_hyperparams(estimator, n_components=n_components)
     est = estimator(**hyperparams).fit(dataset.X_train, dataset.y_train)
@@ -70,9 +70,16 @@ def test_kneighbors(ndarrays_regression, estimator, n_components, reference):
 @pytest.mark.parametrize("n_components", [None, 3], ids=["full", "reduced"])
 @pytest.mark.parametrize("weighted", [True, False], ids=["weighted", "unweighted"])
 @pytest.mark.parametrize("reference", [True, False], ids=["reference", "target"])
-def test_predict(ndarrays_regression, estimator, n_components, weighted, reference):
+def test_predict(
+    ndarrays_regression,
+    moscow_stjoes_test_data,
+    estimator,
+    n_components,
+    weighted,
+    reference,
+):
     """Test that the ported estimators predict and score the correct values."""
-    dataset = load_moscow_stjoes_test_data()
+    dataset = moscow_stjoes_test_data
 
     weights = yaimpute_weights if weighted else None
 
