@@ -97,6 +97,8 @@ def test_predict(
     """Test that the ported estimators predict and score the correct values."""
     dataset = moscow_stjoes_test_data
 
+    # yaimpute_weights generates predictions equivalent to R's yaImpute so that
+    # we can continue to test correctness of the ported estimators.
     weights = yaimpute_weights if weighted else None
 
     hyperparams = get_default_hyperparams(
