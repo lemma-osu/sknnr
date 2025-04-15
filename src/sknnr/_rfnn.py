@@ -44,7 +44,7 @@ class RFNNRegressor(YFitMixin, TransformedKNeighborsRegressor):
     min_weight_fraction_leaf : float, default=0.0
         The minimum weighted fraction of the sum total of weights (of all the
         input samples) required to be at a leaf node.
-    max_features : {“sqrt”, “log2”, None}, int or float, default="sqrt"
+    max_features : {“sqrt”, “log2”, None}, int or float, default=1.0
         The number of features to consider when looking for the best split.
     max_leaf_nodes : int, default=None
         Grow trees with max_leaf_nodes in best-first fashion.
@@ -134,7 +134,7 @@ class RFNNRegressor(YFitMixin, TransformedKNeighborsRegressor):
         min_samples_split: int | float = 2,
         min_samples_leaf: int | float = 5,
         min_weight_fraction_leaf: float = 0.0,
-        max_features: Literal["sqrt", "log2"] | int | float | None = "sqrt",
+        max_features: Literal["sqrt", "log2"] | int | float | None = 1.0,
         max_leaf_nodes: int | None = None,
         min_impurity_decrease: float = 0.0,
         bootstrap: bool = True,
