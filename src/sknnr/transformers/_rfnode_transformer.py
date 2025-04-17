@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Callable, Literal
+from typing import Any, Callable, Literal
 
 import numpy as np
 from numpy.random import RandomState
@@ -10,9 +10,6 @@ from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.utils.validation import check_is_fitted
 
 from .._base import _validate_data
-
-if TYPE_CHECKING:  # pragma: no cover
-    import pandas as pd
 
 
 class RFNodeTransformer(TransformerMixin, BaseEstimator):
@@ -173,43 +170,80 @@ class RFNodeTransformer(TransformerMixin, BaseEstimator):
         self.max_samples = max_samples
         self.monotonic_cst = monotonic_cst
 
-    def _set_rf_types(self, y: NDArray | pd.Series | pd.DataFrame) -> dict[str, str]:
-        """Set the random forest type to use for each feature in `y`."""
-        try:
-            column_types = {k: v.name for k, v in y.dtypes.items()}
-            # TODO: Handle overrides from user based on names
-            column_name_to_idx = {k: i for i, k in enumerate(y.columns)}
-            column_types = {column_name_to_idx[k]: v for k, v in column_types.items()}
-        except AttributeError:
-            try:
-                column_types = {y.name: y.dtype.name}
-                # TODO: Handle overrides from user based on name
-                column_types = {0: y.dtype.name}
-            except AttributeError:
-                if y.dtype != "object":
-                    if y.ndim == 1:
-                        y = y.reshape(-1, 1)
-                    column_types = {k: y.dtype.name for k in range(y.shape[1])}
-                else:
-                    column_types = {
-                        k: type(y[0, k]).__name__ for k in range(y.shape[1])
-                    }
-                # TODO: Handle overrides from user based on index
+    def _is_pandas_dataframe(self, obj: Any) -> bool:
+        return (
+            obj.__class__.__module__.startswith("pandas")
+            and obj.__class__.__name__ == "DataFrame"
+        )
 
-        missing_types = set(column_types.values()) - set(self.DTYPE_TO_RF_TYPE.keys())
-        if missing_types:
-            msg = f"Dtypes {missing_types} are not supported for use "
-            msg += "with random forests"
-            raise KeyError(msg)
+    def _is_pandas_series(self, obj: Any) -> bool:
+        return (
+            obj.__class__.__module__.startswith("pandas")
+            and obj.__class__.__name__ == "Series"
+        )
 
-        return {k: self.DTYPE_TO_RF_TYPE[v] for k, v in column_types.items()}
-
-    def fit(self, X, y):
-        self.rf_type_dict_ = self._set_rf_types(y)
-        _, y = _validate_data(self, X=X, y=y, reset=True, multi_output=True)
+    def _get_column_names(self, y) -> list[str]:
+        """
+        Get the names of the columns in `y`. If no names are found, return
+        a list of strings with the column index.
+        """
+        if self._is_pandas_dataframe(y):
+            return y.columns.tolist()
+        if self._is_pandas_series(y):
+            return [y.name]
+        y = np.asarray(y, dtype=object)
         if y.ndim == 1:
             y = y.reshape(-1, 1)
+        return [str(i) for i in range(y.shape[1])]
 
+    def _get_column_dtypes(self, y) -> list[str]:
+        """Get the types of the columns in `y`."""
+        if self._is_pandas_dataframe(y):
+            return [v.name for v in y.dtypes.values]
+        if self._is_pandas_series(y):
+            return [y.dtype.name]
+        y = np.asarray(y, dtype=object)
+        if y.ndim == 1:
+            y = y.reshape(-1, 1)
+        return [type(y[0, k]).__name__ for k in range(y.shape[1])]
+
+    def _set_rf_types(
+        self, column_names: list[str], column_dtypes: list[str]
+    ) -> dict[int, str]:
+        """Set the random forest type to use for each feature in `y`."""
+
+        column_name_to_idx = {k: i for i, k in enumerate(column_names)}
+        column_name_to_dtype = {n: t for n, t in zip(column_names, column_dtypes)}
+        # TODO: Handle overrides from user based on names
+        # TODO: column_names_to_types.update(user_overrides)
+        column_idx_to_dtype = {
+            column_name_to_idx[k]: v for k, v in column_name_to_dtype.items()
+        }
+
+        if unsupported_types := set(column_idx_to_dtype.values()) - set(
+            self.DTYPE_TO_RF_TYPE.keys()
+        ):
+            msg = f"Dtypes {unsupported_types} are not supported for use "
+            msg += "with random forests"
+            raise ValueError(msg)
+
+        return {k: self.DTYPE_TO_RF_TYPE[v] for k, v in column_idx_to_dtype.items()}
+
+    def fit(self, X, y):
+        # Validate the input data first.  This is required to be first to raise
+        # the correct error if the input data is not valid.  Convert `y` to a
+        # numpy array, but retain the original `y` for column typing.
+        _, y_arr = _validate_data(self, X=X, y=y, reset=True, multi_output=True)
+        if y_arr.ndim == 1:
+            y_arr = y_arr.reshape(-1, 1)
+
+        # Use the original `y` to get the column names and types and create a
+        # dictionary of column index to random forest type.
+        column_names = self._get_column_names(y)
+        column_dtypes = self._get_column_dtypes(y)
+        self.rf_type_dict_ = self._set_rf_types(column_names, column_dtypes)
+
+        # Specialize the kwargs sent to intiialize the random forests
         rf_common_kwargs = dict(
             n_estimators=self.n_estimators,
             max_depth=self.max_depth,
@@ -240,11 +274,12 @@ class RFNodeTransformer(TransformerMixin, BaseEstimator):
             "class_weight": self.class_weight_clf,
         }
 
+        # Create the random forests for each feature in `y` and fit them
         self.rfs_ = [
-            RandomForestRegressor(**rf_reg_kwargs).fit(X, y[:, i])
+            RandomForestRegressor(**rf_reg_kwargs).fit(X, y_arr[:, i])
             if self.rf_type_dict_[i] == "regression"
-            else RandomForestClassifier(**rf_clf_kwargs).fit(X, y[:, i])
-            for i in range(y.shape[1])
+            else RandomForestClassifier(**rf_clf_kwargs).fit(X, y_arr[:, i])
+            for i in range(y_arr.shape[1])
         ]
         return self
 
