@@ -127,14 +127,16 @@ class RFNNRegressor(YFitMixin, TransformedKNeighborsRegressor):
         self,
         *,
         n_estimators: int = 50,
-        criterion: Literal[
+        criterion_reg: Literal[
             "squared_error", "absolute_error", "friedman_mse", "poisson"
         ] = "squared_error",
+        criterion_clf: Literal["gini", "entropy", "log_loss"] = "gini",
         max_depth: int | None = None,
         min_samples_split: int | float = 2,
         min_samples_leaf: int | float = 5,
         min_weight_fraction_leaf: float = 0.0,
-        max_features: Literal["sqrt", "log2"] | int | float | None = 1.0,
+        max_features_reg: Literal["sqrt", "log2"] | int | float | None = 1.0,
+        max_features_clf: Literal["sqrt", "log2"] | int | float | None = "sqrt",
         max_leaf_nodes: int | None = None,
         min_impurity_decrease: float = 0.0,
         bootstrap: bool = True,
@@ -143,6 +145,10 @@ class RFNNRegressor(YFitMixin, TransformedKNeighborsRegressor):
         random_state: int | RandomState | None = None,
         verbose: int = 0,
         warm_start: bool = False,
+        class_weight_clf: Literal["balanced", "balanced_subsample"]
+        | dict[str, float]
+        | list[dict[str, float]]
+        | None = None,
         ccp_alpha: float = 0.0,
         max_samples: int | float | None = None,
         monotonic_cst: list[int] | None = None,
@@ -152,12 +158,14 @@ class RFNNRegressor(YFitMixin, TransformedKNeighborsRegressor):
         leaf_size: int = 30,
     ):
         self.n_estimators = n_estimators
-        self.criterion = criterion
+        self.criterion_reg = criterion_reg
+        self.criterion_clf = criterion_clf
         self.max_depth = max_depth
         self.min_samples_split = min_samples_split
         self.min_samples_leaf = min_samples_leaf
         self.min_weight_fraction_leaf = min_weight_fraction_leaf
-        self.max_features = max_features
+        self.max_features_reg = max_features_reg
+        self.max_features_clf = max_features_clf
         self.max_leaf_nodes = max_leaf_nodes
         self.min_impurity_decrease = min_impurity_decrease
         self.bootstrap = bootstrap
@@ -166,6 +174,7 @@ class RFNNRegressor(YFitMixin, TransformedKNeighborsRegressor):
         self.random_state = random_state
         self.verbose = verbose
         self.warm_start = warm_start
+        self.class_weight_clf = class_weight_clf
         self.ccp_alpha = ccp_alpha
         self.max_samples = max_samples
         self.monotonic_cst = monotonic_cst
@@ -182,12 +191,14 @@ class RFNNRegressor(YFitMixin, TransformedKNeighborsRegressor):
     def _get_transformer(self) -> TransformerMixin:
         return RFNodeTransformer(
             n_estimators=self.n_estimators,
-            criterion=self.criterion,
+            criterion_reg=self.criterion_reg,
+            criterion_clf=self.criterion_clf,
             max_depth=self.max_depth,
             min_samples_split=self.min_samples_split,
             min_samples_leaf=self.min_samples_leaf,
             min_weight_fraction_leaf=self.min_weight_fraction_leaf,
-            max_features=self.max_features,
+            max_features_reg=self.max_features_reg,
+            max_features_clf=self.max_features_clf,
             max_leaf_nodes=self.max_leaf_nodes,
             min_impurity_decrease=self.min_impurity_decrease,
             bootstrap=self.bootstrap,
@@ -196,6 +207,7 @@ class RFNNRegressor(YFitMixin, TransformedKNeighborsRegressor):
             random_state=self.random_state,
             verbose=self.verbose,
             warm_start=self.warm_start,
+            class_weight_clf=self.class_weight_clf,
             ccp_alpha=self.ccp_alpha,
             max_samples=self.max_samples,
             monotonic_cst=self.monotonic_cst,

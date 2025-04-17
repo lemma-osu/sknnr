@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-from typing import Callable, Literal
+from typing import Any, Callable, Literal
 
 import numpy as np
 from numpy.random import RandomState
 from numpy.typing import NDArray
 from sklearn.base import BaseEstimator, TransformerMixin
-from sklearn.ensemble import RandomForestRegressor
+from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.utils.validation import check_is_fitted
 
 from .._base import _validate_data
@@ -88,17 +88,50 @@ class RFNodeTransformer(TransformerMixin, BaseEstimator):
         The random forests associated with each feature in `y` during `fit`.
     """
 
+    # Dictionary to map dtypes to random forest types
+    DTYPE_TO_RF_TYPE = {
+        "int": "regression",
+        "int8": "regression",
+        "int16": "regression",
+        "int32": "regression",
+        "int64": "regression",
+        "uint8": "regression",
+        "uint16": "regression",
+        "uint32": "regression",
+        "uint64": "regression",
+        "Int8": "regression",
+        "Int16": "regression",
+        "Int32": "regression",
+        "Int64": "regression",
+        "UInt8": "regression",
+        "UInt16": "regression",
+        "UInt32": "regression",
+        "UInt64": "regression",
+        "float": "regression",
+        "float16": "regression",
+        "float32": "regression",
+        "float64": "regression",
+        "Float32": "regression",
+        "Float64": "regression",
+        "category": "classification",
+        "object": "classification",
+        "str": "classification",
+        "string": "classification",
+    }
+
     def __init__(
         self,
         n_estimators: int = 50,
-        criterion: Literal[
+        criterion_reg: Literal[
             "squared_error", "absolute_error", "friedman_mse", "poisson"
         ] = "squared_error",
+        criterion_clf: Literal["gini", "entropy", "log_loss"] = "gini",
         max_depth: int | None = None,
         min_samples_split: int | float = 2,
         min_samples_leaf: int | float = 5,
         min_weight_fraction_leaf: float = 0.0,
-        max_features: Literal["sqrt", "log2"] | int | float | None = 1.0,
+        max_features_reg: Literal["sqrt", "log2"] | int | float | None = 1.0,
+        max_features_clf: Literal["sqrt", "log2"] | int | float | None = "sqrt",
         max_leaf_nodes: int | None = None,
         min_impurity_decrease: float = 0.0,
         bootstrap: bool = True,
@@ -107,17 +140,23 @@ class RFNodeTransformer(TransformerMixin, BaseEstimator):
         random_state: int | RandomState | None = None,
         verbose: int = 0,
         warm_start: bool = False,
+        class_weight_clf: Literal["balanced", "balanced_subsample"]
+        | dict[str, float]
+        | list[dict[str, float]]
+        | None = None,
         ccp_alpha: float = 0.0,
         max_samples: int | float | None = None,
         monotonic_cst: list[int] | None = None,
     ):
         self.n_estimators = n_estimators
-        self.criterion = criterion
+        self.criterion_reg = criterion_reg
+        self.criterion_clf = criterion_clf
         self.max_depth = max_depth
         self.min_samples_split = min_samples_split
         self.min_samples_leaf = min_samples_leaf
         self.min_weight_fraction_leaf = min_weight_fraction_leaf
-        self.max_features = max_features
+        self.max_features_reg = max_features_reg
+        self.max_features_clf = max_features_clf
         self.max_leaf_nodes = max_leaf_nodes
         self.min_impurity_decrease = min_impurity_decrease
         self.bootstrap = bootstrap
@@ -126,37 +165,121 @@ class RFNodeTransformer(TransformerMixin, BaseEstimator):
         self.random_state = random_state
         self.verbose = verbose
         self.warm_start = warm_start
+        self.class_weight_clf = class_weight_clf
         self.ccp_alpha = ccp_alpha
         self.max_samples = max_samples
         self.monotonic_cst = monotonic_cst
 
-    def fit(self, X, y):
-        _, y = _validate_data(self, X=X, y=y, reset=True, multi_output=True)
+    def _is_pandas_dataframe(self, obj: Any) -> bool:
+        return (
+            obj.__class__.__module__.startswith("pandas")
+            and obj.__class__.__name__ == "DataFrame"
+        )
+
+    def _is_pandas_series(self, obj: Any) -> bool:
+        return (
+            obj.__class__.__module__.startswith("pandas")
+            and obj.__class__.__name__ == "Series"
+        )
+
+    def _get_column_names(self, y) -> list[str]:
+        """
+        Get the names of the columns in `y`. If no names are found, return
+        a list of strings with the column index.
+        """
+        if self._is_pandas_dataframe(y):
+            return y.columns.tolist()
+        if self._is_pandas_series(y):
+            return [y.name]
+        y = np.asarray(y, dtype=object)
         if y.ndim == 1:
             y = y.reshape(-1, 1)
+        return [str(i) for i in range(y.shape[1])]
 
+    def _get_column_dtypes(self, y) -> list[str]:
+        """Get the types of the columns in `y`."""
+        if self._is_pandas_dataframe(y):
+            return [v.name for v in y.dtypes.values]
+        if self._is_pandas_series(y):
+            return [y.dtype.name]
+        y = np.asarray(y, dtype=object)
+        if y.ndim == 1:
+            y = y.reshape(-1, 1)
+        return [type(y[0, k]).__name__ for k in range(y.shape[1])]
+
+    def _set_rf_types(
+        self, column_names: list[str], column_dtypes: list[str]
+    ) -> dict[int, str]:
+        """Set the random forest type to use for each feature in `y`."""
+
+        column_name_to_idx = {k: i for i, k in enumerate(column_names)}
+        column_name_to_dtype = {n: t for n, t in zip(column_names, column_dtypes)}
+        # TODO: Handle overrides from user based on names
+        # TODO: column_names_to_types.update(user_overrides)
+        column_idx_to_dtype = {
+            column_name_to_idx[k]: v for k, v in column_name_to_dtype.items()
+        }
+
+        if unsupported_types := set(column_idx_to_dtype.values()) - set(
+            self.DTYPE_TO_RF_TYPE.keys()
+        ):
+            msg = f"Dtypes {unsupported_types} are not supported for use "
+            msg += "with random forests"
+            raise ValueError(msg)
+
+        return {k: self.DTYPE_TO_RF_TYPE[v] for k, v in column_idx_to_dtype.items()}
+
+    def fit(self, X, y):
+        # Validate the input data first.  This is required to be first to raise
+        # the correct error if the input data is not valid.  Convert `y` to a
+        # numpy array, but retain the original `y` for column typing.
+        _, y_arr = _validate_data(self, X=X, y=y, reset=True, multi_output=True)
+        if y_arr.ndim == 1:
+            y_arr = y_arr.reshape(-1, 1)
+
+        # Use the original `y` to get the column names and types and create a
+        # dictionary of column index to random forest type.
+        column_names = self._get_column_names(y)
+        column_dtypes = self._get_column_dtypes(y)
+        self.rf_type_dict_ = self._set_rf_types(column_names, column_dtypes)
+
+        # Specialize the kwargs sent to intiialize the random forests
+        rf_common_kwargs = dict(
+            n_estimators=self.n_estimators,
+            max_depth=self.max_depth,
+            min_samples_split=self.min_samples_split,
+            min_samples_leaf=self.min_samples_leaf,
+            min_weight_fraction_leaf=self.min_weight_fraction_leaf,
+            max_leaf_nodes=self.max_leaf_nodes,
+            min_impurity_decrease=self.min_impurity_decrease,
+            bootstrap=self.bootstrap,
+            oob_score=self.oob_score,
+            n_jobs=self.n_jobs,
+            random_state=self.random_state,
+            verbose=self.verbose,
+            warm_start=self.warm_start,
+            ccp_alpha=self.ccp_alpha,
+            max_samples=self.max_samples,
+            monotonic_cst=self.monotonic_cst,
+        )
+        rf_reg_kwargs = {
+            **rf_common_kwargs,
+            "criterion": self.criterion_reg,
+            "max_features": self.max_features_reg,
+        }
+        rf_clf_kwargs = {
+            **rf_common_kwargs,
+            "criterion": self.criterion_clf,
+            "max_features": self.max_features_clf,
+            "class_weight": self.class_weight_clf,
+        }
+
+        # Create the random forests for each feature in `y` and fit them
         self.rfs_ = [
-            RandomForestRegressor(
-                n_estimators=self.n_estimators,
-                criterion=self.criterion,
-                max_depth=self.max_depth,
-                min_samples_split=self.min_samples_split,
-                min_samples_leaf=self.min_samples_leaf,
-                min_weight_fraction_leaf=self.min_weight_fraction_leaf,
-                max_features=self.max_features,
-                max_leaf_nodes=self.max_leaf_nodes,
-                min_impurity_decrease=self.min_impurity_decrease,
-                bootstrap=self.bootstrap,
-                oob_score=self.oob_score,
-                n_jobs=self.n_jobs,
-                random_state=self.random_state,
-                verbose=self.verbose,
-                warm_start=self.warm_start,
-                ccp_alpha=self.ccp_alpha,
-                max_samples=self.max_samples,
-                monotonic_cst=self.monotonic_cst,
-            ).fit(X, y[:, i])
-            for i in range(y.shape[1])
+            RandomForestRegressor(**rf_reg_kwargs).fit(X, y_arr[:, i])
+            if self.rf_type_dict_[i] == "regression"
+            else RandomForestClassifier(**rf_clf_kwargs).fit(X, y_arr[:, i])
+            for i in range(y_arr.shape[1])
         ]
         return self
 
