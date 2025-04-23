@@ -10,7 +10,7 @@ def is_dataframe_like(obj: Any) -> bool:
     """
     Check if `obj` is a dataframe-like structure.  This will evaluate to `True`
     for pandas and polars DataFrames without the need to import those packages
-    explictly.
+    explicitly.
     """
     return hasattr(obj, "columns") and hasattr(obj, "dtypes")
 
@@ -19,7 +19,7 @@ def is_series_like(obj: Any) -> bool:
     """
     Check if `obj` is a series-like structure.  This will evaluate to `True`
     for pandas and polars Series without the need to import those packages
-    explictly.
+    explicitly.
     """
     return hasattr(obj, "name") and hasattr(obj, "dtype")
 
