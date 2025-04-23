@@ -156,16 +156,14 @@ class RFNodeTransformer(TransformerMixin, BaseEstimator):
                 msg = f"Unsupported type {t}"
                 raise TypeError(msg) from err
 
-    def _set_rf_types(self, feature_info: dict[str, Any]) -> dict[int, str]:
+    def _set_rf_types(self, feature_info: dict[str, Any]) -> dict[str, str]:
         """Set the random forest type to use for each feature in `y`."""
 
         # TODO: Handle overrides from user based on names
         # TODO: feature_info.update(user_overrides)
-        feature_idx_to_dtype = {i: v for i, (_, v) in enumerate(feature_info.items())}
-
         return {
             k: "regression" if self._is_number_like_type(v) else "classification"
-            for k, v in feature_idx_to_dtype.items()
+            for k, v in feature_info.items()
         }
 
     def fit(self, X, y):
@@ -211,9 +209,12 @@ class RFNodeTransformer(TransformerMixin, BaseEstimator):
         }
 
         # Create the random forests for each feature in `y` and fit them
+        feature_idx_to_rf_type = {
+            i: v for i, (_, v) in enumerate(self.rf_type_dict_.items())
+        }
         self.rfs_ = [
             RandomForestRegressor(**rf_reg_kwargs).fit(X, y[:, i])
-            if self.rf_type_dict_[i] == "regression"
+            if feature_idx_to_rf_type[i] == "regression"
             else RandomForestClassifier(**rf_clf_kwargs).fit(X, y[:, i])
             for i in range(y.shape[1])
         ]
