@@ -10,6 +10,7 @@ from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.utils.validation import check_is_fitted
 
 from .._base import _validate_data
+from ..utils import get_feature_names_and_dtypes
 
 
 class RFNodeTransformer(TransformerMixin, BaseEstimator):
@@ -88,37 +89,6 @@ class RFNodeTransformer(TransformerMixin, BaseEstimator):
         The random forests associated with each feature in `y` during `fit`.
     """
 
-    # Dictionary to map dtypes to random forest types
-    DTYPE_TO_RF_TYPE = {
-        "int": "regression",
-        "int8": "regression",
-        "int16": "regression",
-        "int32": "regression",
-        "int64": "regression",
-        "uint8": "regression",
-        "uint16": "regression",
-        "uint32": "regression",
-        "uint64": "regression",
-        "Int8": "regression",
-        "Int16": "regression",
-        "Int32": "regression",
-        "Int64": "regression",
-        "UInt8": "regression",
-        "UInt16": "regression",
-        "UInt32": "regression",
-        "UInt64": "regression",
-        "float": "regression",
-        "float16": "regression",
-        "float32": "regression",
-        "float64": "regression",
-        "Float32": "regression",
-        "Float64": "regression",
-        "category": "classification",
-        "object": "classification",
-        "str": "classification",
-        "string": "classification",
-    }
-
     def __init__(
         self,
         n_estimators: int = 50,
@@ -170,78 +140,44 @@ class RFNodeTransformer(TransformerMixin, BaseEstimator):
         self.max_samples = max_samples
         self.monotonic_cst = monotonic_cst
 
-    def _is_pandas_dataframe(self, obj: Any) -> bool:
-        return (
-            obj.__class__.__module__.startswith("pandas")
-            and obj.__class__.__name__ == "DataFrame"
-        )
-
-    def _is_pandas_series(self, obj: Any) -> bool:
-        return (
-            obj.__class__.__module__.startswith("pandas")
-            and obj.__class__.__name__ == "Series"
-        )
-
-    def _get_column_names(self, y) -> list[str]:
+    @staticmethod
+    def _is_number_like_type(t: Any) -> bool:
         """
-        Get the names of the columns in `y`. If no names are found, return
-        a list of strings with the column index.
+        Check if `t` is a number-like type.  For most types, np.issubdtype will
+        correctly identify the type.  For pandas extension types, we can check the
+        kind of the type.
         """
-        if self._is_pandas_dataframe(y):
-            return y.columns.tolist()
-        if self._is_pandas_series(y):
-            return [y.name]
-        y = np.asarray(y, dtype=object)
-        if y.ndim == 1:
-            y = y.reshape(-1, 1)
-        return [str(i) for i in range(y.shape[1])]
+        try:
+            return np.issubdtype(t, np.number)
+        except TypeError:
+            try:
+                return t.kind in "iuf"
+            except AttributeError as err:
+                msg = f"Unsupported type {t}"
+                raise TypeError(msg) from err
 
-    def _get_column_dtypes(self, y) -> list[str]:
-        """Get the types of the columns in `y`."""
-        if self._is_pandas_dataframe(y):
-            return [v.name for v in y.dtypes.values]
-        if self._is_pandas_series(y):
-            return [y.dtype.name]
-        y = np.asarray(y, dtype=object)
-        if y.ndim == 1:
-            y = y.reshape(-1, 1)
-        return [type(y[0, k]).__name__ for k in range(y.shape[1])]
-
-    def _set_rf_types(
-        self, column_names: list[str], column_dtypes: list[str]
-    ) -> dict[int, str]:
+    def _set_rf_types(self, feature_info: dict[str, Any]) -> dict[int, str]:
         """Set the random forest type to use for each feature in `y`."""
 
-        column_name_to_idx = {k: i for i, k in enumerate(column_names)}
-        column_name_to_dtype = {n: t for n, t in zip(column_names, column_dtypes)}
         # TODO: Handle overrides from user based on names
-        # TODO: column_names_to_types.update(user_overrides)
-        column_idx_to_dtype = {
-            column_name_to_idx[k]: v for k, v in column_name_to_dtype.items()
+        # TODO: feature_info.update(user_overrides)
+        feature_idx_to_dtype = {i: v for i, (_, v) in enumerate(feature_info.items())}
+
+        return {
+            k: "regression" if self._is_number_like_type(v) else "classification"
+            for k, v in feature_idx_to_dtype.items()
         }
 
-        if unsupported_types := set(column_idx_to_dtype.values()) - set(
-            self.DTYPE_TO_RF_TYPE.keys()
-        ):
-            msg = f"Dtypes {unsupported_types} are not supported for use "
-            msg += "with random forests"
-            raise ValueError(msg)
-
-        return {k: self.DTYPE_TO_RF_TYPE[v] for k, v in column_idx_to_dtype.items()}
-
     def fit(self, X, y):
-        # Validate the input data first.  This is required to be first to raise
-        # the correct error if the input data is not valid.  Convert `y` to a
-        # numpy array, but retain the original `y` for column typing.
-        _, y_arr = _validate_data(self, X=X, y=y, reset=True, multi_output=True)
-        if y_arr.ndim == 1:
-            y_arr = y_arr.reshape(-1, 1)
+        # Identify the feature names and types in `y` before validating the data
+        # and converting `y` to a numpy array.
+        feature_info = get_feature_names_and_dtypes(y)
 
-        # Use the original `y` to get the column names and types and create a
-        # dictionary of column index to random forest type.
-        column_names = self._get_column_names(y)
-        column_dtypes = self._get_column_dtypes(y)
-        self.rf_type_dict_ = self._set_rf_types(column_names, column_dtypes)
+        _, y = _validate_data(self, X=X, y=y, reset=True, multi_output=True)
+        if y.ndim == 1:
+            y = y.reshape(-1, 1)
+
+        self.rf_type_dict_ = self._set_rf_types(feature_info)
 
         # Specialize the kwargs sent to intiialize the random forests
         rf_common_kwargs = dict(
@@ -276,10 +212,10 @@ class RFNodeTransformer(TransformerMixin, BaseEstimator):
 
         # Create the random forests for each feature in `y` and fit them
         self.rfs_ = [
-            RandomForestRegressor(**rf_reg_kwargs).fit(X, y_arr[:, i])
+            RandomForestRegressor(**rf_reg_kwargs).fit(X, y[:, i])
             if self.rf_type_dict_[i] == "regression"
-            else RandomForestClassifier(**rf_clf_kwargs).fit(X, y_arr[:, i])
-            for i in range(y_arr.shape[1])
+            else RandomForestClassifier(**rf_clf_kwargs).fit(X, y[:, i])
+            for i in range(y.shape[1])
         ]
         return self
 

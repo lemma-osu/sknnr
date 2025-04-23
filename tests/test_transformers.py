@@ -1,5 +1,3 @@
-import re
-
 import pytest
 from numpy.testing import assert_array_equal
 from sklearn import config_context
@@ -185,15 +183,3 @@ def test_transformers_raise_out_of_range_n_components(transformer, n_components)
         ValueError, match=r"n_components=-?\d+ must be between 0 and \d+"
     ):
         transformer(n_components=n_components).fit(X, y)
-
-
-@pytest.mark.parametrize("dtype", ["bool", "datetime64[ns]", "timedelta64[ns]"])
-def test_rfnodetransformer_raises_not_allowed_dtypes(dtype):
-    """Attempting to call fit with an unsupported dtype should raise."""
-    X, y = load_moscow_stjoes(return_X_y=True, as_frame=True)
-    y = y.astype(dtype)
-    msg = re.escape(
-        rf"Dtypes {{'{dtype}'}} are not supported for use with random forests"
-    )
-    with pytest.raises(ValueError, match=msg):
-        RFNodeTransformer().fit(X, y)
