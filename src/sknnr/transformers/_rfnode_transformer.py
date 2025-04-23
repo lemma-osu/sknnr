@@ -97,8 +97,11 @@ class RFNodeTransformer(TransformerMixin, BaseEstimator):
     feature_names_in_ : ndarray of shape (`n_features_in_`)
         Names of features seen during fit. Defined only when `X` has feature
         names that are all strings.
+    rf_type_dict_ : dict[str, str]
+        Dictionary mapping target names to their random forest type
+        ("regression" or "classification").
     rfs_ : list of `RandomForestRegressor`
-        The random forests associated with each feature in `y` during `fit`.
+        The random forests associated with each target in `y` during `fit`.
     """
 
     def __init__(
@@ -168,26 +171,26 @@ class RFNodeTransformer(TransformerMixin, BaseEstimator):
                 msg = f"Unsupported type {t}"
                 raise TypeError(msg) from err
 
-    def _set_rf_types(self, feature_info: dict[str, Any]) -> dict[str, str]:
-        """Set the random forest type to use for each feature in `y`."""
+    def _set_rf_types(self, target_info: dict[str, Any]) -> dict[str, str]:
+        """Set the random forest type to use for each target in `y`."""
 
         # TODO: Handle overrides from user based on names
-        # TODO: feature_info.update(user_overrides)
+        # TODO: target_info.update(user_overrides)
         return {
             k: "regression" if self._is_number_like_type(v) else "classification"
-            for k, v in feature_info.items()
+            for k, v in target_info.items()
         }
 
     def fit(self, X, y):
-        # Identify the feature names and types in `y` before validating the data
+        # Identify the target names and types in `y` before validating the data
         # and converting `y` to a numpy array.
-        feature_info = get_feature_names_and_dtypes(y)
+        target_info = get_feature_names_and_dtypes(y)
 
         _, y = _validate_data(self, X=X, y=y, reset=True, multi_output=True)
         if y.ndim == 1:
             y = y.reshape(-1, 1)
 
-        self.rf_type_dict_ = self._set_rf_types(feature_info)
+        self.rf_type_dict_ = self._set_rf_types(target_info)
 
         # Specialize the kwargs sent to initialize the random forests
         rf_common_kwargs = dict(
@@ -220,13 +223,13 @@ class RFNodeTransformer(TransformerMixin, BaseEstimator):
             "class_weight": self.class_weight_clf,
         }
 
-        # Create the random forests for each feature in `y` and fit them
-        feature_idx_to_rf_type = {
+        # Create the random forests for each target in `y` and fit them
+        target_idx_to_rf_type = {
             i: v for i, (_, v) in enumerate(self.rf_type_dict_.items())
         }
         self.rfs_ = [
             RandomForestRegressor(**rf_reg_kwargs).fit(X, y[:, i])
-            if feature_idx_to_rf_type[i] == "regression"
+            if target_idx_to_rf_type[i] == "regression"
             else RandomForestClassifier(**rf_clf_kwargs).fit(X, y[:, i])
             for i in range(y.shape[1])
         ]
