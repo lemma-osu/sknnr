@@ -155,7 +155,9 @@ class RFNodeTransformer(TransformerMixin, BaseEstimator):
         self.max_samples = max_samples
         self.monotonic_cst = monotonic_cst
 
-    def _set_rf_types(self, target_info: dict[str, Any]) -> dict[str, str]:
+    def _set_rf_types(
+        self, target_info: dict[str, Any]
+    ) -> dict[str, Literal["regression", "classification"]]:
         """Set the random forest type to use for each target in `y`."""
 
         # TODO: Handle overrides from user based on names

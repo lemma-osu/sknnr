@@ -67,7 +67,7 @@ def get_feature_dtypes(obj) -> list[Any]:
     if obj is None:
         return []
     if is_dataframe_like(obj):
-        return obj.dtypes.values if hasattr(obj.dtypes, "values") else obj.dtypes
+        return getattr(obj.dtypes, "values", obj.dtypes)
     if is_series_like(obj):
         return [obj.dtype]
     obj = np.asarray(obj, dtype=object)
