@@ -10,7 +10,7 @@ from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.utils.validation import check_is_fitted
 
 from .._base import _validate_data
-from ..utils import get_feature_names_and_dtypes
+from ..utils import get_feature_names_and_dtypes, is_number_like_type
 
 
 class RFNodeTransformer(TransformerMixin, BaseEstimator):
@@ -155,29 +155,13 @@ class RFNodeTransformer(TransformerMixin, BaseEstimator):
         self.max_samples = max_samples
         self.monotonic_cst = monotonic_cst
 
-    @staticmethod
-    def _is_number_like_type(t: Any) -> bool:
-        """
-        Check if `t` is a number-like type.  For most types, np.issubdtype will
-        correctly identify the type.  For pandas extension types, we can check the
-        kind of the type.
-        """
-        try:
-            return np.issubdtype(t, np.number)
-        except TypeError:
-            try:
-                return t.kind in "iuf"
-            except AttributeError as err:
-                msg = f"Unsupported type {t}"
-                raise TypeError(msg) from err
-
     def _set_rf_types(self, target_info: dict[str, Any]) -> dict[str, str]:
         """Set the random forest type to use for each target in `y`."""
 
         # TODO: Handle overrides from user based on names
         # TODO: target_info.update(user_overrides)
         return {
-            k: "regression" if self._is_number_like_type(v) else "classification"
+            k: "regression" if is_number_like_type(v) else "classification"
             for k, v in target_info.items()
         }
 

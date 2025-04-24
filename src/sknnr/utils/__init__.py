@@ -24,6 +24,22 @@ def is_series_like(obj: Any) -> bool:
     return hasattr(obj, "name") and hasattr(obj, "dtype")
 
 
+def is_number_like_type(t: Any) -> bool:
+    """
+    Check if `t` is a number-like type.  For most types, np.issubdtype will
+    correctly identify the type.  For pandas extension types, we can check the
+    kind of the type.
+    """
+    try:
+        return np.issubdtype(t, np.number)
+    except TypeError:
+        try:
+            return t.kind in "iuf"
+        except AttributeError as err:
+            msg = f"Unsupported type {t}"
+            raise TypeError(msg) from err
+
+
 def get_feature_names(obj) -> list[str]:
     """
     Get the names of the features in `obj`. If no names are found, return
