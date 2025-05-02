@@ -202,12 +202,50 @@ class ConstrainedOrdination:
         return np.multiply(self.V, np.sqrt(self.S))
 
     @property
+    def species_weights(self):
+        """Species abundance across all sites."""
+        return np.sum(self.Y, axis=0)
+
+    @property
+    def species_n2(self):
+        """
+        Hill's N2 diversity index for species across sites.
+
+        Reference
+        ---------
+        Hill, MO. (1973). Diversity and evenness: a unifying notation and its
+        consequences. Ecology, 54(2), 427-432.
+        """
+        normalized_species_square = np.square(self.Y / self.species_weights)
+        return 1.0 / normalized_species_square.sum(axis=0)
+
+    @property
     def site_lc_scores(self):
         return self.U
 
     @property
     def site_wa_scores(self):
         return self.WA
+
+    @property
+    def site_weights(self):
+        """Site abundance across all species."""
+        return np.sum(self.Y, axis=1)
+
+    @property
+    def site_n2(self):
+        """
+        Hill's N2 diversity index for sites across species.
+
+        Reference
+        ---------
+        Hill, MO. (1973). Diversity and evenness: a unifying notation and its
+        consequences. Ecology, 54(2), 427-432.
+        """
+        normalized_site_square = np.square(
+            self.Y / np.expand_dims(self.site_weights, axis=1)
+        )
+        return 1.0 / normalized_site_square.sum(axis=1)
 
     @property
     def species_tolerances(self):
