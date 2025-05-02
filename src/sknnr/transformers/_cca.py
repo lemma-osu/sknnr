@@ -216,7 +216,10 @@ class ConstrainedOrdination:
         Hill, MO. (1973). Diversity and evenness: a unifying notation and its
         consequences. Ecology, 54(2), 427-432.
         """
-        normalized_species_square = np.square(self.Y / self.species_weights)
+        species_weights = np.where(
+            self.species_weights == 0, np.finfo(float).eps, self.species_weights
+        )
+        normalized_species_square = np.square(self.Y / species_weights)
         return 1.0 / normalized_species_square.sum(axis=0)
 
     @property
@@ -242,8 +245,11 @@ class ConstrainedOrdination:
         Hill, MO. (1973). Diversity and evenness: a unifying notation and its
         consequences. Ecology, 54(2), 427-432.
         """
+        site_weights = np.where(
+            self.site_weights == 0, np.finfo(float).eps, self.site_weights
+        )
         normalized_site_square = np.square(
-            self.Y / np.expand_dims(self.site_weights, axis=1)
+            self.Y / np.expand_dims(site_weights, axis=1)
         )
         return 1.0 / normalized_site_square.sum(axis=1)
 
