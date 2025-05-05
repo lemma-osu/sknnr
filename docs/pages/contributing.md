@@ -82,22 +82,13 @@ First, use `hatch` to [update the version number](https://hatch.pypa.io/latest/v
 $ hatch version [major|minor|patch|alpha|beta|rc|post|dev]
 ```
 
-Next, tag the release:
+Checkout `main` and confirm that it is up-to-date with the remote, including the bumped version. Finally, create and push the release tag.
 
 ```bash
+$ git checkout main
+$ git pull
 $ git tag "$(hatch version)"
 $ git push --tags
 ```
 
-Finally, [build](https://hatch.pypa.io/latest/build/#building) and [publish](https://hatch.pypa.io/latest/publish/#publishing) the release to PyPI with:
-
-```bash
-$ hatch build -c
-$ hatch publish
-```
-
-If needed, your PyPI API token can be passed as an argument to `hatch publish` with the username `__token__`:
-
-```bash
-hatch publish -a [api token] -u __token__
-```
+Pushing the updated tag will trigger [a workflow](https://github.com/lemma-osu/sknnr/actions/workflows/publish.yml) that publishes the release to PyPI.
