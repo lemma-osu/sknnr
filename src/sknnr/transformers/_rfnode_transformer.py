@@ -170,11 +170,21 @@ class RFNodeTransformer(TransformerMixin, BaseEstimator):
     def fit(self, X, y):
         # Identify the target names and types in `y` before validating the data
         # and converting `y` to a numpy array.
-        target_info = get_feature_names_and_dtypes(y)
+        target_info, upcast_required = get_feature_names_and_dtypes(y)
 
         _, y = _validate_data(self, X=X, y=y, reset=True, multi_output=True)
         if y.ndim == 1:
             y = y.reshape(-1, 1)
+
+        # Convert targets based on types in target_info if required
+        if upcast_required:
+            y = np.array(
+                [
+                    y[:, i].astype(dtype)
+                    for i, (_, dtype) in enumerate(target_info.items())
+                ],
+                dtype=object,
+            ).T
 
         self.rf_type_dict_ = self._set_rf_types(target_info)
 

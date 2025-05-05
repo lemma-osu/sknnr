@@ -1,6 +1,7 @@
 import pytest
 from numpy.testing import assert_array_equal
 from sklearn import config_context
+from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.preprocessing import StandardScaler
 from sklearn.utils.estimator_checks import parametrize_with_checks
 from sklearn.utils.validation import NotFittedError
@@ -183,3 +184,17 @@ def test_transformers_raise_out_of_range_n_components(transformer, n_components)
         ValueError, match=r"n_components=-?\d+ must be between 0 and \d+"
     ):
         transformer(n_components=n_components).fit(X, y)
+
+
+@pytest.mark.parametrize("x_type", ["array", "dataframe"])
+def test_rfnode_transformer_assigns_correct_forest_types(x_type):
+    """Test that the RFNodeTransformer returns the correct forest types."""
+    X, y = load_moscow_stjoes(return_X_y=True, as_frame=x_type == "dataframe")
+    est = RFNodeTransformer().fit(X, y)
+    assert all(v == "regression" for v in est.rf_type_dict_.values())
+    assert all(isinstance(forest, RandomForestRegressor) for forest in est.rfs_)
+
+    y_bool = y.astype("bool")
+    est = RFNodeTransformer().fit(X, y_bool)
+    assert all(v == "classification" for v in est.rf_type_dict_.values())
+    assert all(isinstance(forest, RandomForestClassifier) for forest in est.rfs_)
