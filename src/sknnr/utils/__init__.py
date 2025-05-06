@@ -86,7 +86,7 @@ def get_feature_dtypes(obj) -> tuple[list[Any], bool]:
         return [], False
     if is_dataframe_like(obj) and len(obj) > 0:
         return getattr(obj.dtypes, "values", obj.dtypes), False
-    if is_series_like(obj) and len(obj) > 0:
+    if is_series_like(obj) and len(obj) > 0 and obj.dtype != np.dtype("O"):
         return [obj.dtype], False
     obj = np.asarray(obj, dtype=object)
     if len(obj) == 0:

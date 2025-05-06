@@ -111,6 +111,7 @@ def test_get_feature_dtypes(obj, expected):
         (np.array([1, 3.0], dtype=object), ([np.float64], True)),
         (np.array([1, "3"], dtype=object), ([np.dtype("<U21")], True)),
         (np.array([1.0, "3"], dtype=object), ([np.dtype("<U32")], True)),
+        (pd.Series([1, "mixed"]), ([np.dtype("<U21")], True)),
     ],
 )
 def test_promoted_feature_dtypes(obj, expected):
