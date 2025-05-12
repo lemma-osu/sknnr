@@ -32,9 +32,13 @@ class RFNNRegressor(YFitMixin, TransformedKNeighborsRegressor):
         is applied to a single random forest.  However, in `RFNNRegressor`,
         this parameter is applied to each random forest for every feature in
         the training set.
-    criterion : {"squared_error", "absolute_error", "friedman_mse", "poisson"},
+    criterion_reg : {"squared_error", "absolute_error", "friedman_mse", "poisson"},
         default="squared_error"
-        The function to measure the quality of a split.
+        The function to measure the quality of a split for RandomForestRegresor
+        objects.
+    criterion_clf : {"gini", "entropy", "log_loss"}, default="gini"
+        The function to measure the quality of a split for RandomForestClassifier
+        objects.
     max_depth : int, default=None
         The maximum depth of the tree.
     min_samples_split : int or float, default=2
@@ -44,8 +48,12 @@ class RFNNRegressor(YFitMixin, TransformedKNeighborsRegressor):
     min_weight_fraction_leaf : float, default=0.0
         The minimum weighted fraction of the sum total of weights (of all the
         input samples) required to be at a leaf node.
-    max_features : {“sqrt”, “log2”, None}, int or float, default=1.0
-        The number of features to consider when looking for the best split.
+    max_features_reg : {“sqrt”, “log2”, None}, int or float, default=1.0
+        The number of features to consider when looking for the best split for
+        RandomForestRegressor objects.
+    max_features_clf : {“sqrt”, “log2”, None}, int or float, default="sqrt"
+        The number of features to consider when looking for the best split for
+        RandomForestClassifier objects.
     max_leaf_nodes : int, default=None
         Grow trees with max_leaf_nodes in best-first fashion.
     min_impurity_decrease : float, default=0.0
@@ -68,6 +76,10 @@ class RFNNRegressor(YFitMixin, TransformedKNeighborsRegressor):
         When set to `True`, reuse the solution of the previous call to fit and
         add more estimators to the ensemble, otherwise, just fit a whole
         new forest.
+    class_weight_clf : {“balanced”, “balanced_subsample”}, dict or list of dicts,
+        default=None
+        Weights associated with classes in the form {class_label: weight}. If not
+        given, all classes are supposed to have weight one.
     ccp_alpha : non-negative float, default=0.0
         Complexity parameter used for Minimal Cost-Complexity Pruning.
     max_samples : int or float, default=None
