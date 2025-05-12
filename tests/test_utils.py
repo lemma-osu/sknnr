@@ -6,6 +6,7 @@ from sknnr.utils import (
     get_feature_dtypes,
     get_feature_names,
     is_dataframe_like,
+    is_nan_like,
     is_number_like_type,
     is_series_like,
 )
@@ -65,6 +66,12 @@ def test_is_series_like(obj, expected):
 def test_is_number_like_type(t, expected):
     """Test is_number_like_type returns expected results."""
     assert is_number_like_type(t) is expected
+
+
+@pytest.mark.parametrize("x", [None, np.nan, float("nan"), pd.NA])
+def test_is_nan_like(x):
+    """Test is_nan_like returns expected results."""
+    assert is_nan_like(x) is True
 
 
 @pytest.mark.parametrize(

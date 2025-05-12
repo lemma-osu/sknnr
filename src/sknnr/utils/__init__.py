@@ -41,6 +41,15 @@ def is_number_like_type(t: Any) -> bool:
             raise TypeError(msg) from err
 
 
+def is_nan_like(x: Any) -> bool:
+    """Check if `x` is NaN-like."""
+    return bool(
+        x is None
+        or (isinstance(x, float) and np.isnan(x))
+        or x.__class__.__name__ == "NAType"
+    )
+
+
 def get_feature_names(obj) -> list[str]:
     """
     Get the names of the features in `obj`. If no names are found, return
