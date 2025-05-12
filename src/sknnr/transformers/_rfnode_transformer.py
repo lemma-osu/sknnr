@@ -1,16 +1,19 @@
 from __future__ import annotations
 
-from typing import Any, Callable, Literal
+from typing import TYPE_CHECKING, Any, Callable, Literal
 
 import numpy as np
 from numpy.random import RandomState
 from numpy.typing import NDArray
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
-from sklearn.utils.validation import check_is_fitted
+from sklearn.utils.validation import check_array, check_is_fitted
 
 from .._base import _validate_data
-from ..utils import get_feature_names_and_dtypes, is_number_like_type
+from ..utils import get_feature_names_and_dtypes, is_nan_like, is_number_like_type
+
+if TYPE_CHECKING:
+    import pandas as pd
 
 
 class RFNodeTransformer(TransformerMixin, BaseEstimator):
@@ -155,6 +158,59 @@ class RFNodeTransformer(TransformerMixin, BaseEstimator):
         self.max_samples = max_samples
         self.monotonic_cst = monotonic_cst
 
+    def _set_targets(
+        self, y: Any
+    ) -> tuple[list[NDArray], dict[str, np.dtype | pd.CategoricalDtype]]:
+        """
+        After getting target names and types, validate each target in `y`,
+        ensuring that no targets have NaN-like values and that no targets
+        have a mix of numeric and non-numeric types.  Return the targets as a
+        like of numpy arrays as well as the target names and dtypes.
+        """
+        target_info = get_feature_names_and_dtypes(y)
+
+        y = np.asarray(y, dtype=object)
+        if y.ndim == 1:
+            y = y.reshape(-1, 1)
+
+        v_is_nan_like = np.vectorize(is_nan_like)
+        targets = []
+        for i, (name, dtype) in enumerate(target_info.items()):
+            target = y[:, i]
+
+            if np.any(v_is_nan_like(target)):
+                raise ValueError(f"Target {name} has NaN-like elements.")
+
+            # Promote the targets to the dtype.  We handle two edge cases here:
+            # 1. If the dtype is pd.CategoricalDtype, promote the data but keep
+            #    the dtype as category.
+            # 2. If the target is a string dtype, but has non-string elements,
+            #    this represents mixed types that shouldn't be allowed.
+            if str(dtype) == "category":
+                target = np.asarray(target.tolist())
+            elif np.issubdtype(dtype, np.str_) and any(
+                not np.issubdtype(type(v), np.str_) for v in target
+            ):
+                raise ValueError(
+                    f"Target {name} has mixed types and cannot be converted to "
+                    "a common dtype."
+                )
+            else:
+                target = target.astype(dtype)
+
+            # Check for any other issues with the target when paired with the
+            # estimator.
+            target = check_array(
+                target,
+                ensure_all_finite=True,
+                dtype=None,
+                ensure_2d=False,
+                estimator=self,
+            )
+            targets.append(target)
+
+        return targets, target_info
+
     def _set_rf_types(
         self, target_info: dict[str, Any]
     ) -> dict[str, Literal["regression", "classification"]]:
@@ -168,24 +224,12 @@ class RFNodeTransformer(TransformerMixin, BaseEstimator):
         }
 
     def fit(self, X, y):
-        # Identify the target names and types in `y` before validating the data
-        # and converting `y` to a numpy array.
-        target_info, upcast_required = get_feature_names_and_dtypes(y)
+        _validate_data(self, X=X, reset=True)
 
-        _, y = _validate_data(self, X=X, y=y, reset=True, multi_output=True)
-        if y.ndim == 1:
-            y = y.reshape(-1, 1)
+        # Set targets and standardize dtypes within `y`
+        y, target_info = self._set_targets(y)
 
-        # Convert targets based on types in target_info if required
-        if upcast_required:
-            y = np.array(
-                [
-                    y[:, i].astype(dtype)
-                    for i, (_, dtype) in enumerate(target_info.items())
-                ],
-                dtype=object,
-            ).T
-
+        # Assign RF types based on the target dtypes
         self.rf_type_dict_ = self._set_rf_types(target_info)
 
         # Specialize the kwargs sent to initialize the random forests
@@ -224,10 +268,10 @@ class RFNodeTransformer(TransformerMixin, BaseEstimator):
             i: v for i, (_, v) in enumerate(self.rf_type_dict_.items())
         }
         self.rfs_ = [
-            RandomForestRegressor(**rf_reg_kwargs).fit(X, y[:, i])
+            RandomForestRegressor(**rf_reg_kwargs).fit(X, target)
             if target_idx_to_rf_type[i] == "regression"
-            else RandomForestClassifier(**rf_clf_kwargs).fit(X, y[:, i])
-            for i in range(y.shape[1])
+            else RandomForestClassifier(**rf_clf_kwargs).fit(X, target)
+            for i, target in enumerate(y)
         ]
         return self
 

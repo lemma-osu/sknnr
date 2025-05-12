@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 import pytest
 from numpy.testing import assert_array_equal
@@ -201,17 +202,27 @@ def test_rfnode_transformer_assigns_correct_forest_types(x_type):
     assert all(isinstance(forest, RandomForestClassifier) for forest in est.rfs_)
 
 
-@pytest.mark.filterwarnings("ignore::UserWarning")
-@pytest.mark.parametrize("x_type", ["array", "series"])
-def test_rfnode_transformer_handles_mixed_target(x_type):
-    """Test that the RFNodeTransformer correctly upcasts mixed targets."""
+@pytest.mark.parametrize("y_wrapper", [pd.Series, np.asarray])
+@pytest.mark.parametrize("nan_like_value", [np.nan, None, pd.NA])
+def test_rfnode_transformer_raises_on_nan_like_target(y_wrapper, nan_like_value):
+    """Test that the RFNodeTransformer raises on targets with NaN-like elements."""
     X, y = load_moscow_stjoes(return_X_y=True)
     y = y[:, 0].astype(object)
-    if x_type == "series":
-        y = pd.Series(y)
-        y.iloc[-1] = "mixed"
-    else:
-        y[-1] = "mixed"
-    est = RFNodeTransformer().fit(X, y)
-    assert est.rf_type_dict_["0"] == "classification"
-    assert isinstance(est.rfs_[0], RandomForestClassifier)
+    y[0] = nan_like_value
+    y = y_wrapper(y, dtype=object)
+    with pytest.raises(ValueError, match=r"Target \S+ has NaN-like elements"):
+        _ = RFNodeTransformer().fit(X, y)
+
+
+@pytest.mark.parametrize("y_wrapper", [pd.Series, np.asarray])
+def test_rfnode_transformer_raises_on_mixed_target(y_wrapper):
+    """
+    Test that the RFNodeTransformer raises on targets with mixed
+    numeric/non-numeric data.
+    """
+    X, y = load_moscow_stjoes(return_X_y=True)
+    y = y[:, 0].astype(object)
+    y[-1] = "mixed"
+    y = y_wrapper(y, dtype=object)
+    with pytest.raises(ValueError, match=r"Target \S+ has mixed types"):
+        _ = RFNodeTransformer().fit(X, y)
