@@ -107,30 +107,44 @@ def test_get_feature_names(obj, expected):
 )
 def test_get_feature_dtypes(obj, expected):
     """Test get_feature_dtypes returns expected results."""
-    assert get_feature_dtypes(obj)[0] == expected
-
-
-@pytest.mark.filterwarnings("ignore::UserWarning")
-@pytest.mark.parametrize(
-    ("obj", "expected"),
-    [
-        (np.array([True, 3], dtype=object), ([np.int64], True)),
-        (np.array([1, 3.0], dtype=object), ([np.float64], True)),
-        (np.array([1, "3"], dtype=object), ([np.dtype("<U21")], True)),
-        (np.array([1.0, "3"], dtype=object), ([np.dtype("<U32")], True)),
-        (pd.Series([1, "mixed"]), ([np.dtype("<U21")], True)),
-    ],
-)
-def test_promoted_feature_dtypes(obj, expected):
-    """Test get_feature_dtypes returns expected results when mixed data is present."""
     assert get_feature_dtypes(obj) == expected
 
 
-@pytest.mark.parametrize("mixed_value", [True, 1, "mixed"])
-def test_feature_dtypes_warns_with_mixed_dtypes(mixed_value):
-    """Test that get_feature_dtypes raises a warning when an array has mixed dtypes."""
-    arr = np.random.default_rng().random((10, 2), dtype=float)
-    arr = arr.astype(object)
-    arr[-1, 0] = mixed_value
-    with pytest.warns(UserWarning, match=r"Column \d+ has mixed types"):
-        get_feature_dtypes(arr)
+@pytest.mark.parametrize(
+    ("obj", "expected"),
+    [
+        (
+            pd.Series([1, 2, 3, 4], dtype=pd.CategoricalDtype()),
+            [pd.CategoricalDtype(categories=[1, 2, 3, 4], ordered=False)],
+        ),
+        (pd.Series([1, 2, 3, 4], dtype=pd.Int64Dtype()), [np.int64]),
+        (pd.Series([1, 2, 3, 4], dtype=pd.Float64Dtype()), [np.float64]),
+        (pd.Series([1, 2, 3, 4], dtype=pd.StringDtype()), [np.dtype("<U1")]),
+        (pd.Series([1, 1, 0, 0], dtype=pd.BooleanDtype()), [np.bool_]),
+    ],
+)
+def test_get_feature_dtypes_handles_pandas_extension_dtypes(obj, expected):
+    """
+    Test get_feature_dtypes correctly converts pandas ExtensionDtypes into
+    numpy dtypes for use in modeling.  Note that pd.CategoricalDtype is not
+    converted to a numpy dtype, but is returned as is.
+    """
+    assert get_feature_dtypes(obj) == expected
+
+
+@pytest.mark.parametrize(
+    ("obj", "expected"),
+    [
+        (np.array([True, 3], dtype=object), [np.int64]),
+        (np.array([1, 3.0], dtype=object), [np.float64]),
+        (np.array([1, "3"], dtype=object), [np.dtype("<U21")]),
+        (np.array([1.0, "3"], dtype=object), [np.dtype("<U32")]),
+        (pd.Series([1, "mixed"]), [np.dtype("<U21")]),
+    ],
+)
+def test_promoted_feature_dtypes(obj, expected):
+    """
+    Test get_feature_dtypes returns correct promoted dtypes when given
+    elements with mixed dtypes.
+    """
+    assert get_feature_dtypes(obj) == expected

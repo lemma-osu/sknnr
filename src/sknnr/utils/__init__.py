@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
-from typing import Any
-from warnings import warn
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
+
+if TYPE_CHECKING:
+    import pandas as pd
 
 
 def is_dataframe_like(obj: Any) -> bool:
@@ -55,73 +57,67 @@ def get_feature_names(obj) -> list[str]:
     Get the names of the features in `obj`. If no names are found, return
     a list of strings with the feature index.
     """
-    if obj is None:
+    if obj is None or len(np.asarray(obj)) == 0:
         return []
-    if is_dataframe_like(obj) and len(obj) > 0:
+    if is_dataframe_like(obj):
         return list(obj.columns)
-    if is_series_like(obj) and len(obj) > 0:
+    if is_series_like(obj):
         return ["0"] if obj.name is None else [obj.name]
     obj = np.asarray(obj, dtype=object)
-    if len(obj) == 0:
-        return []
     if obj.ndim == 1:
         obj = obj.reshape(-1, 1)
     return [str(i) for i in range(obj.shape[1])]
 
 
-def get_feature_dtypes(obj) -> tuple[list[Any], bool]:
+def get_minimum_dtypes(obj: Any) -> list[np.dtype]:
     """
-    Get the types of the features in `obj`.
+    Return the smallest numpy dtype that can accommodate all data for each
+    column in obj.
+    """
+    obj = np.asarray(obj, dtype=object)
+    if obj.ndim == 1:
+        obj = obj.reshape(-1, 1)
+    return [np.asarray(obj[:, i].tolist()).dtype for i in range(obj.shape[1])]
 
-    For numpy arrays, 2D lists, and tuples, the dtype is represented as the
-    smallest type that can represent all elements in that feature. When
-    mixed element data types are found in a feature, a warning is emitted.
+
+def get_feature_dtypes(obj) -> list[np.dtype | pd.CategoricalDtype]:
+    """
+    Get numpy dtypes of the features in `obj`, promoting dtypes as necessary to
+    the smallest type that can accommodate all data elements in that feature.
+    The exception to this is when a pd.CategoricalDtype feature is present,
+    retain this dtype.
 
     Parameters
     ----------
     obj : array-like, DataFrame, or Series
-        The object to get the feature dtypes from.
+        The object from which to get the feature dtypes.
 
     Returns:
     --------
-    list of dtypes : list[Any]
-        The dtypes of the features in `obj`.
-    upcast_required : bool
-        When `obj` is represented as a numpy array and there are mixed types
-        in one or more features, the `upcast_required` flag is set to `True`,
-        otherwise it is `False`.
+    list of dtypes : list[np.dtype | pd.CategoricalDtype]
+        The dtypes (either numpy or pd.CategoricalDtype) of the features in `obj`.
     """
-    if obj is None:
-        return [], False
-    if is_dataframe_like(obj) and len(obj) > 0:
-        return getattr(obj.dtypes, "values", obj.dtypes), False
-    if is_series_like(obj) and len(obj) > 0 and obj.dtype != np.dtype("O"):
-        return [obj.dtype], False
-    obj = np.asarray(obj, dtype=object)
-    if len(obj) == 0:
-        return [], False
-    if obj.ndim == 1:
-        obj = obj.reshape(-1, 1)
+    if obj is None or len(np.asarray(obj)) == 0:
+        return []
 
-    # Emit a warning if there are mixed dtypes in any column
-    upcast_required = False
-    for i in range(obj.shape[1]):
-        unique_types = {type(x) for x in obj[:, i]}
-        if len(unique_types) > 1:
-            upcast_required = True
-            warn(
-                f"Column {i} has mixed types: {unique_types}. "
-                "This may lead to unexpected behavior.",
-                category=UserWarning,
-                stacklevel=3,
-            )
+    if is_dataframe_like(obj):
+        native_dtypes = getattr(obj.dtypes, "values", obj.dtypes)
+        promoted_dtypes = get_minimum_dtypes(obj)
+        return [
+            p_dtype if str(n_dtype) != "category" else n_dtype
+            for p_dtype, n_dtype in zip(promoted_dtypes, native_dtypes)
+        ]
+    if is_series_like(obj):
+        native_dtype = obj.dtype
+        promoted_dtype = get_minimum_dtypes(obj)[0]
+        return [promoted_dtype if str(native_dtype) != "category" else native_dtype]
 
-    return [
-        np.asarray(obj[:, i].tolist()).dtype for i in range(obj.shape[1])
-    ], upcast_required
+    return get_minimum_dtypes(obj)
 
 
-def get_feature_names_and_dtypes(obj: Sequence) -> tuple[dict[str, Any], bool]:
+def get_feature_names_and_dtypes(
+    obj: Sequence,
+) -> dict[str, np.dtype | pd.CategoricalDtype]:
     """
     Get the names and dtypes of the features in `obj` and return as dict.
 
@@ -132,14 +128,10 @@ def get_feature_names_and_dtypes(obj: Sequence) -> tuple[dict[str, Any], bool]:
 
     Returns:
     --------
-    dict[str, Any]:
+    dict[str, np.dtype | pd.CategoricalDtype] : dict
         The feature names and dtypes of the features in `obj`.
-    upcast_required : bool
-        When `obj` is represented as a numpy array and there are mixed types
-        in one or more features, the `upcast_required` flag is set to `True`,
-        otherwise it is `False`.
     """
-    feature_dtypes, upcast_required = get_feature_dtypes(obj)
     return {
-        name: dtype for name, dtype in zip(get_feature_names(obj), feature_dtypes)
-    }, upcast_required
+        name: dtype
+        for name, dtype in zip(get_feature_names(obj), get_feature_dtypes(obj))
+    }
