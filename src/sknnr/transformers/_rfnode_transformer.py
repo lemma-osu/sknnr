@@ -167,7 +167,7 @@ class RFNodeTransformer(TransformerMixin, BaseEstimator):
         `y` is treated as a 2D array, where each column is a target with potentially
         different dtypes between columns. Each target is first validated to have
         no NaN-like values and then promoted to the minimum numpy dtype that
-        losslessly represents all elements (as previously captured in `target_info`).
+        safely represents all elements (as previously captured in `target_info`).
         Additionally, each target is validated to ensure no combination of
         string-like and non-string-like elements is present.
 
@@ -197,8 +197,8 @@ class RFNodeTransformer(TransformerMixin, BaseEstimator):
                 target = np.asarray(target.tolist())
 
             # Check for targets with mixed numeric and non-numeric elements.
-            # Non-lossy promotion of numeric types to other numeric types is
-            # allowed (e.g. bool to int, int to float), but potentially lossy
+            # Safe promotion of numeric types to other numeric types is
+            # allowed (e.g. bool to int, int to float), but potentially unsafe
             # promotion from numeric to non-numeric types is not allowed
             # (e.g. int to str, float to str).
             elif np.issubdtype(promoted_dtype, np.str_) and (
@@ -208,7 +208,7 @@ class RFNodeTransformer(TransformerMixin, BaseEstimator):
             ):
                 raise ValueError(
                     f"Target {name} has non-string types ({non_string_types}) "
-                    "that cannot be losslessly converted to a string dtype "
+                    f"that cannot be safely converted to a string dtype "
                     f"({promoted_dtype})."
                 )
 

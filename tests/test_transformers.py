@@ -218,7 +218,7 @@ def test_rfnode_transformer_raises_on_nan_like_target(y_wrapper, nan_like_value)
 def test_rfnode_transformer_raises_on_mixed_target(y_wrapper):
     """
     Test that the RFNodeTransformer raises on targets with mixed
-    numeric/non-numeric data.
+    string/non-string data that cannot safely be promoted to a common type.
     """
     X, y = load_moscow_stjoes(return_X_y=True)
     y = y[:, 0].astype(object)
