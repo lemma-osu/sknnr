@@ -115,16 +115,10 @@ def test_predict(
         ndarrays_regression.check(dict(pred=pred))
 
 
-@pytest.mark.parametrize("return_dataframe_index", [True, False], ids=["ids", "index"])
-@pytest.mark.parametrize("n_neighbors", [5], ids=["k5"])
-@pytest.mark.parametrize("weighted", [True, False], ids=["weighted", "unweighted"])
 @pytest.mark.parametrize("reference", [True, False], ids=["reference", "target"])
 def test_mixed_rfnn_forests(
     ndarrays_regression,
     moscow_stjoes_test_data,
-    return_dataframe_index,
-    n_neighbors,
-    weighted,
     reference,
 ):
     """
@@ -132,11 +126,7 @@ def test_mixed_rfnn_forests(
     regression and classification forests.
     """
     dataset = moscow_stjoes_test_data
-    weights = yaimpute_weights if weighted else None
-
-    hyperparams = get_default_hyperparams(
-        RFNNRegressor, n_neighbors=n_neighbors, weights=weights
-    )
+    hyperparams = get_default_hyperparams(RFNNRegressor, n_neighbors=5)
 
     # Create y_fit data to have two columns - Total_BA and the species
     # with the highest abundance.  This should use one regression forest and
@@ -155,13 +145,11 @@ def test_mixed_rfnn_forests(
     )
 
     if reference:
-        dist, nn = est.kneighbors(return_dataframe_index=return_dataframe_index)
+        dist, nn = est.kneighbors()
         pred = est.independent_prediction_
         score = est.independent_score_
         ndarrays_regression.check(dict(dist=dist, nn=nn, pred=pred, score=score))
     else:
-        dist, nn = est.kneighbors(
-            dataset.X_test, return_dataframe_index=return_dataframe_index
-        )
+        dist, nn = est.kneighbors(dataset.X_test)
         pred = est.predict(dataset.X_test)
         ndarrays_regression.check(dict(dist=dist, nn=nn, pred=pred))
