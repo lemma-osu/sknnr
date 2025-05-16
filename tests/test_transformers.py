@@ -202,6 +202,51 @@ def test_rfnode_transformer_assigns_correct_forest_types(x_type):
     assert all(isinstance(forest, RandomForestClassifier) for forest in est.rfs_)
 
 
+@pytest.mark.parametrize("criterion_reg", ["absolute_error"])
+@pytest.mark.parametrize("criterion_clf", ["entropy"])
+@pytest.mark.parametrize("max_features_reg", ["sqrt", "log2"])
+@pytest.mark.parametrize("max_features_clf", ["log2", 1.0])
+@pytest.mark.parametrize("class_weight_clf", ["balanced_subsample"])
+def test_rfnode_transformer_non_default_parameterization(
+    criterion_reg,
+    criterion_clf,
+    max_features_reg,
+    max_features_clf,
+    class_weight_clf,
+):
+    """
+    Test that RFNodeTransformer correctly passes specialized parameters
+    to its regression and classification forests.
+    """
+    X, y = load_moscow_stjoes(return_X_y=True, as_frame=True)
+
+    # Create a boolean target for classification
+    y["ABGR_PA"] = y["ABGR_BA"] > 0.0
+
+    # Fit with the specialized non-default parameters
+    est = RFNodeTransformer(
+        criterion_reg=criterion_reg,
+        criterion_clf=criterion_clf,
+        max_features_reg=max_features_reg,
+        max_features_clf=max_features_clf,
+        class_weight_clf=class_weight_clf,
+    ).fit(X, y)
+
+    # Check that both regression and classification forests are present
+    assert len(list(v == "classification" for v in est.rf_type_dict_.values())) >= 1
+    assert len(list(v == "regression" for v in est.rf_type_dict_.values())) >= 1
+
+    # Confirm that the specialized parameters are set on the correct forests
+    for rf in est.rfs_:
+        if isinstance(rf, RandomForestClassifier):
+            assert rf.get_params()["criterion"] == criterion_clf
+            assert rf.get_params()["max_features"] == max_features_clf
+            assert rf.get_params()["class_weight"] == class_weight_clf
+        else:
+            assert rf.get_params()["criterion"] == criterion_reg
+            assert rf.get_params()["max_features"] == max_features_reg
+
+
 @pytest.mark.parametrize("y_wrapper", [pd.Series, np.asarray])
 @pytest.mark.parametrize("nan_like_value", [np.nan, None, pd.NA])
 def test_rfnode_transformer_raises_on_nan_like_target(y_wrapper, nan_like_value):
