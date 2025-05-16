@@ -194,8 +194,7 @@ class RFNodeTransformer(TransformerMixin, BaseEstimator):
             # but we need to retain the categorical dtype label to correctly route
             # the target to a random forest classifier.
             if str(promoted_dtype) == "category":
-                pass
-                # target = np.asarray(target.tolist())
+                target = np.asarray(target.tolist())
 
             # Check for targets with mixed numeric and non-numeric elements.
             # Non-lossy promotion of numeric types to other numeric types is
