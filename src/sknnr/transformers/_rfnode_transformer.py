@@ -158,45 +158,64 @@ class RFNodeTransformer(TransformerMixin, BaseEstimator):
         self.max_samples = max_samples
         self.monotonic_cst = monotonic_cst
 
-    def _set_targets(
-        self, y: Any
-    ) -> tuple[list[NDArray], dict[str, np.dtype | pd.CategoricalDtype]]:
+    def _validate_and_promote_targets(
+        self, y: Any, target_info: dict[str, np.dtype | pd.CategoricalDtype]
+    ) -> list[NDArray]:
         """
-        After getting target names and types, validate each target in `y`,
-        ensuring that no targets have NaN-like values and that no targets
-        have a mix of numeric and non-numeric types.  Return the targets as a
-        like of numpy arrays as well as the target names and dtypes.
-        """
-        target_info = get_feature_names_and_dtypes(y)
+        Given target names and types, validate and promote each target in `y`.
 
+        `y` is treated as a 2D array, where each column is a target with potentially
+        different dtypes between columns. Each target is first validated to have
+        no NaN-like values and then promoted to the minimum numpy dtype that
+        losslessly represents all elements (as previously captured in `target_info`).
+        Additionally, each target is validated to ensure no combination of
+        string-like and non-string-like elements is present.
+
+        Return the targets as a list of numpy arrays.
+        """
         y = np.asarray(y, dtype=object)
         if y.ndim == 1:
             y = y.reshape(-1, 1)
 
         v_is_nan_like = np.vectorize(is_nan_like)
         targets = []
-        for i, (name, dtype) in enumerate(target_info.items()):
+        for i, (name, promoted_dtype) in enumerate(target_info.items()):
             target = y[:, i]
 
+            # Perform strict validation of the target to identify NaN-like
+            # elements (None, np.nan, pd.NA).  We cannot use sklearn `check_array`
+            # with `ensure_all_finite=True`` and `dtype=None`, as None values
+            # go undetected and pd.NA values raise an error.
             if np.any(v_is_nan_like(target)):
                 raise ValueError(f"Target {name} has NaN-like elements.")
 
-            # Promote the targets to the dtype.  We handle two edge cases here:
-            # 1. If the dtype is pd.CategoricalDtype, promote the data but keep
-            #    the dtype as category.
-            # 2. If the target is a string dtype, but has non-string elements,
-            #    this represents mixed types that shouldn't be allowed.
-            if str(dtype) == "category":
-                target = np.asarray(target.tolist())
-            elif np.issubdtype(dtype, np.str_) and any(
-                not np.issubdtype(type(v), np.str_) for v in target
+            # If the promoted dtype is categorical, promote the data to the
+            # minimum numpy dtype.  Numpy does not support categorical dtypes,
+            # but we need to retain the categorical dtype label to correctly route
+            # the target to a random forest classifier.
+            if str(promoted_dtype) == "category":
+                pass
+                # target = np.asarray(target.tolist())
+
+            # Check for targets with mixed numeric and non-numeric elements.
+            # Non-lossy promotion of numeric types to other numeric types is
+            # allowed (e.g. bool to int, int to float), but potentially lossy
+            # promotion from numeric to non-numeric types is not allowed
+            # (e.g. int to str, float to str).
+            elif np.issubdtype(promoted_dtype, np.str_) and (
+                non_string_types := {
+                    type(v) for v in target if not np.issubdtype(type(v), np.str_)
+                }
             ):
                 raise ValueError(
-                    f"Target {name} has mixed types and cannot be converted to "
-                    "a common dtype."
+                    f"Target {name} has non-string types ({non_string_types}) "
+                    "that cannot be losslessly converted to a string dtype "
+                    f"({promoted_dtype})."
                 )
+
+            # Otherwise, promote the target to the minimum numpy dtype
             else:
-                target = target.astype(dtype)
+                target = target.astype(promoted_dtype)
 
             # Check for any other issues with the target when paired with the
             # estimator.
@@ -209,7 +228,7 @@ class RFNodeTransformer(TransformerMixin, BaseEstimator):
             )
             targets.append(target)
 
-        return targets, target_info
+        return targets
 
     def _set_rf_types(
         self, target_info: dict[str, Any]
@@ -226,8 +245,11 @@ class RFNodeTransformer(TransformerMixin, BaseEstimator):
     def fit(self, X, y):
         _validate_data(self, X=X, reset=True)
 
-        # Set targets and standardize dtypes within `y`
-        y, target_info = self._set_targets(y)
+        # Get target names and minimum numpy dtypes for each target in `y`
+        target_info = get_feature_names_and_dtypes(y)
+
+        # Validate and promote targets within `y`
+        y = self._validate_and_promote_targets(y, target_info)
 
         # Assign RF types based on the target dtypes
         self.rf_type_dict_ = self._set_rf_types(target_info)

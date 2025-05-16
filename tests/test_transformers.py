@@ -224,5 +224,5 @@ def test_rfnode_transformer_raises_on_mixed_target(y_wrapper):
     y = y[:, 0].astype(object)
     y[-1] = "mixed"
     y = y_wrapper(y, dtype=object)
-    with pytest.raises(ValueError, match=r"Target \S+ has mixed types"):
+    with pytest.raises(ValueError, match=r"Target \S+ has non-string types"):
         _ = RFNodeTransformer().fit(X, y)

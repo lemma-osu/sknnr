@@ -44,7 +44,7 @@ def is_number_like_type(t: Any) -> bool:
 
 
 def is_nan_like(x: Any) -> bool:
-    """Check if `x` is NaN-like."""
+    """Check if `x` is NaN-like, including None, np.nan, and pd.NA values."""
     return bool(
         x is None
         or (isinstance(x, float) and np.isnan(x))
