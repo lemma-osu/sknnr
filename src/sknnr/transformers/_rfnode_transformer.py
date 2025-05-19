@@ -21,17 +21,28 @@ class RFNodeTransformer(TransformerMixin, BaseEstimator):
     Transformer to capture node indexes for samples across multiple
     random forests.
 
-    A random forest is fit to each feature in the training set using
-    `RandomForestRegressor`.  The transformation captures the node indexes
-    for each tree in each forest for each training or target sample.
+    A random forest is fit to each `y` target in the training set using either
+    scikit-learn's `RandomForestRegressor` or `RandomForestClassifier`.  The
+    transformation captures the node indexes for each tree in each forest for
+    each training or new sample.
+
+    The particular random forest type used for each target is determined by the
+    data type of the target.  If the target is numeric (e.g. `int` or `float`),
+    a `RandomForestRegressor` is used.  If the target is categorical (e.g.
+    `str` or `pd.Categorical`), a `RandomForestClassifier` is used.  Targets are
+    automatically promoted to the minimum numpy dtype that safely represents
+    all elements.
 
     This transformer is intended to be used in conjunction with `RFNNRegressor`
-    which captures similarity between node indexes of training and target data
+    which captures similarity between node indexes of training and inference data
     and creates predictions using nearest neighbors.
 
-    See `sklearn.ensemble.RandomForestRegressor` for more detail on these
-    parameters.  All parameters are passed through to `RandomForestRegressor`
-    for each random forest being built.
+    See `sklearn.ensemble.RandomForestRegressor` and
+    `sklearn.ensemble.RandomForestClassifier` for more detail on available
+    parameters.  All parameters are passed through to these respective random
+    forest estimators for each random forest being built.  Note that some
+    parameters (e.g. `criterion` and `max_features`) are specified separately
+    for regression and classification and have `_reg` and `_clf` suffixes.
 
     Parameters
     ----------

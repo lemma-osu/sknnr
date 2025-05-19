@@ -13,17 +13,28 @@ class RFNNRegressor(YFitMixin, TransformedKNeighborsRegressor):
     """
     Regression using Random Forest Nearest Neighbors (RFNN) imputation.
 
-    The target is predicted by similarity of its node indexes to training set
-    node indexes when run through multiple univariate random forests.  A
-    random forest is fit to each feature in the training set and node indexes are
+    New data is predicted by similarity of its node indexes to training
+    set node indexes when run through multiple univariate random forests.  A
+    random forest is fit to each target in the training set and node indexes are
     captured for each tree in each forest for each training sample.  Node
-    indexes are then captured for targets and distance is calculated as the
-    dissimilarity between node indexes.
+    indexes are then captured for inference data and distance is calculated as
+    the dissimilarity between node indexes.
+
+    Random forests are constructed using either scikit-learn's `RandomForestRegressor`
+    and `RandomForestClassifier` classes based on the data type of each target
+    (`y` or `y_fit`) in the training set.  If the target is numeric (e.g. `int`
+    or `float`), a `RandomForestRegressor` is used.  If the target is
+    categorical (e.g. `str` or `pd.Categorical`), a `RandomForestClassifier` is
+    used.  The `sknnr.transformers.RFNodeTransformer` class is responsible for
+    constructing the random forests and capturing the node indexes.
 
     See `sklearn.neighbors.KNeighborsRegressor` for more detail on
-    parameters associated with nearest neighbors and
-    `sklearn.ensemble.RandomForestRegressor` for more detail on parameters
-    associated with random forests.
+    parameters associated with nearest neighbors.  See
+    `sklearn.ensemble.RandomForestRegressor` and
+    `sklearn.ensemble.RandomForestClassifier` for more detail on parameters
+    associated with random forests.  Note that some parameters (e.g. `criterion`
+    and `max_features`) are specified separately for regression and classification
+    and have `_reg` and `_clf` suffixes.
 
     Parameters
     ----------
