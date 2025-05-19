@@ -62,6 +62,12 @@ markers = [
     "uncollect_if(*, func): function to uncollect tests from parametrization",
 ]
 
+[tool.coverage.report]
+exclude_also = [
+    # Ignore TYPE_CHECKING blocks
+    "if TYPE_CHECKING:",
+]
+
 [tool.ruff]
 fix = true
 show-fixes = true
