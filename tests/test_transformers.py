@@ -193,12 +193,12 @@ def test_rfnode_transformer_assigns_correct_forest_types(x_type):
     """Test that the RFNodeTransformer returns the correct forest types."""
     X, y = load_moscow_stjoes(return_X_y=True, as_frame=x_type == "dataframe")
     est = RFNodeTransformer().fit(X, y)
-    assert all(v == "regression" for v in est.rf_type_dict_.values())
+    assert all(v == "regression" for v in est.estimator_type_dict_.values())
     assert all(isinstance(forest, RandomForestRegressor) for forest in est.rfs_)
 
     y_bool = y.astype("bool")
     est = RFNodeTransformer().fit(X, y_bool)
-    assert all(v == "classification" for v in est.rf_type_dict_.values())
+    assert all(v == "classification" for v in est.estimator_type_dict_.values())
     assert all(isinstance(forest, RandomForestClassifier) for forest in est.rfs_)
 
 
@@ -233,8 +233,10 @@ def test_rfnode_transformer_non_default_parameterization(
     ).fit(X, y)
 
     # Check that both regression and classification forests are present
-    assert len(list(v == "classification" for v in est.rf_type_dict_.values())) >= 1
-    assert len(list(v == "regression" for v in est.rf_type_dict_.values())) >= 1
+    assert (
+        len(list(v == "classification" for v in est.estimator_type_dict_.values())) >= 1
+    )
+    assert len(list(v == "regression" for v in est.estimator_type_dict_.values())) >= 1
 
     # Confirm that the specialized parameters are set on the correct forests
     for rf in est.rfs_:
