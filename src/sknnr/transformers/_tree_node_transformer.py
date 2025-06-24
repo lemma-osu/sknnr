@@ -135,7 +135,7 @@ class TreeNodeTransformer(TransformerMixin, BaseEstimator, ABC):
             ensure_min_features=1,
             ensure_min_samples=1,
         )
-        return np.hstack([rf.apply(X) for rf in self.estimators_])
+        return np.hstack([est.apply(X) for est in self.estimators_]).astype("int64")
 
     def fit_transform(self, X, y):
         return self.fit(X, y).transform(X)
