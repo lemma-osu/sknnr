@@ -280,10 +280,8 @@ def test_rfnode_transformer_non_default_parameterization(
     ).fit(X, y)
 
     # Check that both regression and classification forests are present
-    assert (
-        sum(list(v == "classification" for v in est.estimator_type_dict_.values())) >= 1
-    )
-    assert sum(list(v == "regression" for v in est.estimator_type_dict_.values())) >= 1
+    assert "classification" in est.estimator_type_dict_.values()
+    assert "regression" in est.estimator_type_dict_.values()
 
     # Confirm that the specialized parameters are set on the correct forests
     for rf in est.estimators_:
