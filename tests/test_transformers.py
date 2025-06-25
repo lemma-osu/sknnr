@@ -30,6 +30,18 @@ TEST_ORDINATION_TRANSFORMERS = [
     CCorATransformer,
 ]
 
+TEST_TREE_TRANSFORMERS = [
+    RFNodeTransformer,
+]
+
+# Mapping of tree node transformers to their corresponding sklearn forest types
+TREE_TRANSFORMER_FOREST_TYPES = {
+    RFNodeTransformer: {
+        "regression": RandomForestRegressor,
+        "classification": RandomForestClassifier,
+    },
+}
+
 
 def get_transformer_xfail_checks(transformer) -> dict[str, str]:
     """
@@ -188,18 +200,53 @@ def test_transformers_raise_out_of_range_n_components(transformer, n_components)
         transformer(n_components=n_components).fit(X, y)
 
 
-@pytest.mark.parametrize("x_type", ["array", "dataframe"])
-def test_rfnode_transformer_assigns_correct_forest_types(x_type):
-    """Test that the RFNodeTransformer returns the correct forest types."""
-    X, y = load_moscow_stjoes(return_X_y=True, as_frame=x_type == "dataframe")
-    est = RFNodeTransformer().fit(X, y)
-    assert all(v == "regression" for v in est.rf_type_dict_.values())
-    assert all(isinstance(forest, RandomForestRegressor) for forest in est.rfs_)
+@pytest.mark.parametrize("transformer", TEST_TREE_TRANSFORMERS)
+def test_treenode_transformer_assigns_correct_forest_types(transformer):
+    """Test that the TreeNodeTransformer returns the correct forest types."""
+    X, y = load_moscow_stjoes(return_X_y=True, as_frame=False)
+
+    transformer_type_dict = TREE_TRANSFORMER_FOREST_TYPES[transformer]
+    clf_est_type = transformer_type_dict["classification"]
+    reg_est_type = transformer_type_dict["regression"]
+
+    est = transformer().fit(X, y)
+    assert all(v == "regression" for v in est.estimator_type_dict_.values())
+    assert all(isinstance(forest, reg_est_type) for forest in est.estimators_)
 
     y_bool = y.astype("bool")
-    est = RFNodeTransformer().fit(X, y_bool)
-    assert all(v == "classification" for v in est.rf_type_dict_.values())
-    assert all(isinstance(forest, RandomForestClassifier) for forest in est.rfs_)
+    est = transformer().fit(X, y_bool)
+    assert all(v == "classification" for v in est.estimator_type_dict_.values())
+    assert all(isinstance(forest, clf_est_type) for forest in est.estimators_)
+
+
+@pytest.mark.parametrize("transformer", TEST_TREE_TRANSFORMERS)
+@pytest.mark.parametrize("y_wrapper", [pd.Series, np.asarray])
+@pytest.mark.parametrize("nan_like_value", [np.nan, None, pd.NA])
+def test_treenode_transformer_raises_on_nan_like_target(
+    transformer, y_wrapper, nan_like_value
+):
+    """Test that the TreeNodeTransformer raises on targets with NaN-like elements."""
+    X, y = load_moscow_stjoes(return_X_y=True)
+    y = y[:, 0].astype(object)
+    y[0] = nan_like_value
+    y = y_wrapper(y, dtype=object)
+    with pytest.raises(ValueError, match=r"Target \S+ has NaN-like elements"):
+        _ = transformer().fit(X, y)
+
+
+@pytest.mark.parametrize("transformer", TEST_TREE_TRANSFORMERS)
+@pytest.mark.parametrize("y_wrapper", [pd.Series, np.asarray])
+def test_treenode_transformer_raises_on_mixed_target(transformer, y_wrapper):
+    """
+    Test that the TreeNodeTransformer raises on targets with mixed
+    string/non-string data that cannot safely be promoted to a common type.
+    """
+    X, y = load_moscow_stjoes(return_X_y=True)
+    y = y[:, 0].astype(object)
+    y[-1] = "mixed"
+    y = y_wrapper(y, dtype=object)
+    with pytest.raises(ValueError, match=r"Target \S+ has non-string types"):
+        _ = transformer().fit(X, y)
 
 
 @pytest.mark.parametrize("criterion_reg", ["absolute_error"])
@@ -233,11 +280,11 @@ def test_rfnode_transformer_non_default_parameterization(
     ).fit(X, y)
 
     # Check that both regression and classification forests are present
-    assert len(list(v == "classification" for v in est.rf_type_dict_.values())) >= 1
-    assert len(list(v == "regression" for v in est.rf_type_dict_.values())) >= 1
+    assert "classification" in est.estimator_type_dict_.values()
+    assert "regression" in est.estimator_type_dict_.values()
 
     # Confirm that the specialized parameters are set on the correct forests
-    for rf in est.rfs_:
+    for rf in est.estimators_:
         if isinstance(rf, RandomForestClassifier):
             assert rf.get_params()["criterion"] == criterion_clf
             assert rf.get_params()["max_features"] == max_features_clf
@@ -245,29 +292,3 @@ def test_rfnode_transformer_non_default_parameterization(
         else:
             assert rf.get_params()["criterion"] == criterion_reg
             assert rf.get_params()["max_features"] == max_features_reg
-
-
-@pytest.mark.parametrize("y_wrapper", [pd.Series, np.asarray])
-@pytest.mark.parametrize("nan_like_value", [np.nan, None, pd.NA])
-def test_rfnode_transformer_raises_on_nan_like_target(y_wrapper, nan_like_value):
-    """Test that the RFNodeTransformer raises on targets with NaN-like elements."""
-    X, y = load_moscow_stjoes(return_X_y=True)
-    y = y[:, 0].astype(object)
-    y[0] = nan_like_value
-    y = y_wrapper(y, dtype=object)
-    with pytest.raises(ValueError, match=r"Target \S+ has NaN-like elements"):
-        _ = RFNodeTransformer().fit(X, y)
-
-
-@pytest.mark.parametrize("y_wrapper", [pd.Series, np.asarray])
-def test_rfnode_transformer_raises_on_mixed_target(y_wrapper):
-    """
-    Test that the RFNodeTransformer raises on targets with mixed
-    string/non-string data that cannot safely be promoted to a common type.
-    """
-    X, y = load_moscow_stjoes(return_X_y=True)
-    y = y[:, 0].astype(object)
-    y[-1] = "mixed"
-    y = y_wrapper(y, dtype=object)
-    with pytest.raises(ValueError, match=r"Target \S+ has non-string types"):
-        _ = RFNodeTransformer().fit(X, y)

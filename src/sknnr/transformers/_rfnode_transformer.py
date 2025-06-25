@@ -1,22 +1,17 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Callable, Literal
+from typing import Callable, Literal
 
 import numpy as np
 from numpy.random import RandomState
 from numpy.typing import NDArray
-from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
-from sklearn.utils.validation import check_array, check_is_fitted
+from sklearn.utils.validation import check_is_fitted
 
-from .._base import _validate_data
-from ..utils import get_feature_names_and_dtypes, is_nan_like, is_number_like_type
-
-if TYPE_CHECKING:
-    import pandas as pd
+from ._tree_node_transformer import TreeNodeTransformer
 
 
-class RFNodeTransformer(TransformerMixin, BaseEstimator):
+class RFNodeTransformer(TreeNodeTransformer):
     """
     Transformer to capture node indexes for samples across multiple
     random forests.
@@ -111,10 +106,10 @@ class RFNodeTransformer(TransformerMixin, BaseEstimator):
     feature_names_in_ : ndarray of shape (`n_features_in_`)
         Names of features seen during fit. Defined only when `X` has feature
         names that are all strings.
-    rf_type_dict_ : dict[str, str]
+    estimator_type_dict_ : dict[str, str]
         Dictionary mapping target names to their random forest type
         ("regression" or "classification").
-    rfs_ : list of `RandomForestRegressor`
+    estimators_ : list [`RandomForestRegressor`|`RandomForestClassifier`]
         The random forests associated with each target in `y` during `fit`.
     """
 
@@ -169,101 +164,7 @@ class RFNodeTransformer(TransformerMixin, BaseEstimator):
         self.max_samples = max_samples
         self.monotonic_cst = monotonic_cst
 
-    def _validate_and_promote_targets(
-        self, y: Any, target_info: dict[str, np.dtype | pd.CategoricalDtype]
-    ) -> list[NDArray]:
-        """
-        Given target names and types, validate and promote each target in `y`.
-
-        `y` is treated as a 2D array, where each column is a target with potentially
-        different dtypes between columns. Each target is first validated to have
-        no NaN-like values and then promoted to the minimum numpy dtype that
-        safely represents all elements (as previously captured in `target_info`).
-        Additionally, each target is validated to ensure no combination of
-        string-like and non-string-like elements is present.
-
-        Return the targets as a list of numpy arrays.
-        """
-        y = np.asarray(y, dtype=object)
-        if y.ndim == 1:
-            y = y.reshape(-1, 1)
-
-        v_is_nan_like = np.vectorize(is_nan_like)
-        targets = []
-        for i, (name, promoted_dtype) in enumerate(target_info.items()):
-            target = y[:, i]
-
-            # Perform strict validation of the target to identify NaN-like
-            # elements (None, np.nan, pd.NA).  We cannot use sklearn `check_array`
-            # with `ensure_all_finite=True`` and `dtype=None`, as None values
-            # go undetected and pd.NA values raise an error.
-            if np.any(v_is_nan_like(target)):
-                raise ValueError(f"Target {name} has NaN-like elements.")
-
-            # If the promoted dtype is categorical, promote the data to the
-            # minimum numpy dtype.  Numpy does not support categorical dtypes,
-            # but we need to retain the categorical dtype label to correctly route
-            # the target to a random forest classifier.
-            if str(promoted_dtype) == "category":
-                target = np.asarray(target.tolist())
-
-            # Check for targets with mixed numeric and non-numeric elements.
-            # Safe promotion of numeric types to other numeric types is
-            # allowed (e.g. bool to int, int to float), but potentially unsafe
-            # promotion from numeric to non-numeric types is not allowed
-            # (e.g. int to str, float to str).
-            elif np.issubdtype(promoted_dtype, np.str_) and (
-                non_string_types := {
-                    type(v) for v in target if not np.issubdtype(type(v), np.str_)
-                }
-            ):
-                raise ValueError(
-                    f"Target {name} has non-string types ({non_string_types}) "
-                    f"that cannot be safely converted to a string dtype "
-                    f"({promoted_dtype})."
-                )
-
-            # Otherwise, promote the target to the minimum numpy dtype
-            else:
-                target = target.astype(promoted_dtype)
-
-            # Check for any other issues with the target when paired with the
-            # estimator.
-            target = check_array(
-                target,
-                ensure_all_finite=True,
-                dtype=None,
-                ensure_2d=False,
-                estimator=self,
-            )
-            targets.append(target)
-
-        return targets
-
-    def _set_rf_types(
-        self, target_info: dict[str, Any]
-    ) -> dict[str, Literal["regression", "classification"]]:
-        """Set the random forest type to use for each target in `y`."""
-
-        # TODO: Handle overrides from user based on names
-        # TODO: target_info.update(user_overrides)
-        return {
-            k: "regression" if is_number_like_type(v) else "classification"
-            for k, v in target_info.items()
-        }
-
     def fit(self, X, y):
-        _validate_data(self, X=X, reset=True)
-
-        # Get target names and minimum numpy dtypes for each target in `y`
-        target_info = get_feature_names_and_dtypes(y)
-
-        # Validate and promote targets within `y`
-        y = self._validate_and_promote_targets(y, target_info)
-
-        # Assign RF types based on the target dtypes
-        self.rf_type_dict_ = self._set_rf_types(target_info)
-
         # Specialize the kwargs sent to initialize the random forests
         rf_common_kwargs = dict(
             n_estimators=self.n_estimators,
@@ -294,47 +195,22 @@ class RFNodeTransformer(TransformerMixin, BaseEstimator):
             "max_features": self.max_features_clf,
             "class_weight": self.class_weight_clf,
         }
-
-        # Create the random forests for each target in `y` and fit them
-        target_idx_to_rf_type = {
-            i: v for i, (_, v) in enumerate(self.rf_type_dict_.items())
-        }
-        self.rfs_ = [
-            RandomForestRegressor(**rf_reg_kwargs).fit(X, target)
-            if target_idx_to_rf_type[i] == "regression"
-            else RandomForestClassifier(**rf_clf_kwargs).fit(X, target)
-            for i, target in enumerate(y)
-        ]
-        return self
+        return self._fit(
+            X,
+            y,
+            RandomForestRegressor,
+            RandomForestClassifier,
+            rf_reg_kwargs,
+            rf_clf_kwargs,
+        )
 
     def get_feature_names_out(self) -> NDArray:
-        check_is_fitted(self, "rfs_")
+        check_is_fitted(self, "estimators_")
         return np.asarray(
             [
                 f"rf{i}_tree{j}"
-                for i in range(len(self.rfs_))
-                for j in range(self.rfs_[i].n_estimators)
+                for i in range(len(self.estimators_))
+                for j in range(self.estimators_[i].n_estimators)
             ],
             dtype=object,
         )
-
-    def transform(self, X):
-        check_is_fitted(self)
-        _validate_data(
-            self,
-            X=X,
-            reset=False,
-            ensure_min_features=1,
-            ensure_min_samples=1,
-        )
-        return np.hstack([rf.apply(X) for rf in self.rfs_])
-
-    def fit_transform(self, X, y):
-        return self.fit(X, y).transform(X)
-
-    def __sklearn_tags__(self):
-        tags = super().__sklearn_tags__()
-        tags.target_tags.required = True
-        tags.transformer_tags.preserves_dtype = ["int64"]
-
-        return tags
