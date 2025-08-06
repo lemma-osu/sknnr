@@ -3,13 +3,20 @@ from __future__ import annotations
 from typing import Callable, Literal
 
 from numpy.random import RandomState
+from numpy.typing import ArrayLike
 from sklearn.base import TransformerMixin
 
-from ._base import TransformedKNeighborsRegressor, YFitMixin
+from ._base import (
+    TransformedKNeighborsRegressor,
+    WeightedHammingDistanceMixin,
+    YFitMixin,
+)
 from .transformers import RFNodeTransformer
 
 
-class RFNNRegressor(YFitMixin, TransformedKNeighborsRegressor):
+class RFNNRegressor(
+    WeightedHammingDistanceMixin, YFitMixin, TransformedKNeighborsRegressor
+):
     """
     Regression using Random Forest Nearest Neighbors (RFNN) imputation.
 
@@ -98,6 +105,12 @@ class RFNNRegressor(YFitMixin, TransformedKNeighborsRegressor):
         train each base estimator.
     monotonic_cst : array-like of int of shape (n_features), default=None
         Indicates the monotonicity constraint to enforce on each feature.
+    forest_weights: {"uniform"}, array-like of shape (n_targets), default="uniform"
+        Weights assigned to each target in the training set when calculating
+        Hamming distance between node indexes.  This allows for differential
+        weighting of targets when calculating distances. Note that all trees
+        associated with a target will receive the same weight.  If "uniform",
+        each tree is assigned equal weight.
     n_neighbors : int, default=5
         Number of neighbors to use by default for `kneighbors` queries.
     weights : {"uniform", "distance"}, callable or None, default="uniform"
@@ -175,6 +188,7 @@ class RFNNRegressor(YFitMixin, TransformedKNeighborsRegressor):
         ccp_alpha: float = 0.0,
         max_samples: int | float | None = None,
         monotonic_cst: list[int] | None = None,
+        forest_weights: Literal["uniform"] | ArrayLike[float] = "uniform",
         n_neighbors: int = 5,
         weights: Literal["uniform", "distance"] | Callable = "uniform",
         algorithm: Literal["auto", "ball_tree", "kd_tree", "brute"] = "auto",
@@ -201,13 +215,14 @@ class RFNNRegressor(YFitMixin, TransformedKNeighborsRegressor):
         self.ccp_alpha = ccp_alpha
         self.max_samples = max_samples
         self.monotonic_cst = monotonic_cst
+        self.forest_weights = forest_weights
 
         super().__init__(
             n_neighbors=n_neighbors,
             weights=weights,
             algorithm=algorithm,
             leaf_size=leaf_size,
-            metric="hamming",
+            metric=self.weighted_hamming_metric,
             n_jobs=self.n_jobs,
         )
 
@@ -234,4 +249,5 @@ class RFNNRegressor(YFitMixin, TransformedKNeighborsRegressor):
             ccp_alpha=self.ccp_alpha,
             max_samples=self.max_samples,
             monotonic_cst=self.monotonic_cst,
+            forest_weights=self.forest_weights,
         )

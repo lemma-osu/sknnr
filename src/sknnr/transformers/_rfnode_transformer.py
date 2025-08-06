@@ -4,7 +4,7 @@ from typing import Callable, Literal
 
 import numpy as np
 from numpy.random import RandomState
-from numpy.typing import NDArray
+from numpy.typing import ArrayLike, NDArray
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.utils.validation import check_is_fitted
 
@@ -98,6 +98,12 @@ class RFNodeTransformer(TreeNodeTransformer):
         train each base estimator.
     monotonic_cst : array-like of int of shape (n_features), default=None
         Indicates the monotonicity constraint to enforce on each feature.
+    forest_weights: {"uniform"}, array-like of shape (n_targets), default="uniform"
+        Weights assigned to each target in the training set when calculating
+        Hamming distance between node indexes.  This allows for differential
+        weighting of targets when calculating distances. Note that all trees
+        associated with a target will receive the same weight.  If "uniform",
+        each tree is assigned equal weight.
 
     Attributes
     ----------
@@ -111,6 +117,12 @@ class RFNodeTransformer(TreeNodeTransformer):
         ("regression" or "classification").
     estimators_ : list [`RandomForestRegressor`|`RandomForestClassifier`]
         The random forests associated with each target in `y` during `fit`.
+    tree_weights_ : ndarray of shape (n_trees,)
+        Weights assigned to each tree in the forests to be used when calculating
+        distances between node indexes.  If `forest_weights` is "uniform", each
+        tree is assigned equal weight.  Otherwise, weights are assigned based
+        on each target (forest) from `forest_weights` and all trees in that
+        forest receive the same weight.
     """
 
     def __init__(
@@ -141,6 +153,7 @@ class RFNodeTransformer(TreeNodeTransformer):
         ccp_alpha: float = 0.0,
         max_samples: int | float | None = None,
         monotonic_cst: list[int] | None = None,
+        forest_weights: Literal["uniform"] | ArrayLike[float] = "uniform",
     ):
         self.n_estimators = n_estimators
         self.criterion_reg = criterion_reg
@@ -163,6 +176,7 @@ class RFNodeTransformer(TreeNodeTransformer):
         self.ccp_alpha = ccp_alpha
         self.max_samples = max_samples
         self.monotonic_cst = monotonic_cst
+        self.forest_weights = forest_weights
 
     def fit(self, X, y):
         # Specialize the kwargs sent to initialize the random forests
@@ -195,7 +209,7 @@ class RFNodeTransformer(TreeNodeTransformer):
             "max_features": self.max_features_clf,
             "class_weight": self.class_weight_clf,
         }
-        return self._fit(
+        self = self._fit(
             X,
             y,
             RandomForestRegressor,
@@ -203,6 +217,24 @@ class RFNodeTransformer(TreeNodeTransformer):
             rf_reg_kwargs,
             rf_clf_kwargs,
         )
+
+        if isinstance(self.forest_weights, str) and self.forest_weights == "uniform":
+            # Assign equal weight to each tree
+            self.tree_weights_ = np.ones(
+                self.n_estimators * len(self.estimators_), dtype="float64"
+            )
+        else:
+            # Assign weights by forest equally to all trees in that forest
+            if len(self.forest_weights) != len(self.estimators_):
+                raise ValueError(
+                    f"Expected `forest_weights` to have length "
+                    f"{len(self.estimators_)}, but got {len(self.forest_weights)}."
+                )
+            initial_weights = np.ones(
+                (self.n_estimators, len(self.estimators_)), dtype="float64"
+            )
+            self.tree_weights_ = (self.forest_weights * initial_weights).T.flatten()
+        return self
 
     def get_feature_names_out(self) -> NDArray:
         check_is_fitted(self, "estimators_")

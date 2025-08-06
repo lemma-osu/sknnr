@@ -292,3 +292,36 @@ def test_rfnode_transformer_non_default_parameterization(
         else:
             assert rf.get_params()["criterion"] == criterion_reg
             assert rf.get_params()["max_features"] == max_features_reg
+
+
+@pytest.mark.parametrize("forest_weights", ["uniform", [0.5, 1.5], (1.0, 2.0)])
+def test_rfnode_transformer_handles_forest_weights(forest_weights):
+    """Test that RFNodeTransformer handles forest weights correctly."""
+    X, y = load_moscow_stjoes(return_X_y=True, as_frame=True)
+    num_weights = 1 if forest_weights == "uniform" else len(forest_weights)
+    y = y.iloc[:, :num_weights]
+
+    est = RFNodeTransformer(forest_weights=forest_weights).fit(X, y)
+
+    if isinstance(forest_weights, str) and forest_weights == "uniform":
+        expected_weights = np.full(
+            (est.n_estimators, num_weights), 1.0, dtype="float64"
+        )
+    else:
+        expected_weights = (
+            np.array(forest_weights)
+            * np.ones((est.n_estimators, num_weights), dtype="float64")
+        ).T.flatten()
+
+    assert hasattr(est, "tree_weights_")
+    assert est.tree_weights_.shape == (len(est.estimators_) * est.n_estimators,)
+    assert np.allclose(est.tree_weights_, expected_weights)
+
+
+def test_rfnode_transformer_raises_on_invalid_forest_weights():
+    """Test that RFNodeTransformer raises on invalid forest weights."""
+    X, y = load_moscow_stjoes(return_X_y=True, as_frame=True)
+    y = y.iloc[:, :2]  # Use two targets
+
+    with pytest.raises(ValueError, match=r"Expected `forest_weights` to have length 2"):
+        RFNodeTransformer(forest_weights=[0.5]).fit(X, y)
