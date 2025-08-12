@@ -310,7 +310,9 @@ def test_rfnode_transformer_handles_forest_weights(forest_weights):
     if isinstance(forest_weights, str) and forest_weights == "uniform":
         assert np.all(est.tree_weights_ == 1.0)
     else:
-        assert np.isin(est.tree_weights_, forest_weights).all()
+        values, counts = np.unique(est.tree_weights_, return_counts=True)
+        assert set(values) == set(forest_weights)
+        assert np.all(counts == est.n_total_trees_ // num_weights)
 
 
 def test_rfnode_transformer_raises_on_invalid_forest_weights():
