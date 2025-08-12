@@ -222,12 +222,14 @@ class RFNodeTransformer(TreeNodeTransformer):
             # Assign equal weight to each tree
             self.tree_weights_ = np.ones(self.n_total_trees_, dtype="float64")
         else:
-            # Assign weights by forest equally to all trees in that forest
+            # Ensure that forest_weights matches the number of forests
             if len(self.forest_weights) != len(self.estimators_):
                 raise ValueError(
                     f"Expected `forest_weights` to have length "
                     f"{len(self.estimators_)}, but got {len(self.forest_weights)}."
                 )
+
+            # Assign weights by forest equally to all trees in that forest
             initial_weights = np.ones(
                 (self.n_estimators, len(self.estimators_)), dtype="float64"
             )

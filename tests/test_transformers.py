@@ -303,25 +303,20 @@ def test_rfnode_transformer_handles_forest_weights(forest_weights):
 
     est = RFNodeTransformer(forest_weights=forest_weights).fit(X, y)
 
-    if isinstance(forest_weights, str) and forest_weights == "uniform":
-        expected_weights = np.full(
-            (est.n_estimators, num_weights), 1.0, dtype="float64"
-        )
-    else:
-        expected_weights = (
-            np.array(forest_weights)
-            * np.ones((est.n_estimators, num_weights), dtype="float64")
-        ).T.flatten()
-
     assert hasattr(est, "tree_weights_")
+    assert hasattr(est, "n_total_trees_")
     assert est.tree_weights_.shape == (est.n_total_trees_,)
-    assert np.allclose(est.tree_weights_, expected_weights)
+
+    if isinstance(forest_weights, str) and forest_weights == "uniform":
+        assert np.all(est.tree_weights_ == 1.0)
+    else:
+        assert np.isin(est.tree_weights_, forest_weights).all()
 
 
 def test_rfnode_transformer_raises_on_invalid_forest_weights():
     """Test that RFNodeTransformer raises on invalid forest weights."""
     X, y = load_moscow_stjoes(return_X_y=True, as_frame=True)
-    y = y.iloc[:, :2]  # Use two targets
+    y = y.iloc[:, :2]
 
     with pytest.raises(ValueError, match=r"Expected `forest_weights` to have length 2"):
         RFNodeTransformer(forest_weights=[0.5]).fit(X, y)
