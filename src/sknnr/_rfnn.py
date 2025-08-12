@@ -6,17 +6,11 @@ from numpy.random import RandomState
 from numpy.typing import ArrayLike
 from sklearn.base import TransformerMixin
 
-from ._base import (
-    TransformedKNeighborsRegressor,
-    WeightedHammingDistanceMixin,
-    YFitMixin,
-)
+from ._weighted_trees import WeightedTreesNNRegressor
 from .transformers import RFNodeTransformer
 
 
-class RFNNRegressor(
-    WeightedHammingDistanceMixin, YFitMixin, TransformedKNeighborsRegressor
-):
+class RFNNRegressor(WeightedTreesNNRegressor):
     """
     Regression using Random Forest Nearest Neighbors (RFNN) imputation.
 
@@ -28,7 +22,7 @@ class RFNNRegressor(
     the dissimilarity between node indexes.
 
     Random forests are constructed using either scikit-learn's `RandomForestRegressor`
-    and `RandomForestClassifier` classes based on the data type of each target
+    or `RandomForestClassifier` classes based on the data type of each target
     (`y` or `y_fit`) in the training set.  If the target is numeric (e.g. `int`
     or `float`), a `RandomForestRegressor` is used.  If the target is
     categorical (e.g. `str` or `pd.Categorical`), a `RandomForestClassifier` is
@@ -157,8 +151,6 @@ class RFNNRegressor(
     Journal of Statistical Software, 23, pp.1-16.
     """
 
-    transformer_: TransformerMixin
-
     def __init__(
         self,
         *,
@@ -222,7 +214,6 @@ class RFNNRegressor(
             weights=weights,
             algorithm=algorithm,
             leaf_size=leaf_size,
-            metric=self.weighted_hamming_metric,
             n_jobs=self.n_jobs,
         )
 

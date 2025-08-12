@@ -68,16 +68,6 @@ class YFitMixin:
         return super().fit(X, y)
 
 
-class WeightedHammingDistanceMixin:
-    """Distance metric to calculate Hamming distance based on weights assigned to
-    each tree."""
-
-    def weighted_hamming_metric(self, u, v):
-        return np.sum((u != v) * self.transformer_.tree_weights_) / np.sum(
-            self.transformer_.tree_weights_
-        )
-
-
 class RawKNNRegressor(
     DFIndexCrosswalkMixin, IndependentPredictorMixin, KNeighborsRegressor
 ):
