@@ -314,7 +314,7 @@ def test_rfnode_transformer_handles_forest_weights(forest_weights):
         ).T.flatten()
 
     assert hasattr(est, "tree_weights_")
-    assert est.tree_weights_.shape == (len(est.estimators_) * est.n_estimators,)
+    assert est.tree_weights_.shape == (est.n_total_trees_,)
     assert np.allclose(est.tree_weights_, expected_weights)
 
 

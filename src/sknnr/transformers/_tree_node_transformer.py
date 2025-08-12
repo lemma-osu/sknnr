@@ -128,6 +128,7 @@ class TreeNodeTransformer(TransformerMixin, BaseEstimator, ABC):
             else classifier_cls(**clf_kwargs).fit(X, target)
             for i, target in enumerate(y)
         ]
+        self.n_total_trees_ = len(self.estimators_) * self.estimators_[0].n_estimators
         return self
 
     @abstractmethod

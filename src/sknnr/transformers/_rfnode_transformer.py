@@ -220,9 +220,7 @@ class RFNodeTransformer(TreeNodeTransformer):
 
         if isinstance(self.forest_weights, str) and self.forest_weights == "uniform":
             # Assign equal weight to each tree
-            self.tree_weights_ = np.ones(
-                self.n_estimators * len(self.estimators_), dtype="float64"
-            )
+            self.tree_weights_ = np.ones(self.n_total_trees_, dtype="float64")
         else:
             # Assign weights by forest equally to all trees in that forest
             if len(self.forest_weights) != len(self.estimators_):
