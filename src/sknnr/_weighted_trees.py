@@ -14,8 +14,10 @@ TREE_NODE_TRANSFORMER = RFNodeTransformer
 
 class WeightedHammingDistanceMetric:
     """
-    Distance metric to calculate Hamming distance based on weights.
-    Setting of weights is only supported after initialization.
+    Distance metric to calculate Hamming distance based on weights. This class
+    works as a callable pairwise distance metric and uses uniform weights by
+    default. Note that setting of weights is only supported after initialization
+    by using the `set_weights` method.
     """
 
     def __init__(self):
