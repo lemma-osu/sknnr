@@ -4,6 +4,7 @@ from typing import Callable, Literal
 
 import numpy as np
 from numpy.typing import ArrayLike, NDArray
+from scipy.spatial.distance import hamming
 
 from ._base import TransformedKNeighborsRegressor, YFitMixin
 from .transformers import RFNodeTransformer
@@ -26,7 +27,7 @@ class WeightedHammingDistanceMetric:
     def __call__(self, u: NDArray, v: NDArray) -> float:
         if self.w is None:
             self.w = np.ones_like(u)
-        return np.sum((u != v) * self.w) / np.sum(self.w)
+        return hamming(u, v, w=self.w)
 
 
 class WeightedTreesNNRegressor(YFitMixin, TransformedKNeighborsRegressor):
