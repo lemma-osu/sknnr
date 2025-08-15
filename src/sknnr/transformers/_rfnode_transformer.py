@@ -218,22 +218,9 @@ class RFNodeTransformer(TreeNodeTransformer):
             rf_clf_kwargs,
         )
 
-        if isinstance(self.forest_weights, str) and self.forest_weights == "uniform":
-            # Assign equal weight to each tree
-            self.tree_weights_ = np.ones(self.n_total_trees_, dtype="float64")
-        else:
-            # Ensure that forest_weights matches the number of forests
-            if len(self.forest_weights) != len(self.estimators_):
-                raise ValueError(
-                    f"Expected `forest_weights` to have length "
-                    f"{len(self.estimators_)}, but got {len(self.forest_weights)}."
-                )
+        # Set tree weights based on any specified forest weights
+        self._set_tree_weights_from_forests()
 
-            # Assign weights by forest equally to all trees in that forest
-            initial_weights = np.ones(
-                (self.n_estimators, len(self.estimators_)), dtype="float64"
-            )
-            self.tree_weights_ = (self.forest_weights * initial_weights).T.flatten()
         return self
 
     def get_feature_names_out(self) -> NDArray:
