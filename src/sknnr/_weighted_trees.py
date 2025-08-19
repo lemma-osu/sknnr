@@ -27,8 +27,7 @@ class WeightedHammingDistanceMetric:
         self.w = w
 
     def __call__(self, u: NDArray, v: NDArray) -> float:
-        weights = self.w if self.w is not None else np.ones_like(u)
-        return hamming(u, v, w=weights)
+        return hamming(u, v, w=self.w)
 
 
 class WeightedTreesNNRegressor(YFitMixin, TransformedKNeighborsRegressor):
