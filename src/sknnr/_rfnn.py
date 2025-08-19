@@ -120,6 +120,9 @@ class RFNNRegressor(WeightedTreesNNRegressor):
         Always set to 'hamming'.
     effective_metric_params_ : dict
         Always empty.
+    hamming_weights_ : np.array
+        When `fit`, provides the weights on each tree in each forest when
+        calculating the Hamming distance.
     independent_prediction_ : np.array
         When `fit`, provides the prediction for training data not allowing
         self-assignment during neighbor search.
@@ -240,5 +243,4 @@ class RFNNRegressor(WeightedTreesNNRegressor):
             ccp_alpha=self.ccp_alpha,
             max_samples=self.max_samples,
             monotonic_cst=self.monotonic_cst,
-            forest_weights=self.forest_weights,
         )

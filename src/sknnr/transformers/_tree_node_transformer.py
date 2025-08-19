@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Any, Literal
 
 import numpy as np
-from numpy.typing import ArrayLike, NDArray
+from numpy.typing import NDArray
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.utils.validation import check_array, check_is_fitted
 
@@ -16,8 +16,6 @@ if TYPE_CHECKING:
 
 
 class TreeNodeTransformer(TransformerMixin, BaseEstimator, ABC):
-    forest_weights: Literal["uniform"] | ArrayLike[float]
-
     def _validate_and_promote_targets(
         self, y: Any, target_info: dict[str, np.dtype | pd.CategoricalDtype]
     ) -> list[NDArray]:
@@ -130,38 +128,12 @@ class TreeNodeTransformer(TransformerMixin, BaseEstimator, ABC):
             else classifier_cls(**clf_kwargs).fit(X, target)
             for i, target in enumerate(y)
         ]
-        self.n_total_trees_ = len(self.estimators_) * self.estimators_[0].n_estimators
+        self.n_forests_ = len(self.estimators_)
+        self.tree_weights_ = self._set_tree_weights()
         return self
 
-    def _set_tree_weights_from_forests(self):
-        """
-        Set the weights for each tree in the suite of forests based on user-
-        specified values or equal weighting. The `forest_weights` attribute
-        is set in subclasses and defaults to "uniform", which sets equal weight
-        for each forest.  These weights are then used in the Hamming distance
-        calculation between node indexes.
-
-        Note that this method _only_ sets the tree weights based on forest
-        weights such that each tree in a forest will have identical weight.
-        Some derived transformers may further modify these weights based on
-        individual trees.
-        """
-        if isinstance(self.forest_weights, str) and self.forest_weights == "uniform":
-            # Assign equal weight to each tree
-            self.tree_weights_ = np.ones(self.n_total_trees_, dtype="float64")
-        else:
-            # Ensure that forest_weights matches the number of forests
-            if len(self.forest_weights) != len(self.estimators_):
-                raise ValueError(
-                    f"Expected `forest_weights` to have length "
-                    f"{len(self.estimators_)}, but got {len(self.forest_weights)}."
-                )
-
-            # Assign weights by forest equally to all trees in that forest
-            initial_weights = np.ones(
-                (self.n_estimators, len(self.estimators_)), dtype="float64"
-            )
-            self.tree_weights_ = (self.forest_weights * initial_weights).T.flatten()
+    @abstractmethod
+    def _set_tree_weights(self): ...
 
     @abstractmethod
     def fit(self, X, y): ...

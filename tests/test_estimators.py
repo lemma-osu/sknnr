@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import numpy as np
 import pytest
 from numpy.testing import assert_array_equal
 from numpy.typing import NDArray
@@ -279,3 +280,31 @@ def test_n_features_in(estimator, X_y_yfit):
 
     assert est.transformer_.n_features_in_ == X.shape[1]
     assert est.n_features_in_ == len(transformed_features)
+
+
+@pytest.mark.parametrize("forest_weights", ["uniform", [0.5, 1.5], (1.0, 2.0)])
+def test_rfnn_handles_forest_weights(forest_weights):
+    """Test that RFNNRegressor handles forest weights correctly."""
+    X, y = load_moscow_stjoes(return_X_y=True, as_frame=True)
+    num_weights = 1 if forest_weights == "uniform" else len(forest_weights)
+    y = y.iloc[:, :num_weights]
+
+    est = RFNNRegressor(forest_weights=forest_weights).fit(X, y)
+
+    assert hasattr(est.transformer_, "tree_weights_")
+
+    if isinstance(forest_weights, str) and forest_weights == "uniform":
+        assert np.all(est.hamming_weights_ == 1.0)
+    else:
+        values, counts = np.unique(est.hamming_weights_, return_counts=True)
+        assert set(values) == set(forest_weights)
+        assert np.all(counts == est.n_estimators)
+
+
+def test_rfnn_raises_on_invalid_forest_weights():
+    """Test that tree-based estimators raise on invalid forest weights."""
+    X, y = load_moscow_stjoes(return_X_y=True, as_frame=True)
+    y = y.iloc[:, :2]
+
+    with pytest.raises(ValueError, match=r"Expected `forest_weights` to have length 2"):
+        RFNNRegressor(forest_weights=[0.5]).fit(X, y)

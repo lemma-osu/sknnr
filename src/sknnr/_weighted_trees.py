@@ -34,11 +34,11 @@ class WeightedHammingDistanceMetric:
 class WeightedTreesNNRegressor(YFitMixin, TransformedKNeighborsRegressor):
     """
     Base class for `TransformedKNeighbors` regressors that use a tree-based
-    transformer and calculate distances using the Hamming metric.  Weights are set
-    by the transformer based on forests (i.e. target attributes) and/or individual
-    trees within each forest.  Weights on trees affect the Hamming distance
-    calculation, where higher weights serve to accentuate dissimilarities between
-    references and targets.
+    transformer and calculate distances using the Hamming metric.  Weights are a
+    combination of tree-based weights set on each forest's trees by the transformer
+    and user-supplied weights based on forests (i.e. target attributes).  Weights
+    affect the Hamming distance calculation, where higher weights serve to
+    accentuate dissimilarities between references and targets.
 
     Parameters
     ----------
@@ -61,6 +61,7 @@ class WeightedTreesNNRegressor(YFitMixin, TransformedKNeighborsRegressor):
     """
 
     transformer_: TREE_NODE_TRANSFORMER
+    forest_weights: Literal["uniform"] | ArrayLike[float]
 
     def __init__(
         self,
@@ -83,4 +84,32 @@ class WeightedTreesNNRegressor(YFitMixin, TransformedKNeighborsRegressor):
 
     def _set_fitted_transformer(self, X, y) -> None:
         super()._set_fitted_transformer(X, y)
-        self.metric.set_weights(self.transformer_.tree_weights_)
+        self.hamming_weights_ = self._get_hamming_weights()
+        self.metric.set_weights(self.hamming_weights_)
+
+    def _get_hamming_weights(self):
+        """
+        Get the weights for the Hamming distance metric, based on tree weights
+        from the transformer and forest weights provided as a user parameter.
+        """
+        # Equal weighting for all forests
+        if isinstance(self.forest_weights, str) and self.forest_weights == "uniform":
+            forest_weights_arr = np.ones(
+                (self.transformer_.n_forests_, 1), dtype="float64"
+            )
+
+        # User-supplied forest weights
+        else:
+            if len(self.forest_weights) != self.transformer_.n_forests_:
+                raise ValueError(
+                    "Expected `forest_weights` to have length "
+                    f"{self.transformer_.n_forests_}, but got "
+                    f"{len(self.forest_weights)}."
+                )
+            forest_weights_arr = np.asarray(
+                self.forest_weights, dtype="float64"
+            ).reshape(-1, 1)
+
+        # Element-wise multiply the transformer's tree weights with the forest_weights
+        # and set the Hamming metric weights
+        return (forest_weights_arr * self.transformer_.tree_weights_).flatten()
