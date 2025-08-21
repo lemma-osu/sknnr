@@ -111,6 +111,12 @@ class RFNodeTransformer(TreeNodeTransformer):
         ("regression" or "classification").
     estimators_ : list [`RandomForestRegressor`|`RandomForestClassifier`]
         The random forests associated with each target in `y` during `fit`.
+    n_forests_ : int
+        The number of forests (i.e. targets) in the ensemble. Equal to
+        `len(self.estimators_)`.
+    tree_weights_ : ndarray of shape (n_forests_, n_estimators)
+        Weights assigned to each tree in each forest to be used when calculating
+        distances between node indexes.  Set to 1.0 for all trees.
     """
 
     def __init__(
@@ -203,6 +209,9 @@ class RFNodeTransformer(TreeNodeTransformer):
             rf_reg_kwargs,
             rf_clf_kwargs,
         )
+
+    def _set_tree_weights(self):
+        return np.ones((self.n_forests_, self.n_estimators), dtype="float64")
 
     def get_feature_names_out(self) -> NDArray:
         check_is_fitted(self, "estimators_")

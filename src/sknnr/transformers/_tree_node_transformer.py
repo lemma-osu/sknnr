@@ -102,6 +102,13 @@ class TreeNodeTransformer(TransformerMixin, BaseEstimator, ABC):
     def _fit(self, X, y, regressor_cls, classifier_cls, reg_kwargs, clf_kwargs):
         _validate_data(self, X=X, reset=True)
 
+        if y is None:
+            msg = (
+                f"{self.__class__.__name__} requires y to be passed, "
+                "but the target y is None."
+            )
+            raise ValueError(msg)
+
         # Get target names and minimum numpy dtypes for each target in `y`
         target_info = get_feature_names_and_dtypes(y)
 
@@ -121,7 +128,12 @@ class TreeNodeTransformer(TransformerMixin, BaseEstimator, ABC):
             else classifier_cls(**clf_kwargs).fit(X, target)
             for i, target in enumerate(y)
         ]
+        self.n_forests_ = len(self.estimators_)
+        self.tree_weights_ = self._set_tree_weights()
         return self
+
+    @abstractmethod
+    def _set_tree_weights(self): ...
 
     @abstractmethod
     def fit(self, X, y): ...

@@ -3,13 +3,14 @@ from __future__ import annotations
 from typing import Callable, Literal
 
 from numpy.random import RandomState
+from numpy.typing import ArrayLike
 from sklearn.base import TransformerMixin
 
-from ._base import TransformedKNeighborsRegressor, YFitMixin
+from ._weighted_trees import WeightedTreesNNRegressor
 from .transformers import RFNodeTransformer
 
 
-class RFNNRegressor(YFitMixin, TransformedKNeighborsRegressor):
+class RFNNRegressor(WeightedTreesNNRegressor):
     """
     Regression using Random Forest Nearest Neighbors (RFNN) imputation.
 
@@ -21,7 +22,7 @@ class RFNNRegressor(YFitMixin, TransformedKNeighborsRegressor):
     the dissimilarity between node indexes.
 
     Random forests are constructed using either scikit-learn's `RandomForestRegressor`
-    and `RandomForestClassifier` classes based on the data type of each target
+    or `RandomForestClassifier` classes based on the data type of each target
     (`y` or `y_fit`) in the training set.  If the target is numeric (e.g. `int`
     or `float`), a `RandomForestRegressor` is used.  If the target is
     categorical (e.g. `str` or `pd.Categorical`), a `RandomForestClassifier` is
@@ -98,6 +99,12 @@ class RFNNRegressor(YFitMixin, TransformedKNeighborsRegressor):
         train each base estimator.
     monotonic_cst : array-like of int of shape (n_features), default=None
         Indicates the monotonicity constraint to enforce on each feature.
+    forest_weights: {"uniform"}, array-like of shape (n_targets), default="uniform"
+        Weights assigned to each target in the training set when calculating
+        Hamming distance between node indexes.  This allows for differential
+        weighting of targets when calculating distances. Note that all trees
+        associated with a target will receive the same weight.  If "uniform",
+        each tree is assigned equal weight.
     n_neighbors : int, default=5
         Number of neighbors to use by default for `kneighbors` queries.
     weights : {"uniform", "distance"}, callable or None, default="uniform"
@@ -113,6 +120,9 @@ class RFNNRegressor(YFitMixin, TransformedKNeighborsRegressor):
         Always set to 'hamming'.
     effective_metric_params_ : dict
         Always empty.
+    hamming_weights_ : np.array
+        When `fit`, provides the weights on each tree in each forest when
+        calculating the Hamming distance.
     independent_prediction_ : np.array
         When `fit`, provides the prediction for training data not allowing
         self-assignment during neighbor search.
@@ -144,8 +154,6 @@ class RFNNRegressor(YFitMixin, TransformedKNeighborsRegressor):
     Journal of Statistical Software, 23, pp.1-16.
     """
 
-    transformer_: TransformerMixin
-
     def __init__(
         self,
         *,
@@ -175,6 +183,7 @@ class RFNNRegressor(YFitMixin, TransformedKNeighborsRegressor):
         ccp_alpha: float = 0.0,
         max_samples: int | float | None = None,
         monotonic_cst: list[int] | None = None,
+        forest_weights: Literal["uniform"] | ArrayLike[float] = "uniform",
         n_neighbors: int = 5,
         weights: Literal["uniform", "distance"] | Callable = "uniform",
         algorithm: Literal["auto", "ball_tree", "kd_tree", "brute"] = "auto",
@@ -201,13 +210,13 @@ class RFNNRegressor(YFitMixin, TransformedKNeighborsRegressor):
         self.ccp_alpha = ccp_alpha
         self.max_samples = max_samples
         self.monotonic_cst = monotonic_cst
+        self.forest_weights = forest_weights
 
         super().__init__(
             n_neighbors=n_neighbors,
             weights=weights,
             algorithm=algorithm,
             leaf_size=leaf_size,
-            metric="hamming",
             n_jobs=self.n_jobs,
         )
 
