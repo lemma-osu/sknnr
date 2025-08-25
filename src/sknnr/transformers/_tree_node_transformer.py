@@ -100,7 +100,7 @@ class TreeNodeTransformer(TransformerMixin, BaseEstimator, ABC):
         }
 
     def _fit(self, X, y, regressor_cls, classifier_cls, reg_kwargs, clf_kwargs):
-        _validate_data(self, X=X, reset=True)
+        X = _validate_data(self, X=X, reset=True)
 
         if y is None:
             msg = (
@@ -140,7 +140,7 @@ class TreeNodeTransformer(TransformerMixin, BaseEstimator, ABC):
 
     def transform(self, X):
         check_is_fitted(self)
-        _validate_data(
+        X = _validate_data(
             self,
             X=X,
             reset=False,

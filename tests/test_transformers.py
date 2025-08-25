@@ -3,7 +3,12 @@ import pandas as pd
 import pytest
 from numpy.testing import assert_array_equal
 from sklearn import config_context
-from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
+from sklearn.ensemble import (
+    GradientBoostingClassifier,
+    GradientBoostingRegressor,
+    RandomForestClassifier,
+    RandomForestRegressor,
+)
 from sklearn.preprocessing import StandardScaler
 from sklearn.utils.estimator_checks import parametrize_with_checks
 from sklearn.utils.validation import NotFittedError
@@ -12,6 +17,7 @@ from sknnr.datasets import load_moscow_stjoes
 from sknnr.transformers import (
     CCATransformer,
     CCorATransformer,
+    GBNodeTransformer,
     MahalanobisTransformer,
     RFNodeTransformer,
     StandardScalerWithDOF,
@@ -22,6 +28,7 @@ TEST_TRANSFORMERS = [
     MahalanobisTransformer,
     CCATransformer,
     CCorATransformer,
+    GBNodeTransformer,
     RFNodeTransformer,
 ]
 
@@ -31,11 +38,16 @@ TEST_ORDINATION_TRANSFORMERS = [
 ]
 
 TEST_TREE_TRANSFORMERS = [
+    GBNodeTransformer,
     RFNodeTransformer,
 ]
 
 # Mapping of tree node transformers to their corresponding sklearn forest types
 TREE_TRANSFORMER_FOREST_TYPES = {
+    GBNodeTransformer: {
+        "regression": GradientBoostingRegressor,
+        "classification": GradientBoostingClassifier,
+    },
     RFNodeTransformer: {
         "regression": RandomForestRegressor,
         "classification": RandomForestClassifier,
@@ -214,6 +226,12 @@ def test_treenode_transformer_assigns_correct_forest_types(transformer):
     assert all(isinstance(forest, reg_est_type) for forest in est.estimators_)
 
     y_bool = y.astype("bool")
+
+    # Gradient boosting requires at least two classes for classification
+    # Toggle the first row's value to ensure this
+    if transformer == GBNodeTransformer:
+        y_bool[0] = ~y_bool[0]
+
     est = transformer().fit(X, y_bool)
     assert all(v == "classification" for v in est.estimator_type_dict_.values())
     assert all(isinstance(forest, clf_est_type) for forest in est.estimators_)
@@ -292,3 +310,34 @@ def test_rfnode_transformer_non_default_parameterization(
         else:
             assert rf.get_params()["criterion"] == criterion_reg
             assert rf.get_params()["max_features"] == max_features_reg
+
+
+@pytest.mark.parametrize("loss_reg", ["absolute_error"])
+@pytest.mark.parametrize("loss_clf", ["exponential"])
+@pytest.mark.parametrize("alpha_reg", [0.1])
+def test_gbnode_transformer_non_default_parameterization(loss_reg, loss_clf, alpha_reg):
+    """
+    Test that GBNodeTransformer correctly passes specialized parameters
+    to its regression and classification forests.
+    """
+    X, y = load_moscow_stjoes(return_X_y=True, as_frame=True)
+
+    # Create a boolean target for classification
+    y["ABGR_PA"] = y["ABGR_BA"] > 0.0
+
+    # Fit with the specialized non-default parameters
+    est = GBNodeTransformer(
+        loss_reg=loss_reg, loss_clf=loss_clf, alpha_reg=alpha_reg
+    ).fit(X, y)
+
+    # Check that both regression and classification forests are present
+    assert "classification" in est.estimator_type_dict_.values()
+    assert "regression" in est.estimator_type_dict_.values()
+
+    # Confirm that the specialized parameters are set on the correct forests
+    for gb in est.estimators_:
+        if isinstance(gb, GradientBoostingClassifier):
+            assert gb.get_params()["loss"] == loss_clf
+        else:
+            assert gb.get_params()["loss"] == loss_reg
+            assert gb.get_params()["alpha"] == alpha_reg
