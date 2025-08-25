@@ -6,9 +6,9 @@ import numpy as np
 from numpy.typing import ArrayLike, NDArray
 
 from ._base import TransformedKNeighborsRegressor, YFitMixin
-from .transformers import RFNodeTransformer
+from .transformers import GBNodeTransformer, RFNodeTransformer
 
-TREE_NODE_TRANSFORMER = RFNodeTransformer
+TreeNodeTransformer = GBNodeTransformer | RFNodeTransformer
 
 
 class WeightedHammingDistanceMetric:
@@ -63,7 +63,7 @@ class WeightedTreesNNRegressor(YFitMixin, TransformedKNeighborsRegressor):
     `_get_transformer` method.
     """
 
-    transformer_: TREE_NODE_TRANSFORMER
+    transformer_: TreeNodeTransformer
     forest_weights: Literal["uniform"] | ArrayLike[float]
 
     def __init__(
