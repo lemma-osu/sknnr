@@ -210,7 +210,7 @@ class RFNodeTransformer(TreeNodeTransformer):
             rf_clf_kwargs,
         )
 
-    def _set_tree_weights(self):
+    def _set_tree_weights(self, X, y):
         return np.ones((self.n_forests_, self.n_estimators), dtype="float64")
 
     def get_feature_names_out(self) -> NDArray:

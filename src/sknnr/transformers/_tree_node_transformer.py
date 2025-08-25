@@ -129,11 +129,11 @@ class TreeNodeTransformer(TransformerMixin, BaseEstimator, ABC):
             for i, target in enumerate(y)
         ]
         self.n_forests_ = len(self.estimators_)
-        self.tree_weights_ = self._set_tree_weights()
+        self.tree_weights_ = self._set_tree_weights(X, y)
         return self
 
     @abstractmethod
-    def _set_tree_weights(self): ...
+    def _set_tree_weights(self, X, y): ...
 
     @abstractmethod
     def fit(self, X, y): ...
