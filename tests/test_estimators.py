@@ -12,6 +12,7 @@ from sklearn.utils.validation import NotFittedError
 
 from sknnr import (
     EuclideanKNNRegressor,
+    GBNNRegressor,
     GNNRegressor,
     MahalanobisKNNRegressor,
     MSNRegressor,
@@ -27,6 +28,7 @@ TEST_ESTIMATORS = [
     MSNRegressor,
     GNNRegressor,
     RFNNRegressor,
+    GBNNRegressor,
 ]
 
 TEST_TRANSFORMED_ESTIMATORS = [
@@ -35,9 +37,10 @@ TEST_TRANSFORMED_ESTIMATORS = [
     MSNRegressor,
     GNNRegressor,
     RFNNRegressor,
+    GBNNRegressor,
 ]
 
-TEST_YFIT_ESTIMATORS = [MSNRegressor, GNNRegressor, RFNNRegressor]
+TEST_YFIT_ESTIMATORS = [MSNRegressor, GNNRegressor, RFNNRegressor, GBNNRegressor]
 
 
 def get_estimator_xfail_checks(estimator) -> dict[str, str]:
@@ -95,7 +98,9 @@ def get_estimator_xfail_checks(estimator) -> dict[str, str]:
             }
         )
 
-    if isinstance(estimator, (GNNRegressor, MSNRegressor, RFNNRegressor)):
+    if isinstance(
+        estimator, (GNNRegressor, MSNRegressor, RFNNRegressor, GBNNRegressor)
+    ):
         # These checks fail because the transformed estimators store the number of
         # transformed features rather than raw input features as expected by sklearn.
         n_features_in_checks = [

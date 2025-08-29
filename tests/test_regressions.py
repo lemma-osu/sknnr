@@ -4,6 +4,7 @@ import pytest
 
 from sknnr import (
     EuclideanKNNRegressor,
+    GBNNRegressor,
     GNNRegressor,
     MahalanobisKNNRegressor,
     MSNRegressor,
@@ -18,6 +19,7 @@ ESTIMATORS = {
     "gnn": GNNRegressor,
     "msn": MSNRegressor,
     "randomForest": RFNNRegressor,
+    "gbnn": GBNNRegressor,
 }
 
 
