@@ -6,9 +6,7 @@ import numpy as np
 from numpy.typing import ArrayLike, NDArray
 
 from ._base import TransformedKNeighborsRegressor, YFitMixin
-from .transformers import GBNodeTransformer, RFNodeTransformer
-
-TreeNodeTransformer = GBNodeTransformer | RFNodeTransformer
+from .transformers._tree_node_transformer import TreeNodeTransformer
 
 
 class WeightedHammingDistanceMetric:
