@@ -99,6 +99,8 @@ class GBNNRegressor(WeightedTreesNNRegressor):
         weighting of targets when calculating distances. Note that all trees
         associated with a target will receive the same weight.  If "uniform",
         each tree is assigned equal weight.
+    tree_weighting_method: {"delta_loss", "uniform"}, default="delta_loss"
+        The method used to weight the trees in each gradient boosting model.
     n_neighbors : int, default=5
         Number of neighbors to use by default for `kneighbors` queries.
     weights : {"uniform", "distance"}, callable or None, default="uniform"
@@ -167,6 +169,7 @@ class GBNNRegressor(WeightedTreesNNRegressor):
         tol: float = 0.0001,
         ccp_alpha: float = 0.0,
         forest_weights: Literal["uniform"] | ArrayLike[float] = "uniform",
+        tree_weighting_method: Literal["delta_loss", "uniform"] = "delta_loss",
         n_neighbors: int = 5,
         weights: Literal["uniform", "distance"] | Callable = "uniform",
         algorithm: Literal["auto", "ball_tree", "kd_tree", "brute"] = "auto",
@@ -196,6 +199,7 @@ class GBNNRegressor(WeightedTreesNNRegressor):
         self.tol = tol
         self.ccp_alpha = ccp_alpha
         self.forest_weights = forest_weights
+        self.tree_weighting_method = tree_weighting_method
 
         super().__init__(
             n_neighbors=n_neighbors,
@@ -229,4 +233,5 @@ class GBNNRegressor(WeightedTreesNNRegressor):
             n_iter_no_change=self.n_iter_no_change,
             tol=self.tol,
             ccp_alpha=self.ccp_alpha,
+            tree_weighting_method=self.tree_weighting_method,
         )
