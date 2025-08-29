@@ -15,6 +15,13 @@ if TYPE_CHECKING:
     import pandas as pd
 
 
+def uniform_weights(n_forests: int, n_estimators: int) -> NDArray:
+    """
+    Calculate uniform weights for an ensemble of tree-based estimators.
+    """
+    return np.ones((n_forests, n_estimators), dtype="float64")
+
+
 class TreeNodeTransformer(TransformerMixin, BaseEstimator, ABC):
     def _validate_and_promote_targets(
         self, y: Any, target_info: dict[str, np.dtype | pd.CategoricalDtype]

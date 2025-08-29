@@ -8,7 +8,7 @@ from numpy.typing import NDArray
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.utils.validation import check_is_fitted
 
-from ._tree_node_transformer import TreeNodeTransformer
+from ._tree_node_transformer import TreeNodeTransformer, uniform_weights
 
 
 class RFNodeTransformer(TreeNodeTransformer):
@@ -211,7 +211,7 @@ class RFNodeTransformer(TreeNodeTransformer):
         )
 
     def _set_tree_weights(self, X, y):
-        return np.ones((self.n_forests_, self.n_estimators), dtype="float64")
+        return uniform_weights(self.n_forests_, self.n_estimators)
 
     def get_feature_names_out(self) -> NDArray:
         check_is_fitted(self, "estimators_")
