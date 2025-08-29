@@ -8,7 +8,48 @@ from sklearn.base import BaseEstimator
 from sklearn.ensemble import GradientBoostingClassifier, GradientBoostingRegressor
 from sklearn.utils.validation import check_is_fitted
 
-from ._tree_node_transformer import TreeNodeTransformer
+from ._tree_node_transformer import TreeNodeTransformer, uniform_weights
+
+
+def delta_loss(
+    est: GradientBoostingClassifier | GradientBoostingRegressor, X: NDArray, y: NDArray
+) -> NDArray:
+    """
+    Calculate tree weights as a function of the change in loss between
+    successive trees in a gradient boosting estimator.
+    """
+    # See https://github.com/lemma-osu/sknnr/issues/96#issuecomment-2967847215
+    #
+    # Calculate the initial loss, which by default in regression is based
+    # on predicting the mean for all samples. The loss function is
+    # half-squared error, so multiply by 2 to be consistent with how
+    # sklearn calculates loss.
+    initial_loss = (
+        est._loss(np.asarray(y, dtype="float64"), est._raw_predict_init(X)) * 2
+    )
+    # Calculate the change in loss at each stage
+    loss_delta = np.diff(np.hstack([initial_loss, est.train_score_]))
+
+    # Normalize the loss delta to get the relative contribution of each tree
+    return (
+        np.ones_like(loss_delta, dtype="float64")
+        if np.sum(loss_delta) == 0
+        else (loss_delta / np.sum(loss_delta))
+    )
+
+
+def ensemble_delta_loss(
+    ensemble_estimators: list[GradientBoostingClassifier | GradientBoostingRegressor],
+    X: NDArray,
+    y: NDArray,
+) -> NDArray:
+    """
+    Calculate delta loss weighting over ensemble of gradient boosting estimators.
+    """
+    return np.asarray(
+        [delta_loss(est, X, target) for est, target in zip(ensemble_estimators, y)],
+        dtype="float64",
+    )
 
 
 class GBNodeTransformer(TreeNodeTransformer):
@@ -95,6 +136,8 @@ class GBNodeTransformer(TreeNodeTransformer):
         Tolerance for the early stopping.
     ccp_alpha : non-negative float, default=0.0
         Complexity parameter used for Minimal Cost-Complexity Pruning.
+    tree_weighting_method : {"delta_loss", "uniform"}, default="delta_loss"
+        The method used to weight the trees in each gradient boosting model.
 
     Attributes
     ----------
@@ -143,6 +186,7 @@ class GBNodeTransformer(TreeNodeTransformer):
         n_iter_no_change: int | None = None,
         tol: float = 0.0001,
         ccp_alpha: float = 0.0,
+        tree_weighting_method: Literal["delta_loss", "uniform"] = "delta_loss",
     ):
         self.loss_reg = loss_reg
         self.loss_clf = loss_clf
@@ -166,6 +210,7 @@ class GBNodeTransformer(TreeNodeTransformer):
         self.n_iter_no_change = n_iter_no_change
         self.tol = tol
         self.ccp_alpha = ccp_alpha
+        self.tree_weighting_method = tree_weighting_method
 
     def fit(self, X, y):
         gb_common_kwargs = dict(
@@ -208,26 +253,11 @@ class GBNodeTransformer(TreeNodeTransformer):
         )
 
     def _set_tree_weights(self, X, y):
-        tree_weights = []
-        for est, target in zip(self.estimators_, y):
-            # See https://github.com/lemma-osu/sknnr/issues/96#issuecomment-2967847215
-            #
-            # Calculate the initial loss, which by default in regression is based
-            # on predicting the mean for all samples. The loss function is
-            # half-squared error, so multiply by 2 to be consistent with how
-            # sklearn calculates loss.
-            initial_loss = (
-                est._loss(np.asarray(target, dtype="float64"), est._raw_predict_init(X))
-                * 2
-            )
-
-            # Calculate the change in loss at each stage
-            loss_delta = np.diff(np.hstack([initial_loss, est.train_score_]))
-
-            # Normalize the loss delta to get the relative contribution of each tree
-            tree_weights.append(loss_delta / np.sum(loss_delta))
-
-        return np.asarray(tree_weights, dtype="float64")
+        return (
+            ensemble_delta_loss(self.estimators_, X, y)
+            if self.tree_weighting_method == "delta_loss"
+            else uniform_weights(self.n_forests_, self.n_estimators)
+        )
 
     def get_feature_names_out(self) -> NDArray:
         check_is_fitted(self, "estimators_")
