@@ -15,11 +15,11 @@ if TYPE_CHECKING:
     import pandas as pd
 
 
-def uniform_weights(n_forests: int, n_estimators: int) -> NDArray:
+def uniform_weights(n_forests: int, n_estimators: int) -> list[NDArray[np.float64]]:
     """
     Calculate uniform weights for an ensemble of tree-based estimators.
     """
-    return np.ones((n_forests, n_estimators), dtype="float64")
+    return [np.ones(n_estimators, dtype="float64") for _ in range(n_forests)]
 
 
 class TreeNodeTransformer(TransformerMixin, BaseEstimator, ABC):
@@ -136,11 +136,15 @@ class TreeNodeTransformer(TransformerMixin, BaseEstimator, ABC):
             for i, target in enumerate(y)
         ]
         self.n_forests_ = len(self.estimators_)
+        self.n_trees_per_iteration_ = self._set_n_trees_per_iteration()
         self.tree_weights_ = self._set_tree_weights(X, y)
         return self
 
     @abstractmethod
-    def _set_tree_weights(self, X, y): ...
+    def _set_n_trees_per_iteration(self) -> list[int]: ...
+
+    @abstractmethod
+    def _set_tree_weights(self, X, y) -> list[NDArray[np.float64]]: ...
 
     @abstractmethod
     def fit(self, X, y): ...
@@ -154,7 +158,17 @@ class TreeNodeTransformer(TransformerMixin, BaseEstimator, ABC):
             ensure_min_features=1,
             ensure_min_samples=1,
         )
-        return np.hstack([est.apply(X) for est in self.estimators_]).astype("int64")
+
+        # Get the node IDs for each tree in each forest
+        # In the case of certain multi-class estimators (e.g.
+        # GradientBoostingClassifier), the output of `apply` is 3D,
+        # (n_samples, n_estimators, n_classes), so flatten the last two
+        # dimensions to ensure a 2D output
+        node_ids = [
+            arr.reshape(arr.shape[0], -1) if arr.ndim == 3 else arr
+            for arr in (est.apply(X) for est in self.estimators_)
+        ]
+        return np.hstack(node_ids).astype("int64")
 
     def fit_transform(self, X, y):
         return self.fit(X, y).transform(X)

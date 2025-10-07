@@ -3,6 +3,7 @@ import pandas as pd
 import pytest
 from numpy.testing import assert_array_equal
 from sklearn import config_context
+from sklearn.datasets import make_classification
 from sklearn.ensemble import (
     GradientBoostingClassifier,
     GradientBoostingRegressor,
@@ -341,3 +342,42 @@ def test_gbnode_transformer_non_default_parameterization(loss_reg, loss_clf, alp
         else:
             assert gb.get_params()["loss"] == loss_reg
             assert gb.get_params()["alpha"] == alpha_reg
+
+
+@pytest.mark.parametrize("tree_weighting_method", ["delta_loss", "uniform"])
+@pytest.mark.parametrize("n_classes", [2, 3, 5])
+def test_gbnode_transformer_multiclass(tree_weighting_method, n_classes):
+    """
+    Test that GBNodeTransformer correctly handles multi-class classification
+    where multiple trees are created per iteration.
+    """
+    X, y = make_classification(
+        n_samples=100,
+        n_features=20,
+        n_informative=10,
+        n_classes=n_classes,
+        random_state=42,
+    )
+
+    # Adjust y to be 2D with a multiclass target, a binary target, and a
+    # continuous target.
+    y = np.vstack([y.astype(str), y % 2, y.astype(float)], dtype="object").T
+
+    # The special case of n_classes=2 is really binary classification
+    # so expected_n_classes should be 1
+    expected_n_classes = 1 if n_classes == 2 else n_classes
+
+    # Confirm the estimator attributes are set correctly
+    est = GBNodeTransformer(tree_weighting_method=tree_weighting_method).fit(X, y)
+    assert est.n_forests_ == 3
+    assert est.n_trees_per_iteration_ == [expected_n_classes, 1, 1]
+    assert all(
+        w.shape == (est.n_estimators * n_trees,)
+        for w, n_trees in zip(est.tree_weights_, est.n_trees_per_iteration_)
+    )
+
+    # Confirm the shape of the node matrix
+    assert est.transform(X).shape == (
+        X.shape[0],
+        sum(est.n_trees_per_iteration_) * est.n_estimators,
+    )

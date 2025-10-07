@@ -8,7 +8,7 @@ from sklearn.base import BaseEstimator
 from sklearn.ensemble import GradientBoostingClassifier, GradientBoostingRegressor
 from sklearn.utils.validation import check_is_fitted
 
-from ._tree_node_transformer import TreeNodeTransformer, uniform_weights
+from ._tree_node_transformer import TreeNodeTransformer
 
 
 def delta_loss(
@@ -18,8 +18,6 @@ def delta_loss(
     Calculate tree weights as a function of the change in loss between
     successive trees in a gradient boosting estimator.
     """
-    # See https://github.com/lemma-osu/sknnr/issues/96#issuecomment-2967847215
-    #
     # Calculate the initial loss, which by default in regression is based
     # on predicting the mean for all samples. The loss function is
     # half-squared error, so multiply by 2 to be consistent with how
@@ -27,6 +25,7 @@ def delta_loss(
     initial_loss = (
         est._loss(np.asarray(y, dtype="float64"), est._raw_predict_init(X)) * 2
     )
+
     # Calculate the change in loss at each stage
     loss_delta = np.diff(np.hstack([initial_loss, est.train_score_]))
 
@@ -35,20 +34,6 @@ def delta_loss(
         np.ones_like(loss_delta, dtype="float64")
         if np.sum(loss_delta) == 0
         else (loss_delta / np.sum(loss_delta))
-    )
-
-
-def ensemble_delta_loss(
-    ensemble_estimators: list[GradientBoostingClassifier | GradientBoostingRegressor],
-    X: NDArray,
-    y: NDArray,
-) -> NDArray:
-    """
-    Calculate delta loss weighting over ensemble of gradient boosting estimators.
-    """
-    return np.asarray(
-        [delta_loss(est, X, target) for est, target in zip(ensemble_estimators, y)],
-        dtype="float64",
     )
 
 
@@ -155,9 +140,18 @@ class GBNodeTransformer(TreeNodeTransformer):
     n_forests_ : int
         The number of forests (i.e. targets) in the ensemble. Equal to
         `len(self.estimators_)`.
-    tree_weights_ : ndarray of shape (n_forests_, n_estimators)
+    n_trees_per_iteration_ : list[int]
+        The number of trees per iteration for each forest.  For regression
+        and binary classification this is 1, but for multi-class classification,
+        it is equal to the number of classes (other than two).  Equal to
+        `[est.n_trees_per_iteration_ for est in self.estimators_]`.
+    tree_weights_ : list with length `self.n_forests_` of ndarrays of shape
+        (`self.n_estimators` * `self.estimators_[i].n_trees_per_iteration_`,)
         Weights assigned to each tree in each forest to be used when calculating
-        distances between node indexes.
+        distances between node indexes.  In the case of multi-class classifiers,
+        there are multiple trees per iteration, so the shape of each weight
+        array is (`self.n_estimators` * `self.n_trees_per_iteration_[i]`,).
+        All weights for a single iteration are sequentially repeated.
     """
 
     def __init__(
@@ -252,12 +246,24 @@ class GBNodeTransformer(TreeNodeTransformer):
             gb_clf_kwargs,
         )
 
-    def _set_tree_weights(self, X, y):
-        return (
-            ensemble_delta_loss(self.estimators_, X, y)
-            if self.tree_weighting_method == "delta_loss"
-            else uniform_weights(self.n_forests_, self.n_estimators)
-        )
+    def _set_n_trees_per_iteration(self) -> list[int]:
+        return [est.n_trees_per_iteration_ for est in self.estimators_]
+
+    def _set_tree_weights(self, X, y) -> list[NDArray[np.float64]]:
+        tree_weights = []
+        if self.tree_weighting_method == "delta_loss":
+            for est, target in zip(self.estimators_, y):
+                tree_weights.append(
+                    np.repeat(delta_loss(est, X, target), est.n_trees_per_iteration_)
+                )
+            return tree_weights
+
+        for est in self.estimators_:
+            arr = np.ones(
+                (est.n_estimators * est.n_trees_per_iteration_,), dtype="float64"
+            )
+            tree_weights.append(arr)
+        return tree_weights
 
     def get_feature_names_out(self) -> NDArray:
         check_is_fitted(self, "estimators_")
