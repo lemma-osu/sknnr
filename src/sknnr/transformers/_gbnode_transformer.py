@@ -32,7 +32,7 @@ def delta_loss(
     # Normalize the loss delta to get the relative contribution of each tree
     return (
         np.ones_like(loss_delta, dtype="float64")
-        if np.sum(loss_delta) == 0
+        if np.allclose(loss_delta, 0.0)
         else (loss_delta / np.sum(loss_delta))
     )
 
