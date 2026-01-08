@@ -18,6 +18,14 @@ def delta_loss(
     Calculate tree weights as a function of the change in loss between
     successive trees in a gradient boosting estimator.
     """
+    # Return indexes of classes and convert to floats if this is a
+    # GradientBoostingClassifier which allows string or categorical targets
+    y = (
+        np.searchsorted(est.classes_, y).astype("float64")
+        if hasattr(est, "classes_")
+        else y
+    )
+
     # Calculate the initial loss, which by default in regression is based
     # on predicting the mean for all samples. The loss function is
     # half-squared error, so multiply by 2 to be consistent with how

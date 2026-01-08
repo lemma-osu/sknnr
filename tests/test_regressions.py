@@ -22,6 +22,11 @@ ESTIMATORS = {
     "gbnn": GBNNRegressor,
 }
 
+TREE_BASED_ESTIMATORS = {
+    "randomForest": RFNNRegressor,
+    "gbnn": GBNNRegressor,
+}
+
 
 def yaimpute_weights(d):
     """
@@ -117,18 +122,24 @@ def test_predict(
         ndarrays_regression.check(dict(pred=pred))
 
 
+@pytest.mark.parametrize(
+    "estimator", TREE_BASED_ESTIMATORS.values(), ids=TREE_BASED_ESTIMATORS.keys()
+)
 @pytest.mark.parametrize("reference", [True, False], ids=["reference", "target"])
-def test_mixed_rfnn_forests(
+def test_estimators_with_mixed_type_forests(
     ndarrays_regression,
     moscow_stjoes_test_data,
+    estimator,
     reference,
 ):
     """
-    Test RFNNRegressor for kneighbors and predict when building a combination of
-    regression and classification forests.
+    Test tree-based NN regressors (RFNNRegressor and GBNNRegressor) for
+    kneighbors and predict when building a combination of regression and
+    classification forests.  In addition, this tests the accuracy of the
+    tree weights when using a multi-class classification forest in GBNN.
     """
     dataset = moscow_stjoes_test_data
-    hyperparams = get_default_hyperparams(RFNNRegressor, n_neighbors=5)
+    hyperparams = get_default_hyperparams(estimator, n_neighbors=5)
 
     # Create y_fit data to have two columns - Total_BA and the species
     # with the highest abundance.  This should use one regression forest and
@@ -142,9 +153,7 @@ def test_mixed_rfnn_forests(
         MAX_SPECIES=dataset.y_train[cols].idxmax(axis=1)
     )
 
-    est = RFNNRegressor(**hyperparams).fit(
-        dataset.X_train, dataset.y_train, y_fit=y_fit
-    )
+    est = estimator(**hyperparams).fit(dataset.X_train, dataset.y_train, y_fit=y_fit)
 
     if reference:
         dist, nn = est.kneighbors()
