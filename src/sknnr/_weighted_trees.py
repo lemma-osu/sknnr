@@ -3,35 +3,12 @@ from __future__ import annotations
 from typing import Callable, Literal
 
 import numpy as np
-from numpy.typing import ArrayLike, NDArray
+from numpy.typing import ArrayLike
 
 from ._base import TransformedKNeighborsRegressor, YFitMixin
 from .transformers import RFNodeTransformer
 
 TREE_NODE_TRANSFORMER = RFNodeTransformer
-
-
-class WeightedHammingDistanceMetric:
-    """
-    Distance metric to calculate Hamming distance based on weights. This class
-    works as a callable pairwise distance metric and uses uniform weights by
-    default. Note that setting of weights is only supported after initialization
-    by using the `set_weights` method.
-    """
-
-    def __init__(self):
-        self.w = None
-
-    def set_weights(self, w: ArrayLike[float]):
-        self.w = w
-
-    def __call__(self, u: NDArray, v: NDArray) -> float:
-        # It would be ideal to use scipy.spatial.distance.hamming here, but
-        # we found slight discrepancies between systems when using this
-        # as that implementation relies on np.dot, which can be somewhat
-        # imprecise (#98).  We opted for a custom implementation instead.
-        w = np.ones_like(u) if self.w is None else self.w
-        return np.sum((u != v) * w) / np.sum(w)
 
 
 class WeightedTreesNNRegressor(YFitMixin, TransformedKNeighborsRegressor):
