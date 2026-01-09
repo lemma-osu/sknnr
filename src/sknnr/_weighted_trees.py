@@ -75,20 +75,18 @@ class WeightedTreesNNRegressor(YFitMixin, TransformedKNeighborsRegressor):
         leaf_size: int = 30,
         n_jobs: int | None = None,
     ):
-        self.metric = WeightedHammingDistanceMetric()
         super().__init__(
             n_neighbors=n_neighbors,
             weights=weights,
             algorithm=algorithm,
             leaf_size=leaf_size,
-            metric=self.metric,
+            metric="hamming",
             n_jobs=n_jobs,
         )
 
     def _set_fitted_transformer(self, X, y) -> None:
         super()._set_fitted_transformer(X, y)
         self.hamming_weights_ = self._get_hamming_weights()
-        self.metric.set_weights(self.hamming_weights_)
 
     def _get_hamming_weights(self):
         """
@@ -116,3 +114,6 @@ class WeightedTreesNNRegressor(YFitMixin, TransformedKNeighborsRegressor):
         # Element-wise multiply the transformer's tree weights with the forest_weights
         # and set the Hamming metric weights
         return (forest_weights_arr * self.transformer_.tree_weights_).flatten()
+
+    def _get_additional_regressor_init_kwargs(self) -> dict:
+        return {"metric_params": {"w": self.hamming_weights_}}

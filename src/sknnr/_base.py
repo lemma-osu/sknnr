@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Callable, Literal
 
 import numpy as np
-from sklearn.base import TransformerMixin
+from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.metrics import DistanceMetric
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.utils.validation import _is_arraylike, check_is_fitted
@@ -103,7 +103,7 @@ class RawKNNRegressor(
         return (neigh_dist, neigh_ind) if return_distance else neigh_ind
 
 
-class TransformedKNeighborsRegressor(RawKNNRegressor, ABC):
+class TransformedKNeighborsRegressor(BaseEstimator, ABC):
     """
     Subclass for KNeighbors regressors that apply transformations to the feature data.
 
@@ -112,6 +112,31 @@ class TransformedKNeighborsRegressor(RawKNNRegressor, ABC):
     """
 
     transformer_: TransformerMixin
+    regressor_: RawKNNRegressor
+
+    def __init__(
+        self,
+        n_neighbors: int = 5,
+        *,
+        weights: Literal["uniform", "distance"] | Callable = "uniform",
+        algorithm: Literal["auto", "ball_tree", "kd_tree", "brute"] = "auto",
+        leaf_size: int = 30,
+        p: int = 2,
+        metric: str | Callable | DistanceMetric = "minkowski",
+        metric_params: dict | None = None,
+        n_jobs: int | None = None,
+    ):
+        # Store initialization parameters for the RawKNNRegressor, but do not
+        # instantiate it yet.  It will be instantiated during `fit`, after the
+        # transformer has been fitted.
+        self.n_neighbors = n_neighbors
+        self.weights = weights
+        self.algorithm = algorithm
+        self.leaf_size = leaf_size
+        self.p = p
+        self.metric = metric
+        self.metric_params = metric_params
+        self.n_jobs = n_jobs
 
     @abstractmethod
     def _get_transformer(self) -> TransformerMixin:
@@ -123,14 +148,45 @@ class TransformedKNeighborsRegressor(RawKNNRegressor, ABC):
         """Fit and store the transformer."""
         self.transformer_ = self._get_transformer().fit(X, y)
 
+    def _get_additional_regressor_init_kwargs(self) -> dict:
+        """Get any additional keyword arguments for the KNeighbors regressor
+        initialization. Subclasses can override to provide additional arguments.
+        """
+        return {}
+
     def fit(self, X, y):
         """Fit using transformed feature data."""
         _validate_data(self, X=X, y=y, ensure_all_finite=True, multi_output=True)
-        self._set_dataframe_index_in(X)
+
+        # Set the fitted transformer and apply the transformation which serves
+        # as input to the KNeighbors regressor.  If estimators derive any custom
+        # parameters to pass to the regressor, they should be set as estimator
+        # attributes during `_set_fitted_transformer`.
         self._set_fitted_transformer(X, y)
 
         X_transformed = self.transformer_.transform(X)
-        return super().fit(X_transformed, y)
+
+        # Initialize and fit the KNeighbors regressor using the transformed data.
+        # Override any additional regressor init kwargs provided by subclasses.
+        reg_init_kwargs = {
+            "n_neighbors": self.n_neighbors,
+            "weights": self.weights,
+            "algorithm": self.algorithm,
+            "leaf_size": self.leaf_size,
+            "p": self.p,
+            "metric": self.metric,
+            "metric_params": self.metric_params,
+            "n_jobs": self.n_jobs,
+        }
+        reg_init_kwargs.update(self._get_additional_regressor_init_kwargs())
+        self.regressor_ = RawKNNRegressor(**reg_init_kwargs)
+        self.regressor_._set_dataframe_index_in(X)
+        self.regressor_.fit(X_transformed, y)
+
+        # Set the number of features to be equal to that of the transformed
+        # features
+        self.n_features_in_ = self.regressor_.n_features_in_
+        return self
 
     def kneighbors(
         self,
@@ -142,12 +198,34 @@ class TransformedKNeighborsRegressor(RawKNNRegressor, ABC):
         """Return neighbor indices and distances using transformed feature data."""
         check_is_fitted(self, "transformer_")
         X_transformed = self.transformer_.transform(X) if X is not None else X
-        return super().kneighbors(
+        return self.regressor_.kneighbors(
             X=X_transformed,
             n_neighbors=n_neighbors,
             return_distance=return_distance,
             return_dataframe_index=return_dataframe_index,
         )
+
+    def predict(self, X):
+        check_is_fitted(self, "transformer_")
+        X_transformed = self.transformer_.transform(X) if X is not None else X
+        return self.regressor_.predict(X_transformed)
+
+    def score(self, X, y=None):
+        check_is_fitted(self, "transformer_")
+        X_transformed = self.transformer_.transform(X) if X is not None else X
+        return self.regressor_.score(X_transformed, y)
+
+    @property
+    def independent_prediction_(self):
+        return self.regressor_.independent_prediction_
+
+    @property
+    def independent_score_(self):
+        return self.regressor_.independent_score_
+
+    @property
+    def dataframe_index_in_(self):
+        return self.regressor_.dataframe_index_in_
 
     def __sklearn_tags__(self):
         tags = super().__sklearn_tags__()
