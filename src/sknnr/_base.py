@@ -154,6 +154,11 @@ class TransformedKNeighborsRegressor(BaseEstimator, ABC):
         """
         return {}
 
+    def _transform_X(self, X):
+        """Transform feature data using the fitted transformer."""
+        check_is_fitted(self, "transformer_")
+        return self.transformer_.transform(X) if X is not None else X
+
     def fit(self, X, y):
         """Fit using transformed feature data."""
         _validate_data(self, X=X, y=y, ensure_all_finite=True, multi_output=True)
@@ -196,8 +201,7 @@ class TransformedKNeighborsRegressor(BaseEstimator, ABC):
         return_dataframe_index=False,
     ):
         """Return neighbor indices and distances using transformed feature data."""
-        check_is_fitted(self, "transformer_")
-        X_transformed = self.transformer_.transform(X) if X is not None else X
+        X_transformed = self._transform_X(X)
         return self.regressor_.kneighbors(
             X=X_transformed,
             n_neighbors=n_neighbors,
@@ -206,13 +210,11 @@ class TransformedKNeighborsRegressor(BaseEstimator, ABC):
         )
 
     def predict(self, X):
-        check_is_fitted(self, "transformer_")
-        X_transformed = self.transformer_.transform(X) if X is not None else X
+        X_transformed = self._transform_X(X)
         return self.regressor_.predict(X_transformed)
 
     def score(self, X, y=None):
-        check_is_fitted(self, "transformer_")
-        X_transformed = self.transformer_.transform(X) if X is not None else X
+        X_transformed = self._transform_X(X)
         return self.regressor_.score(X_transformed, y)
 
     @property
