@@ -185,12 +185,22 @@ class TransformedKNeighborsRegressor(BaseEstimator, ABC):
         }
         reg_init_kwargs.update(self._get_additional_regressor_init_kwargs())
         self.regressor_ = RawKNNRegressor(**reg_init_kwargs)
-        self.regressor_._set_dataframe_index_in(X)
         self.regressor_.fit(X_transformed, y)
+
+        # `X_transformed` is guaranteed to be array-like here, so we can set
+        # dataframe indexes from `X` in the regressor if applicable.
+        self.regressor_._set_dataframe_index_in(X)
 
         # Set the number of features to be equal to that of the transformed
         # features
         self.n_features_in_ = self.regressor_.n_features_in_
+
+        # Copy over mixin attributes from the regressor
+        self.independent_prediction_ = self.regressor_.independent_prediction_
+        self.independent_score_ = self.regressor_.independent_score_
+        if hasattr(self.regressor_, "dataframe_index_in_"):
+            self.dataframe_index_in_ = self.regressor_.dataframe_index_in_
+
         return self
 
     def kneighbors(
@@ -216,18 +226,6 @@ class TransformedKNeighborsRegressor(BaseEstimator, ABC):
     def score(self, X, y=None):
         X_transformed = self._transform_X(X)
         return self.regressor_.score(X_transformed, y)
-
-    @property
-    def independent_prediction_(self):
-        return self.regressor_.independent_prediction_
-
-    @property
-    def independent_score_(self):
-        return self.regressor_.independent_score_
-
-    @property
-    def dataframe_index_in_(self):
-        return self.regressor_.dataframe_index_in_
 
     def __sklearn_tags__(self):
         tags = super().__sklearn_tags__()
