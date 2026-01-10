@@ -57,7 +57,6 @@ plugins:
           options:
             show_source: false
             inherited_members: true
-            undoc_members: true
             docstring_style: numpy
             show_if_no_docstring: true
             show_signature_annotations: true
