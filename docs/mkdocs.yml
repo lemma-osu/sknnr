@@ -55,11 +55,14 @@ plugins:
         python:
           paths: [../src]
           options:
-            show_source: false
+            # Hide private and dunder members
+            filters: ["!^_"]
+            show_source: true
             inherited_members: true
             docstring_style: numpy
             show_if_no_docstring: true
             show_signature_annotations: true
+            separate_signature: true
             show_root_heading: true
             show_category_heading: true
             merge_init_into_class: true
@@ -81,3 +84,8 @@ markdown_extensions:
       pygments_lang_class: true
   - pymdownx.inlinehilite
   - pymdownx.superfences
+
+watch:
+  - ../src
+  - ../README.md
+  - ./abbreviations.md
