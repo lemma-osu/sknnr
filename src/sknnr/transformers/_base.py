@@ -13,6 +13,32 @@ Ordination = Union[CCA, CCorA]
 
 
 class StandardScalerWithDOF(StandardScaler):
+    """
+    Subclass of `StandardScaler` that allows specification of degrees of freedom
+    used when calculating standard deviation for scaling.
+
+    Parameters
+    ----------
+    ddof : int, default=0
+        Degrees of freedom used when calculating standard deviation.
+        The divisor used in calculations is `N - ddof`, where `N` represents
+        the number of samples.
+
+    Attributes
+    ----------
+    scale_: ndarray of shape (n_features,)
+        Per feature relative scaling of the data to achieve zero mean and
+        unit variance with the specified degrees of freedom.
+    mean_: ndarray of shape (n_features,)
+        The mean value for each feature in the training set.
+    var_: ndarray of shape (n_features,)
+        The variance for each feature in the training set.
+    n_features_in_: int
+        Number of features seen during `fit`.
+    n_samples_seen_: int
+        The number of samples processed by the estimator for each feature.
+    """
+
     def __init__(self, ddof=0):
         super().__init__()
         self.ddof = ddof
