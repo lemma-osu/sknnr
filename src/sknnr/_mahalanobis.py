@@ -50,7 +50,7 @@ class MahalanobisKNNRegressor(TransformedKNeighborsRegressor):
     regressor_ : RawKNNRegressor
         The underlying RawKNNRegressor instance.
     transformer_ : MahalanobisTransformer
-        The fitted transformer used to tranform feature data.
+        The fitted transformer used to transform feature data.
     """
 
     def _get_transformer(self) -> TransformerMixin:

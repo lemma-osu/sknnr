@@ -53,7 +53,7 @@ class GNNRegressor(YFitMixin, OrdinationKNeighborsRegressor):
     regressor_ : RawKNNRegressor
         The underlying RawKNNRegressor instance.
     transformer_ : CCATransformer
-        The fitted CCA transformer used to tranform feature data.
+        The fitted CCA transformer used to transform feature data.
     y_fit_ : array-like of shape (n_samples, n_targets)
         The target matrix seen during fit.  Note that `y_fit_` is only used for
         fitting, whereas regression will be run on the `y` values passed to
