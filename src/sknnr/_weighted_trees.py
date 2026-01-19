@@ -91,7 +91,12 @@ class WeightedTreesNNRegressor(YFitMixin, TransformedKNeighborsRegressor):
 
         # Element-wise multiply the transformer's tree weights with the forest_weights
         # and set the Hamming metric weights
-        return (forest_weights_arr * self.transformer_.tree_weights_).flatten()
+        return np.hstack(
+            [
+                tw * fw
+                for tw, fw in zip(self.transformer_.tree_weights_, forest_weights_arr)
+            ]
+        )
 
     def _get_additional_regressor_init_kwargs(self) -> dict:
         return {"metric_params": {"w": self.hamming_weights_}}
