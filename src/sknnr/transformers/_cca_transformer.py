@@ -8,6 +8,40 @@ from ._cca import CCA
 
 
 class CCATransformer(ComponentReducerMixin, TransformerMixin, BaseEstimator):
+    """
+    Transformer that performs Canonical Correspondence Analysis (CCA)
+    (ter Braak, 1986). CCA is a constrained ordination technique that finds
+    linear combinations of features that best explain variation in the target
+    variables.
+
+    Parameters
+    ----------
+    n_components : int, optional
+        Number of components to keep during transformation. If `None`, all
+        components are kept. If `n_components` is greater than the number of
+        available components, an error will be raised.
+
+    Attributes
+    ----------
+    env_center_ : ndarray of shape (n_features,)
+        The center of the environmental (feature) data used for standardizing
+        features during transformation.
+    n_components_ : int
+        The number of components kept during transformation.
+    n_features_in_ : int
+        Number of features seen during `fit`.
+    ordination_ : CCA
+        The fitted CCA ordination object.
+    projector_ : ndarray of shape (n_features, n_components_)
+        The projector matrix used to transform data.
+
+    References
+    ----------
+    ter Braak, C.J.F. 1986. Canonical correspondence analysis: a new
+    eigenvector technique for multivariate direct gradient analysis. Ecology,
+    67: 1167–1179.
+    """
+
     def fit(self, X, y):
         X = _validate_data(
             self,

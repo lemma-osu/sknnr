@@ -3,35 +3,12 @@ from __future__ import annotations
 from typing import Callable, Literal
 
 import numpy as np
-from numpy.typing import ArrayLike, NDArray
+from numpy.typing import ArrayLike
 
 from ._base import TransformedKNeighborsRegressor, YFitMixin
 from .transformers import RFNodeTransformer
 
 TREE_NODE_TRANSFORMER = RFNodeTransformer
-
-
-class WeightedHammingDistanceMetric:
-    """
-    Distance metric to calculate Hamming distance based on weights. This class
-    works as a callable pairwise distance metric and uses uniform weights by
-    default. Note that setting of weights is only supported after initialization
-    by using the `set_weights` method.
-    """
-
-    def __init__(self):
-        self.w = None
-
-    def set_weights(self, w: ArrayLike[float]):
-        self.w = w
-
-    def __call__(self, u: NDArray, v: NDArray) -> float:
-        # It would be ideal to use scipy.spatial.distance.hamming here, but
-        # we found slight discrepancies between systems when using this
-        # as that implementation relies on np.dot, which can be somewhat
-        # imprecise (#98).  We opted for a custom implementation instead.
-        w = np.ones_like(u) if self.w is None else self.w
-        return np.sum((u != v) * w) / np.sum(w)
 
 
 class WeightedTreesNNRegressor(YFitMixin, TransformedKNeighborsRegressor):
@@ -75,20 +52,18 @@ class WeightedTreesNNRegressor(YFitMixin, TransformedKNeighborsRegressor):
         leaf_size: int = 30,
         n_jobs: int | None = None,
     ):
-        self.metric = WeightedHammingDistanceMetric()
         super().__init__(
             n_neighbors=n_neighbors,
             weights=weights,
             algorithm=algorithm,
             leaf_size=leaf_size,
-            metric=self.metric,
+            metric="hamming",
             n_jobs=n_jobs,
         )
 
     def _set_fitted_transformer(self, X, y) -> None:
         super()._set_fitted_transformer(X, y)
         self.hamming_weights_ = self._get_hamming_weights()
-        self.metric.set_weights(self.hamming_weights_)
 
     def _get_hamming_weights(self):
         """
@@ -116,3 +91,6 @@ class WeightedTreesNNRegressor(YFitMixin, TransformedKNeighborsRegressor):
         # Element-wise multiply the transformer's tree weights with the forest_weights
         # and set the Hamming metric weights
         return (forest_weights_arr * self.transformer_.tree_weights_).flatten()
+
+    def _get_additional_regressor_init_kwargs(self) -> dict:
+        return {"metric_params": {"w": self.hamming_weights_}}

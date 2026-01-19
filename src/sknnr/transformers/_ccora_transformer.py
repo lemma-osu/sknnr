@@ -7,6 +7,38 @@ from ._ccora import CCorA
 
 
 class CCorATransformer(ComponentReducerMixin, TransformerMixin, BaseEstimator):
+    """
+    Transformer that performs Canonical Correlation Analysis (CCorA)
+    (Hoteling, 1936). CCorA is a multivariate ordination technique that finds
+    pairs of linear combinations of two variable sets such that the
+    correlation between each pair is maximized.
+
+    Parameters
+    ----------
+    n_components : int, optional
+        Number of components to keep during transformation. If `None`, all
+        components are kept. If `n_components` is greater than the number of
+        available components, an error will be raised.
+
+    Attributes
+    ----------
+    n_components_ : int
+        The number of components kept during transformation.
+    n_features_in_ : int
+        Number of features seen during `fit`.
+    ordination_ : CCorA
+        The fitted CCorA ordination object.
+    projector_ : ndarray of shape (n_features, n_components_)
+        The projector matrix used to transform data.
+    scaler_ : StandardScalerWithDOF
+        The scaler used to standardize the feature data.
+
+    References
+    ----------
+    Hotelling, H. (1936). Relations between two sets of variates.
+    Biometrika, 28(3/4), 321–377.
+    """
+
     def fit(self, X, y):
         _, y = _validate_data(self, X=X, y=y, reset=True, multi_output=True)
         self.scaler_ = StandardScalerWithDOF(ddof=1).fit(X)
