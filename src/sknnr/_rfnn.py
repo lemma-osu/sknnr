@@ -99,7 +99,7 @@ class RFNNRegressor(WeightedTreesNNRegressor):
         train each base estimator.
     monotonic_cst : array-like of int of shape (n_features), default=None
         Indicates the monotonicity constraint to enforce on each feature.
-    forest_weights: {"uniform"}, array-like of shape (n_targets), default="uniform"
+    forest_weights : {"uniform"}, array-like of shape (n_targets), default="uniform"
         Weights assigned to each target in the training set when calculating
         Hamming distance between node indexes.  This allows for differential
         weighting of targets when calculating distances. Note that all trees
@@ -116,35 +116,33 @@ class RFNNRegressor(WeightedTreesNNRegressor):
 
     Attributes
     ----------
-    effective_metric_ : str
-        Always set to 'hamming'.
-    effective_metric_params_ : dict
-        Always empty.
     hamming_weights_ : np.array
         When `fit`, provides the weights on each tree in each forest when
         calculating the Hamming distance.
     independent_prediction_ : np.array
-        When `fit`, provides the prediction for training data not allowing
-        self-assignment during neighbor search.
+        The independent predictions for each sample in the training set,
+        obtained by calculating `kneighbors` on the training data itself and
+        calculating predictions based on those neighbors.
     independent_score_ : double
-        When `fit`, the mean coefficient of determination of the independent
-        prediction across all features.
+        The independent score (i.e. coefficient of determination or R²) for
+        the model, obtained by calculating the average R² across all outputs.
     n_features_in_ : int
         Number of features that the transformer outputs.  This is equal to the
         number of features in `y` (or `y_fit`) * `n_estimators_per_forest`.
-    n_samples_fit_ : int
-        Number of samples in the fitted data.
+    regressor_ : RawKNNRegressor
+        The underlying RawKNNRegressor instance.
     transformer_ : RFNodeTransformer
         The fitted transformer which holds the built random forests for each
         feature.
-    y_fit_ : np.array or pd.DataFrame
-        When `y_fit` is passed to `fit`, the data used to construct the
-        individual random forests.  Note that all `y` data is used for
-        prediction.
+    y_fit_ : array-like of shape (n_samples, n_targets)
+        The target data seen during fit which is used to construct the
+        individual random forests. Note that `y_fit_` is only used for
+        fitting, whereas regression will be run on the `y` values passed to
+        `fit`.
 
     Notes
     -----
-    `n_jobs` is used as a parameter in both `RandomForestRegressor` and
+    `n_jobs` is used as a parameter in both `RFNodeTransformer` and
     `KNeighborsRegressor`.  The value specified for this parameter will be
     passed to both estimators.
 

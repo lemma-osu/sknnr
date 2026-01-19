@@ -41,23 +41,23 @@ class GNNRegressor(YFitMixin, OrdinationKNeighborsRegressor):
 
     Attributes
     ----------
-    effective_metric_ : str or callable
-        The distance metric to use. It will be same as the `metric` parameter or a
-        synonym of it, e.g. 'euclidean' if the `metric` parameter set to 'minkowski' and
-        `p` parameter set to 2.
-    effective_metric_params_ : dict
-        Additional keyword arguments for the metric function. For most metrics will be
-        same with `metric_params` parameter, but may also contain the `p` parameter
-        value if the `effective_metric_` attribute is set to 'minkowski'.
+    independent_prediction_ : array-like of shape (n_samples, n_outputs)
+        The independent predictions for each sample in the training set,
+        obtained by calculating `kneighbors` on the training data itself and
+        calculating predictions based on those neighbors.
+    independent_score_ : float
+        The independent score (i.e. coefficient of determination or R²) for
+        the model, obtained by calculating the average R² across all outputs.
     n_features_in_ : int
         Number of features seen during `fit`.
-    feature_names_in_ : ndarray of shape (`n_features_in_`,)
-        Names of features seen during `fit`. Defined only when `X` has feature names
-        that are all strings.
-    n_samples_fit_ : int
-        Number of samples in the fitted data.
+    regressor_ : RawKNNRegressor
+        The underlying RawKNNRegressor instance.
     transformer_ : CCATransformer
-        Fitted transformer.
+        The fitted CCA transformer used to transform feature data.
+    y_fit_ : array-like of shape (n_samples, n_targets)
+        The target matrix seen during fit.  Note that `y_fit_` is only used for
+        fitting, whereas regression will be run on the `y` values passed to
+        `fit`.
 
     References
     ----------
