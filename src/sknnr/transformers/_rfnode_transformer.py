@@ -8,7 +8,7 @@ from numpy.typing import NDArray
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.utils.validation import check_is_fitted
 
-from ._tree_node_transformer import TreeNodeTransformer
+from ._tree_node_transformer import TreeNodeTransformer, uniform_weights
 
 
 class RFNodeTransformer(TreeNodeTransformer):
@@ -114,7 +114,11 @@ class RFNodeTransformer(TreeNodeTransformer):
     n_forests_ : int
         The number of forests (i.e. targets) in the ensemble. Equal to
         `len(self.estimators_)`.
-    tree_weights_ : ndarray of shape (n_forests_, n_estimators)
+    n_trees_per_iteration_ : list[int]
+        The number of trees per iteration for each forest.  Set to 1 for all
+        random forest estimators.
+    tree_weights_ : list with length `n_forests_` of ndarrays of shape
+        (`n_estimators`,).
         Weights assigned to each tree in each forest to be used when calculating
         distances between node indexes.  Set to 1.0 for all trees.
     """
@@ -210,8 +214,11 @@ class RFNodeTransformer(TreeNodeTransformer):
             rf_clf_kwargs,
         )
 
-    def _set_tree_weights(self):
-        return np.ones((self.n_forests_, self.n_estimators), dtype="float64")
+    def _set_n_trees_per_iteration(self) -> list[int]:
+        return [1] * self.n_forests_
+
+    def _set_tree_weights(self, X, y) -> list[NDArray[np.float64]]:
+        return uniform_weights(self.n_forests_, self.n_estimators)
 
     def get_feature_names_out(self) -> NDArray:
         check_is_fitted(self, "estimators_")
