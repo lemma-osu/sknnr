@@ -138,18 +138,54 @@ class RawKNNRegressor(
         return_distance=True,
         return_dataframe_index=False,
     ):
-        """Override kneighbors to optionally return dataframe indexes."""
+        """
+        Find the K-neighbors of a point or points in the dataset, with
+        deterministic ordering of neighbors when distances are nearly identical.
+        In addition, optionally return dataframe indexes rather than array
+        indices when the model was fitted with a dataframe.
+
+        Parameters
+        ----------
+        X : array-like of shape (n_queries, n_features), default=None
+            The query point or points. If not provided, neighbors of each
+            indexed point are returned. In this case, the query point is not
+            considered its own neighbor.
+        n_neighbors : int, default=None
+            Number of neighbors required for each sample. The default is the
+            value passed to the constructor.
+        return_distance : bool, default=True
+            Whether or not to return the distances.
+        return_dataframe_index : bool, default=False
+            Whether or not to return dataframe indexes instead of array indices.
+            Only applicable if the model was fitted with a dataframe.
+
+        Returns
+        -------
+        neigh_dist : array-like of shape (n_queries, n_neighbors)
+            Array representing the lengths to points, only present if
+            return_distance=True.
+        neigh_ind : array-like of shape (n_queries, n_neighbors)
+            Array indices or dataframe indexes of the nearest points in the
+            population matrix.
+
+        Notes
+        -----
+        When multiple neighbors have identical distances (to 10 decimal places),
+        the order of neighbors is deterministically based on their original index
+        in the fitted data, with lower indices returned first.
+        """
         neigh_dist, neigh_ind = super().kneighbors(
             X=X, n_neighbors=n_neighbors, return_distance=True
         )
 
-        # To resolve potential floating point sorting issues, scale and
-        # discretize distances, such that very close distances are grouped
-        # together.  Sort first by these scaled distances, then by neighbor
-        # index, ensuring a stable sort order.
-        EPS = 1e-10
-        scaled_distances = np.floor(neigh_dist / EPS).astype(np.int64)
-        sorted_indices = np.lexsort((neigh_ind, scaled_distances), axis=1)
+        # To resolve potential floating point sorting issues, scale
+        # distances relatively per row, then round to sufficient precision
+        # such that very close distances have the same value. Sort first by
+        # these scaled distances, then by neighbor index, ensuring a stable
+        # sort order.
+        row_scale = np.maximum(neigh_dist.max(axis=1, keepdims=True), 1.0)
+        rounded = np.round(neigh_dist / row_scale, decimals=10)
+        sorted_indices = np.lexsort((neigh_ind, rounded), axis=1)
 
         neigh_dist = np.take_along_axis(neigh_dist, sorted_indices, axis=1)
         neigh_ind = np.take_along_axis(neigh_ind, sorted_indices, axis=1)
