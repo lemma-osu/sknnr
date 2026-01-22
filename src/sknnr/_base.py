@@ -143,6 +143,17 @@ class RawKNNRegressor(
             X=X, n_neighbors=n_neighbors, return_distance=True
         )
 
+        # To resolve potential floating point sorting issues, scale and
+        # discretize distances, such that very close distances are grouped
+        # together.  Sort first by these scaled distances, then by neighbor
+        # index, ensuring a stable sort order.
+        EPS = 1e-10
+        scaled_distances = np.floor(neigh_dist / EPS).astype(np.int64)
+        sorted_indices = np.lexsort((neigh_ind, scaled_distances), axis=1)
+
+        neigh_dist = np.take_along_axis(neigh_dist, sorted_indices, axis=1)
+        neigh_ind = np.take_along_axis(neigh_ind, sorted_indices, axis=1)
+
         if return_dataframe_index:
             msg = "Dataframe indexes can only be returned when fitted with a dataframe."
             check_is_fitted(self, "dataframe_index_in_", msg=msg)
