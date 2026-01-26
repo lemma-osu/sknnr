@@ -142,12 +142,12 @@ class RawKNNRegressor(
         n_neighbors=None,
         return_distance=True,
         return_dataframe_index=False,
+        use_deterministic_ordering=True,
     ):
         """
-        Find the K-neighbors of a point or points in the dataset, with
-        deterministic ordering of neighbors when distances are nearly identical.
-        In addition, optionally return dataframe indexes rather than array
-        indices when the model was fitted with a dataframe.
+        Find the K-neighbors of a point or points in the dataset and optionally
+        return dataframe indexes rather than array indices when the model was
+        fitted with a dataframe.
 
         Parameters
         ----------
@@ -163,6 +163,13 @@ class RawKNNRegressor(
         return_dataframe_index : bool, default=False
             Whether or not to return dataframe indexes instead of array indices.
             Only applicable if the model was fitted with a dataframe.
+        use_deterministic_ordering : bool, default=True
+            Whether to use deterministic ordering of neighbors when distances
+            are nearly identical.  If True, neighbors with identical distances
+            (up to DISTANCE_PRECISION_DECIMALS decimal places) are ordered by
+            their original index in the fitted data, with lower indices
+            returned first.  If False, use the default ordering from
+            `KNeighborsRegressor.kneighbors`.
 
         Returns
         -------
@@ -172,31 +179,25 @@ class RawKNNRegressor(
         neigh_ind : array-like of shape (n_queries, n_neighbors)
             Array indices or dataframe indexes of the nearest points in the
             population matrix.
-
-        Notes
-        -----
-        When multiple neighbors have identical distances (up to
-        DISTANCE_PRECISION_DECIMALS decimal places), the order of neighbors
-        is deterministically based on their original index in the fitted data,
-        with lower indices returned first.
         """
         neigh_dist, neigh_ind = super().kneighbors(
             X=X, n_neighbors=n_neighbors, return_distance=True
         )
 
-        # To resolve potential floating point sorting issues, scale
-        # distances relatively per row, then round to sufficient precision
-        # such that very close distances have the same value. Sort first by
-        # these scaled distances, then by neighbor index, ensuring a stable
-        # sort order.
-        row_scale = np.maximum(neigh_dist.max(axis=1, keepdims=True), 1.0)
-        rounded = np.round(
-            neigh_dist / row_scale, decimals=self.DISTANCE_PRECISION_DECIMALS
-        )
-        sorted_indices = np.lexsort((neigh_ind, rounded), axis=1)
+        if use_deterministic_ordering:
+            # To resolve potential floating point sorting issues, scale
+            # distances relatively per row, then round to sufficient precision
+            # such that very close distances have the same value. Sort first by
+            # these scaled distances, then by neighbor index, ensuring a stable
+            # sort order.
+            row_scale = np.maximum(neigh_dist.max(axis=1, keepdims=True), 1.0)
+            rounded = np.round(
+                neigh_dist / row_scale, decimals=self.DISTANCE_PRECISION_DECIMALS
+            )
+            sorted_indices = np.lexsort((neigh_ind, rounded), axis=1)
 
-        neigh_dist = np.take_along_axis(neigh_dist, sorted_indices, axis=1)
-        neigh_ind = np.take_along_axis(neigh_ind, sorted_indices, axis=1)
+            neigh_dist = np.take_along_axis(neigh_dist, sorted_indices, axis=1)
+            neigh_ind = np.take_along_axis(neigh_ind, sorted_indices, axis=1)
 
         if return_dataframe_index:
             msg = "Dataframe indexes can only be returned when fitted with a dataframe."
@@ -312,14 +313,52 @@ class TransformedKNeighborsRegressor(BaseEstimator, ABC):
         n_neighbors=None,
         return_distance=True,
         return_dataframe_index=False,
+        use_deterministic_ordering=True,
     ):
-        """Return neighbor indices and distances using transformed feature data."""
+        """
+        Find the K-neighbors of a point or points of transformed feature data
+        and optionally return dataframe indexes rather than array indices when
+        the model was fitted with a dataframe.
+
+        Parameters
+        ----------
+        X : array-like of shape (n_queries, n_features), default=None
+            The query point or points. Points are first transformed using the
+            fitted transformer. If not provided, neighbors of each indexed
+            point are returned. In this case, the query point is not
+            considered its own neighbor.
+        n_neighbors : int, default=None
+            Number of neighbors required for each sample. The default is the
+            value passed to the constructor.
+        return_distance : bool, default=True
+            Whether or not to return the distances.
+        return_dataframe_index : bool, default=False
+            Whether or not to return dataframe indexes instead of array indices.
+            Only applicable if the model was fitted with a dataframe.
+        use_deterministic_ordering : bool, default=True
+            Whether to use deterministic ordering of neighbors when distances
+            are nearly identical.  If True, neighbors with identical distances
+            (up to DISTANCE_PRECISION_DECIMALS decimal places) are ordered by
+            their original index in the fitted data, with lower indices
+            returned first.  If False, use the default ordering from
+            `KNeighborsRegressor.kneighbors`.
+
+        Returns
+        -------
+        neigh_dist : array-like of shape (n_queries, n_neighbors)
+            Array representing the lengths to points, only present if
+            return_distance=True.
+        neigh_ind : array-like of shape (n_queries, n_neighbors)
+            Array indices or dataframe indexes of the nearest points in the
+            population matrix.
+        """
         X_transformed = self._transform_X(X)
         return self.regressor_.kneighbors(
             X=X_transformed,
             n_neighbors=n_neighbors,
             return_distance=return_distance,
             return_dataframe_index=return_dataframe_index,
+            use_deterministic_ordering=use_deterministic_ordering,
         )
 
     def predict(self, X):
