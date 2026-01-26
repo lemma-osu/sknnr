@@ -282,6 +282,32 @@ def test_n_features_in(estimator, X_y_yfit):
     assert est.n_features_in_ == len(transformed_features)
 
 
+@pytest.mark.parametrize(
+    ("precision_decimals", "expected_idx_order"),
+    [(8, [2, 1, 0]), (5, [1, 2, 0]), (2, [0, 1, 2])],
+)
+def test_kneighbors_precision_decimals(
+    monkeypatch, precision_decimals, expected_idx_order
+):
+    """
+    Test that changing DISTANCE_PRECISION_DECIMALS affects the order
+    of neighbors on small precision differences.
+    """
+    monkeypatch.setattr(
+        RawKNNRegressor, "DISTANCE_PRECISION_DECIMALS", precision_decimals
+    )
+
+    # Create features that differ by small precision such that
+    # precision_decimals falls between them
+    X = np.array([1e-3, 1e-6, 1e-9, 1.0]).reshape(-1, 1)
+    y = np.array([0, 1, 2, 3])
+
+    X_query = np.array([[0.0]])
+
+    _, idx = RawKNNRegressor(n_neighbors=3).fit(X, y).kneighbors(X_query)
+    assert_array_equal(idx[0], expected_idx_order)
+
+
 @pytest.mark.parametrize("forest_weights", ["uniform", [0.5, 1.5], (1.0, 2.0)])
 def test_rfnn_handles_forest_weights(forest_weights):
     """Test that RFNNRegressor handles forest weights correctly."""

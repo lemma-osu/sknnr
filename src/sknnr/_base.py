@@ -102,6 +102,9 @@ class RawKNNRegressor(
 
     Attributes
     ----------
+    DISTANCE_PRECISION_DECIMALS : int, class attribute
+        Number of decimal places used when rounding scaled distances to ensure
+        deterministic neighbor ordering. Default is 10.
     effective_metric_ : str
         The distance metric to use. It will be same as the metric parameter
         or a synonym of it, e.g. 'euclidean' if the metric parameter set to
@@ -123,6 +126,8 @@ class RawKNNRegressor(
     n_samples_fit_ : int
         Number of samples in the fitted data.
     """
+
+    DISTANCE_PRECISION_DECIMALS = 10
 
     def fit(self, X, y):
         """Override fit to set attributes using mixins."""
@@ -170,9 +175,10 @@ class RawKNNRegressor(
 
         Notes
         -----
-        When multiple neighbors have identical distances (to 10 decimal places),
-        the order of neighbors is deterministically based on their original index
-        in the fitted data, with lower indices returned first.
+        When multiple neighbors have identical distances (up to
+        DISTANCE_PRECISION_DECIMALS decimal places), the order of neighbors
+        is deterministically based on their original index in the fitted data,
+        with lower indices returned first.
         """
         neigh_dist, neigh_ind = super().kneighbors(
             X=X, n_neighbors=n_neighbors, return_distance=True
@@ -184,7 +190,9 @@ class RawKNNRegressor(
         # these scaled distances, then by neighbor index, ensuring a stable
         # sort order.
         row_scale = np.maximum(neigh_dist.max(axis=1, keepdims=True), 1.0)
-        rounded = np.round(neigh_dist / row_scale, decimals=10)
+        rounded = np.round(
+            neigh_dist / row_scale, decimals=self.DISTANCE_PRECISION_DECIMALS
+        )
         sorted_indices = np.lexsort((neigh_ind, rounded), axis=1)
 
         neigh_dist = np.take_along_axis(neigh_dist, sorted_indices, axis=1)
