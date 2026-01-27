@@ -291,7 +291,7 @@ def test_kneighbors_deterministic_ordering(
 ):
     """
     Test that the use_deterministic_ordering parameter affects the order
-    of neighbors with identical distances.
+    of neighbors when distances are nearly identical.
     """
     X = np.array([1e-11, 1e-12, 1.0]).reshape(-1, 1)
     y = np.array([0, 1, 2])
@@ -304,6 +304,27 @@ def test_kneighbors_deterministic_ordering(
         .kneighbors(X_query, use_deterministic_ordering=use_deterministic_ordering)
     )
     assert_array_equal(idx[0], expected_idx_order)
+
+
+def test_kneighbors_uses_index_difference():
+    """
+    Test that when distances are consider to be identical, the absolute index
+    difference is used before indexes to order neighbors.
+    """
+    X = np.array([1e-11, 1e-12, 1.0]).reshape(-1, 1)
+    y = np.array([0, 1, 2])
+
+    # Use two identical query points which should have different
+    # neighbors due to their row indexes
+    X_query = np.array([[0.0], [0.0]])
+
+    _, idx = (
+        RawKNNRegressor(n_neighbors=2)
+        .fit(X, y)
+        .kneighbors(X_query, use_deterministic_ordering=True)
+    )
+    assert_array_equal(idx[0], [0, 1])
+    assert_array_equal(idx[1], [1, 0])
 
 
 @pytest.mark.parametrize(
@@ -321,7 +342,7 @@ def test_kneighbors_precision_decimals(
         RawKNNRegressor, "DISTANCE_PRECISION_DECIMALS", precision_decimals
     )
 
-    # Create features that differ by small precision such that
+    # Create features that differ by small amounts such that
     # precision_decimals falls between them
     X = np.array([1e-3, 1e-6, 1e-9, 1.0]).reshape(-1, 1)
     y = np.array([0, 1, 2, 3])

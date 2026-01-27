@@ -187,14 +187,20 @@ class RawKNNRegressor(
         if use_deterministic_ordering:
             # To resolve potential floating point sorting issues, scale
             # distances relatively per row, then round to sufficient precision
-            # such that very close distances have the same value. Sort first by
-            # these scaled distances, then by neighbor index, ensuring a stable
-            # sort order.
+            # such that very close distances have the same value. Once
+            # calculated, sort using the following lexicographic order:
+            #
+            #   1. Scaled and rounded distances
+            #   2. Difference between query point row index and neighbors indexes
+            #   3. Neighbor index
+            #
+            # This ensures a stable sort order.
             row_scale = np.maximum(neigh_dist.max(axis=1, keepdims=True), 1.0)
             rounded = np.round(
                 neigh_dist / row_scale, decimals=self.DISTANCE_PRECISION_DECIMALS
             )
-            sorted_indices = np.lexsort((neigh_ind, rounded), axis=1)
+            neigh_ind_diff = np.abs(neigh_ind - np.arange(len(neigh_ind))[:, None])
+            sorted_indices = np.lexsort((neigh_ind, neigh_ind_diff, rounded), axis=1)
 
             neigh_dist = np.take_along_axis(neigh_dist, sorted_indices, axis=1)
             neigh_ind = np.take_along_axis(neigh_ind, sorted_indices, axis=1)
