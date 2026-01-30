@@ -47,9 +47,9 @@ print(est.independent_score_)
 
 > in case of multiple neighbors being at the same distance, the result will depend on the order of the samples in the training data.
 
-In `sknnr`, we allow the user to enforce strict ordering of neighbors with determinitic tie-breaking when calling `kneighbors` by using the `use_deterministic_ordering` parameter. When this value is `True`, neighbors are sorted using the following logical order:
+In `sknnr`, we allow the user to enforce strict ordering of neighbors with deterministic tie-breaking when calling `kneighbors` by using the `use_deterministic_ordering` parameter. When this value is `True`, neighbors are sorted using the following logical order:
 
-1. **Scaled and rounded distances**: Neighbors are first sorted by their distances rounded to `DISTANCE_PRECISION_DECIMALS` decimal places (currently set to 10). Some floating point operations in distance determination(notably `numpy.dot`) can introduce very small numerical differences across platforms, which is effectively handled by this rounding.
+1. **Scaled and rounded distances**: Neighbors are first sorted by their distances rounded to `DISTANCE_PRECISION_DECIMALS` decimal places (currently set to 10). Some floating point operations in distance determination (notably `numpy.dot`) can introduce very small numerical differences across platforms, which is effectively handled by this rounding.
 2. **Difference between query point row index and neighbors indexes**: If two or more neighbors have identical rounded distances, they are further sorted by the absolute difference between their row index in the training data and the row index of the query point. This ensures that when a sample is its own nearest neighbor, it will always be selected first.
 3. **Neighbor index**: If two or more neighbors are still tied based on the two above criteria, they are finally sorted by their row index in the training data.
 
@@ -143,7 +143,7 @@ est = GNNRegressor(n_components=3).fit(X, y)
 ```
 
 !!! warning
-The maximum number of components depends on the input data and the estimator. Specifying `n_components` greater than the maximum number of components will raise an error.
+    The maximum number of components depends on the input data and the estimator. Specifying `n_components` greater than the maximum number of components will raise an error.
 
 ### RFNN Distance Metric
 

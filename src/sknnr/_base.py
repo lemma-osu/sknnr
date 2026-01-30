@@ -165,11 +165,16 @@ class RawKNNRegressor(
             Only applicable if the model was fitted with a dataframe.
         use_deterministic_ordering : bool, default=True
             Whether to use deterministic ordering of neighbors when distances
-            are nearly identical.  If True, neighbors with identical distances
-            (up to DISTANCE_PRECISION_DECIMALS decimal places) are ordered by
-            their original index in the fitted data, with lower indices
-            returned first.  If False, use the default ordering from
-            `KNeighborsRegressor.kneighbors`.  See the
+            are nearly identical.  If True, neighbors with nearly identical
+            distances (up to DISTANCE_PRECISION_DECIMALS decimal places) are
+            ordered lexicographically by:
+            (1) their scaled and rounded distances,
+            (2) the absolute difference between a query point's row index
+                and the neighbor index (so that a sample, when present, is
+                returned before other equally distant samples), and
+            (3) the neighbor index iself.
+            If False, use the default ordering from
+            `KNeighborsRegressor.kneighbors`. See the
             [usage guide](`../../../usage/#deterministic-neighbor-ordering`)
             for more details.
 
@@ -187,16 +192,6 @@ class RawKNNRegressor(
         )
 
         if use_deterministic_ordering:
-            # To resolve potential floating point sorting issues, scale
-            # distances relatively per row, then round to sufficient precision
-            # such that very close distances have the same value. Once
-            # calculated, sort using the following lexicographic order:
-            #
-            #   1. Scaled and rounded distances
-            #   2. Difference between query point row index and neighbors indexes
-            #   3. Neighbor index
-            #
-            # This ensures a stable sort order.
             row_scale = np.maximum(neigh_dist.max(axis=1, keepdims=True), 1.0)
             rounded = np.round(
                 neigh_dist / row_scale, decimals=self.DISTANCE_PRECISION_DECIMALS
@@ -345,11 +340,16 @@ class TransformedKNeighborsRegressor(BaseEstimator, ABC):
             Only applicable if the model was fitted with a dataframe.
         use_deterministic_ordering : bool, default=True
             Whether to use deterministic ordering of neighbors when distances
-            are nearly identical.  If True, neighbors with identical distances
-            (up to DISTANCE_PRECISION_DECIMALS decimal places) are ordered by
-            their original index in the fitted data, with lower indices
-            returned first.  If False, use the default ordering from
-            `KNeighborsRegressor.kneighbors`.  See the
+            are nearly identical.  If True, neighbors with nearly identical
+            distances (up to DISTANCE_PRECISION_DECIMALS decimal places) are
+            ordered lexicographically by:
+            (1) their scaled and rounded distances,
+            (2) the absolute difference between a query point's row index
+                and the neighbor index (so that a sample, when present, is
+                returned before other equally distant samples), and
+            (3) the neighbor index iself.
+            If False, use the default ordering from
+            `KNeighborsRegressor.kneighbors`. See the
             [usage guide](`../../../usage/#deterministic-neighbor-ordering`)
             for more details.
 

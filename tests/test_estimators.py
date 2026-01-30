@@ -308,7 +308,7 @@ def test_kneighbors_deterministic_ordering(
 
 def test_kneighbors_uses_index_difference():
     """
-    Test that when distances are consider to be identical, the absolute index
+    Test that when distances are considered to be identical, the absolute index
     difference is used before indexes to order neighbors.
     """
     X = np.array([1e-11, 1e-12, 1.0]).reshape(-1, 1)
