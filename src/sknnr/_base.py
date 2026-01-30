@@ -169,7 +169,9 @@ class RawKNNRegressor(
             (up to DISTANCE_PRECISION_DECIMALS decimal places) are ordered by
             their original index in the fitted data, with lower indices
             returned first.  If False, use the default ordering from
-            `KNeighborsRegressor.kneighbors`.
+            `KNeighborsRegressor.kneighbors`.  See the
+            [usage guide](`../../../usage/#deterministic-neighbor-ordering`)
+            for more details.
 
         Returns
         -------
@@ -347,7 +349,9 @@ class TransformedKNeighborsRegressor(BaseEstimator, ABC):
             (up to DISTANCE_PRECISION_DECIMALS decimal places) are ordered by
             their original index in the fitted data, with lower indices
             returned first.  If False, use the default ordering from
-            `KNeighborsRegressor.kneighbors`.
+            `KNeighborsRegressor.kneighbors`.  See the
+            [usage guide](`../../../usage/#deterministic-neighbor-ordering`)
+            for more details.
 
         Returns
         -------
