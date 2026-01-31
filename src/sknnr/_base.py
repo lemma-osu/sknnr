@@ -103,7 +103,7 @@ class RawKNNRegressor(
     Attributes
     ----------
     DISTANCE_PRECISION_DECIMALS : int, class attribute
-        Number of decimal places used when rounding distances to ensure
+        Number of decimal places used when rounding scaled distances to ensure
         deterministic neighbor ordering. Default is 10.
     effective_metric_ : str
         The distance metric to use. It will be same as the metric parameter
@@ -168,7 +168,7 @@ class RawKNNRegressor(
             are nearly identical.  If True, neighbors with nearly identical
             distances (up to DISTANCE_PRECISION_DECIMALS decimal places) are
             ordered lexicographically by:
-            (1) their rounded distances,
+            (1) their scaled and rounded distances,
             (2) the absolute difference between a query point's row index
                 and the neighbor index (so that a sample, when present, is
                 returned before other equally distant samples), and
@@ -343,7 +343,7 @@ class TransformedKNeighborsRegressor(BaseEstimator, ABC):
             are nearly identical.  If True, neighbors with nearly identical
             distances (up to DISTANCE_PRECISION_DECIMALS decimal places) are
             ordered lexicographically by:
-            (1) their rounded distances,
+            (1) their scaled and rounded distances,
             (2) the absolute difference between a query point's row index
                 and the neighbor index (so that a sample, when present, is
                 returned before other equally distant samples), and

@@ -49,7 +49,7 @@ print(est.independent_score_)
 
 In `sknnr`, we allow the user to enforce strict ordering of neighbors with deterministic tie-breaking when calling `kneighbors` by using the `use_deterministic_ordering` parameter. When this value is `True`, neighbors are sorted using the following logical order:
 
-1. **Rounded distances**: Neighbors are first sorted by their distances rounded to `RawKNNRegressor.DISTANCE_PRECISION_DECIMALS` decimal places (currently set to 10). Some floating point operations in distance determination (notably `numpy.dot`) can introduce very small numerical differences across platforms, which is effectively handled by this rounding.
+1. **Scaled and rounded distances**: Neighbors are first sorted by their scaled and rounded distances. Scaling is performed per query point such that each neighbor's distance is first normalized by dividing by the maximum distance for that query point (or 1.0 if the maximum distance is less than 1.0), then rounded to `RawKNNRegressor.DISTANCE_PRECISION_DECIMALS` decimal places (currently set to 10). Some floating point operations in distance determination (notably `numpy.dot`) can introduce very small numerical differences across platforms, which is effectively handled by this rounding.
 2. **Difference between query point row index and neighbors indexes**: If two or more neighbors have identical rounded distances, they are further sorted by the absolute difference between their row index in the training data and the row index of the query point. This ensures that when a sample is its own nearest neighbor, it will always be selected first.
 3. **Neighbor index**: If two or more neighbors are still tied based on the two above criteria, they are finally sorted by their row index in the training data.
 
