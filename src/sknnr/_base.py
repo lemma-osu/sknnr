@@ -102,6 +102,9 @@ class RawKNNRegressor(
 
     Attributes
     ----------
+    DISTANCE_PRECISION_DECIMALS : int, class attribute
+        Number of decimal places used when rounding scaled distances to ensure
+        deterministic neighbor ordering. Default is 10.
     effective_metric_ : str
         The distance metric to use. It will be same as the metric parameter
         or a synonym of it, e.g. 'euclidean' if the metric parameter set to
@@ -124,6 +127,8 @@ class RawKNNRegressor(
         Number of samples in the fitted data.
     """
 
+    DISTANCE_PRECISION_DECIMALS = 10
+
     def fit(self, X, y):
         """Override fit to set attributes using mixins."""
         self._set_dataframe_index_in(X)
@@ -137,11 +142,65 @@ class RawKNNRegressor(
         n_neighbors=None,
         return_distance=True,
         return_dataframe_index=False,
+        use_deterministic_ordering=True,
     ):
-        """Override kneighbors to optionally return dataframe indexes."""
+        """
+        Find the K-neighbors of a point or points in the dataset and optionally
+        return dataframe indexes rather than array indices when the model was
+        fitted with a dataframe.
+
+        Parameters
+        ----------
+        X : array-like of shape (n_queries, n_features), default=None
+            The query point or points. If not provided, neighbors of each
+            indexed point are returned. In this case, the query point is not
+            considered its own neighbor.
+        n_neighbors : int, default=None
+            Number of neighbors required for each sample. The default is the
+            value passed to the constructor.
+        return_distance : bool, default=True
+            Whether or not to return the distances.
+        return_dataframe_index : bool, default=False
+            Whether or not to return dataframe indexes instead of array indices.
+            Only applicable if the model was fitted with a dataframe.
+        use_deterministic_ordering : bool, default=True
+            Whether to use deterministic ordering of neighbors when distances
+            are nearly identical.  If True, neighbors with nearly identical
+            distances (up to DISTANCE_PRECISION_DECIMALS decimal places) are
+            ordered lexicographically by:
+            (1) their scaled and rounded distances,
+            (2) the absolute difference between a query point's row index
+                and the neighbor index (so that a sample, when present, is
+                returned before other equally distant samples), and
+            (3) the neighbor index iself.
+            If False, use the default ordering from
+            `KNeighborsRegressor.kneighbors`. See the
+            [usage guide](`../../../usage/#deterministic-neighbor-ordering`)
+            for more details.
+
+        Returns
+        -------
+        neigh_dist : array-like of shape (n_queries, n_neighbors)
+            Array representing the lengths to points, only present if
+            return_distance=True.
+        neigh_ind : array-like of shape (n_queries, n_neighbors)
+            Array indices or dataframe indexes of the nearest points in the
+            population matrix.
+        """
         neigh_dist, neigh_ind = super().kneighbors(
             X=X, n_neighbors=n_neighbors, return_distance=True
         )
+
+        if use_deterministic_ordering:
+            row_scale = np.maximum(neigh_dist.max(axis=1, keepdims=True), 1.0)
+            rounded = np.round(
+                neigh_dist / row_scale, decimals=self.DISTANCE_PRECISION_DECIMALS
+            )
+            neigh_ind_diff = np.abs(neigh_ind - np.arange(len(neigh_ind))[:, None])
+            sorted_indices = np.lexsort((neigh_ind, neigh_ind_diff, rounded), axis=1)
+
+            neigh_dist = np.take_along_axis(neigh_dist, sorted_indices, axis=1)
+            neigh_ind = np.take_along_axis(neigh_ind, sorted_indices, axis=1)
 
         if return_dataframe_index:
             msg = "Dataframe indexes can only be returned when fitted with a dataframe."
@@ -257,14 +316,59 @@ class TransformedKNeighborsRegressor(BaseEstimator, ABC):
         n_neighbors=None,
         return_distance=True,
         return_dataframe_index=False,
+        use_deterministic_ordering=True,
     ):
-        """Return neighbor indices and distances using transformed feature data."""
+        """
+        Find the K-neighbors of a point or points of transformed feature data
+        and optionally return dataframe indexes rather than array indices when
+        the model was fitted with a dataframe.
+
+        Parameters
+        ----------
+        X : array-like of shape (n_queries, n_features), default=None
+            The query point or points. Points are first transformed using the
+            fitted transformer. If not provided, neighbors of each indexed
+            point are returned. In this case, the query point is not
+            considered its own neighbor.
+        n_neighbors : int, default=None
+            Number of neighbors required for each sample. The default is the
+            value passed to the constructor.
+        return_distance : bool, default=True
+            Whether or not to return the distances.
+        return_dataframe_index : bool, default=False
+            Whether or not to return dataframe indexes instead of array indices.
+            Only applicable if the model was fitted with a dataframe.
+        use_deterministic_ordering : bool, default=True
+            Whether to use deterministic ordering of neighbors when distances
+            are nearly identical.  If True, neighbors with nearly identical
+            distances (up to DISTANCE_PRECISION_DECIMALS decimal places) are
+            ordered lexicographically by:
+            (1) their scaled and rounded distances,
+            (2) the absolute difference between a query point's row index
+                and the neighbor index (so that a sample, when present, is
+                returned before other equally distant samples), and
+            (3) the neighbor index iself.
+            If False, use the default ordering from
+            `KNeighborsRegressor.kneighbors`. See the
+            [usage guide](`../../../usage/#deterministic-neighbor-ordering`)
+            for more details.
+
+        Returns
+        -------
+        neigh_dist : array-like of shape (n_queries, n_neighbors)
+            Array representing the lengths to points, only present if
+            return_distance=True.
+        neigh_ind : array-like of shape (n_queries, n_neighbors)
+            Array indices or dataframe indexes of the nearest points in the
+            population matrix.
+        """
         X_transformed = self._transform_X(X)
         return self.regressor_.kneighbors(
             X=X_transformed,
             n_neighbors=n_neighbors,
             return_distance=return_distance,
             return_dataframe_index=return_dataframe_index,
+            use_deterministic_ordering=use_deterministic_ordering,
         )
 
     def predict(self, X):

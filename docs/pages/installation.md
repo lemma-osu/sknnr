@@ -3,6 +3,7 @@
 ## From PyPI
 
 !!! info
+
     `sknnr` is currently in pre-release on PyPI, so you'll need to use the `--pre` flag to install it.
 
 ```bash

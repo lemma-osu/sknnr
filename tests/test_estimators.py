@@ -282,6 +282,81 @@ def test_n_features_in(estimator, X_y_yfit):
     assert est.n_features_in_ == len(transformed_features)
 
 
+@pytest.mark.parametrize(
+    ("use_deterministic_ordering", "expected_idx_order"),
+    [(False, [1, 0]), (True, [0, 1])],
+)
+def test_kneighbors_deterministic_ordering(
+    use_deterministic_ordering, expected_idx_order
+):
+    """
+    Test that the use_deterministic_ordering parameter affects the order
+    of neighbors when distances are nearly identical.
+    """
+    X = np.array([1e-11, 1e-12, 1.0]).reshape(-1, 1)
+    y = np.array([0, 1, 2])
+
+    X_query = np.array([[0.0]])
+
+    _, idx = (
+        RawKNNRegressor(n_neighbors=2)
+        .fit(X, y)
+        .kneighbors(X_query, use_deterministic_ordering=use_deterministic_ordering)
+    )
+    assert_array_equal(idx[0], expected_idx_order)
+
+
+def test_kneighbors_uses_index_difference():
+    """
+    Test that when distances are considered to be identical, the absolute index
+    difference is used before indexes to order neighbors.
+    """
+    X = np.array([1e-11, 1e-12, 1.0]).reshape(-1, 1)
+    y = np.array([0, 1, 2])
+
+    # Use two identical query points which should have different
+    # neighbors due to their row indexes
+    X_query = np.array([[0.0], [0.0]])
+
+    _, idx = (
+        RawKNNRegressor(n_neighbors=2)
+        .fit(X, y)
+        .kneighbors(X_query, use_deterministic_ordering=True)
+    )
+    assert_array_equal(idx[0], [0, 1])
+    assert_array_equal(idx[1], [1, 0])
+
+
+@pytest.mark.parametrize(
+    ("precision_decimals", "expected_idx_order"),
+    [(8, [2, 1, 0]), (5, [1, 2, 0]), (2, [0, 1, 2])],
+)
+def test_kneighbors_precision_decimals(
+    monkeypatch, precision_decimals, expected_idx_order
+):
+    """
+    Test that changing DISTANCE_PRECISION_DECIMALS affects the order
+    of neighbors on small precision differences.
+    """
+    monkeypatch.setattr(
+        RawKNNRegressor, "DISTANCE_PRECISION_DECIMALS", precision_decimals
+    )
+
+    # Create features that differ by small amounts such that
+    # precision_decimals falls between them
+    X = np.array([1e-3, 1e-6, 1e-9, 1.0]).reshape(-1, 1)
+    y = np.array([0, 1, 2, 3])
+
+    X_query = np.array([[0.0]])
+
+    _, idx = (
+        RawKNNRegressor(n_neighbors=3)
+        .fit(X, y)
+        .kneighbors(X_query, use_deterministic_ordering=True)
+    )
+    assert_array_equal(idx[0], expected_idx_order)
+
+
 @pytest.mark.parametrize("forest_weights", ["uniform", [0.5, 1.5], (1.0, 2.0)])
 def test_rfnn_handles_forest_weights(forest_weights):
     """Test that RFNNRegressor handles forest weights correctly."""
