@@ -141,17 +141,25 @@ def test_estimators_with_mixed_type_forests(
     dataset = moscow_stjoes_test_data
     hyperparams = get_default_hyperparams(estimator, n_neighbors=5)
 
-    # Create y_fit data to have two columns - Total_BA and the species
-    # with the highest abundance.  This should use one regression forest and
-    # one classification forest in prediction.
+    # Basal area columns by species
     cols = [
         col
         for col in dataset.y_train.columns
         if col.endswith("_BA") and col != "Total_BA"
     ]
-    y_fit = dataset.y_train[["Total_BA"]].assign(
-        MAX_SPECIES=dataset.y_train[cols].idxmax(axis=1)
+
+    # Find the species with the maximum basal area per sample.  Then
+    # reclass into three classes - ABGR_BA, TSHE_BA (the two most dominant
+    # species in the training set) and OTHER (anything else).
+    max_species = dataset.y_train[cols].idxmax(axis=1)
+    max_species = max_species.where(
+        max_species.isin(["ABGR_BA", "TSHE_BA"]), other="OTHER"
     )
+
+    # Create y_fit data to have two columns - Total_BA and the maximum species
+    # class.  This should use one regression forest and one classification
+    # forest in prediction.
+    y_fit = dataset.y_train[["Total_BA"]].assign(MAX_SPECIES=max_species)
 
     est = estimator(**hyperparams).fit(dataset.X_train, dataset.y_train, y_fit=y_fit)
 
