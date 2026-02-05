@@ -41,8 +41,8 @@ dependencies = [
 ]
 
 [tool.hatch.envs.test.scripts]
-all = "pytest . {args} --doctest-modules"
-coverage = "pytest . --cov=src/sknnr {args} --doctest-modules"
+all = "pytest {args} --doctest-modules"
+coverage = "pytest --cov=src/sknnr {args} --doctest-modules"
 
 [tool.hatch.envs.test_matrix]
 template = "test"
