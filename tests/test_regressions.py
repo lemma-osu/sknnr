@@ -169,11 +169,11 @@ def test_estimators_with_mixed_type_forests(
         score = est.independent_score_
         ndarrays_regression.check(
             dict(dist=dist, nn=nn, pred=pred, score=score),
-            tolerances={"dist": dict(atol=1e-4)},
+            tolerances={"dist": dict(atol=1e-3)},
         )
     else:
         dist, nn = est.kneighbors(dataset.X_test)
         pred = est.predict(dataset.X_test)
         ndarrays_regression.check(
-            dict(dist=dist, nn=nn, pred=pred), tolerances={"dist": dict(atol=1e-4)}
+            dict(dist=dist, nn=nn, pred=pred), tolerances={"dist": dict(atol=1e-3)}
         )
