@@ -261,15 +261,16 @@ class GBNodeTransformer(TreeNodeTransformer):
         tree_weights = []
         if self.tree_weighting_method == "delta_loss":
             for est, target in zip(self.estimators_, y):
-                tree_weights.append(
-                    np.repeat(delta_loss(est, X, target), est.n_trees_per_iteration_)
-                )
+                weights = delta_loss(est, X, target)
+                weights /= weights.sum()
+                tree_weights.append(np.tile(weights, est.n_trees_per_iteration_))
             return tree_weights
 
         for est in self.estimators_:
             arr = np.ones(
                 (est.n_estimators * est.n_trees_per_iteration_,), dtype="float64"
             )
+            arr = arr / arr.sum(axis=0)
             tree_weights.append(arr)
         return tree_weights
 

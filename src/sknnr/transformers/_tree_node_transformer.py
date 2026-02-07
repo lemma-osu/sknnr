@@ -19,7 +19,9 @@ def uniform_weights(n_forests: int, n_estimators: int) -> list[NDArray[np.float6
     """
     Calculate uniform weights for an ensemble of tree-based estimators.
     """
-    return [np.ones(n_estimators, dtype="float64") for _ in range(n_forests)]
+    return [
+        np.ones(n_estimators, dtype="float64") / n_estimators for _ in range(n_forests)
+    ]
 
 
 class TreeNodeTransformer(TransformerMixin, BaseEstimator, ABC):
