@@ -12,12 +12,14 @@ from sklearn.utils.validation import check_is_fitted
 from ._tree_node_transformer import TreeNodeTransformer
 
 
-def delta_loss(
+def train_improvement(
     est: GradientBoostingClassifier | GradientBoostingRegressor, X: NDArray, y: NDArray
 ) -> NDArray:
     """
     Calculate tree weights as a function of the change in loss between
-    successive trees in a gradient boosting estimator.
+    successive trees in a gradient boosting estimator.  This behaves as a proxy
+    for the training improvement of each stage of the gradient boosting
+    estimator.
     """
     # Return indexes of classes and convert to floats if this is a
     # GradientBoostingClassifier which allows string or categorical targets
@@ -130,7 +132,8 @@ class GBNodeTransformer(TreeNodeTransformer):
         Tolerance for the early stopping.
     ccp_alpha : non-negative float, default=0.0
         Complexity parameter used for Minimal Cost-Complexity Pruning.
-    tree_weighting_method : {"delta_loss", "uniform"}, default="delta_loss"
+    tree_weighting_method : {"train_improvement", "uniform"},
+        default="train_improvement"
         The method used to weight the trees in each gradient boosting model.
 
     Attributes
@@ -161,6 +164,20 @@ class GBNodeTransformer(TreeNodeTransformer):
         there are multiple trees per iteration, so the shape of each weight
         array is (`self.n_estimators` * `self.n_trees_per_iteration_[i]`,).
         All weights for a single iteration are sequentially repeated.
+
+    Notes
+    -----
+    The `tree_weighting_method` parameter determines how the trees in each
+    forest are weighted when calculating distances between node indexes.
+    If `tree_weighting_method` is set to "train_improvement", tree weights are
+    calculated as a function of the change in loss between successive trees
+    in the gradient boosting estimator.  As such, weights are directly
+    proportional to the loss function specified and the user may want to
+    choose the appropriate loss function (i.e. `loss_reg` or `loss_clf`)
+    for their task.
+
+    If `tree_weighting_method` is set to "uniform", all trees are weighted
+    equally.
     """
 
     def __init__(
@@ -189,7 +206,9 @@ class GBNodeTransformer(TreeNodeTransformer):
         n_iter_no_change: int | None = None,
         tol: float = 0.0001,
         ccp_alpha: float = 0.0,
-        tree_weighting_method: Literal["delta_loss", "uniform"] = "delta_loss",
+        tree_weighting_method: Literal[
+            "train_improvement", "uniform"
+        ] = "train_improvement",
     ):
         self.loss_reg = loss_reg
         self.loss_clf = loss_clf
@@ -260,9 +279,9 @@ class GBNodeTransformer(TreeNodeTransformer):
 
     def _set_tree_weights(self, X, y) -> list[NDArray[np.float64]]:
         tree_weights = []
-        if self.tree_weighting_method == "delta_loss":
+        if self.tree_weighting_method == "train_improvement":
             for est, target in zip(self.estimators_, y):
-                weights = delta_loss(est, X, target)
+                weights = train_improvement(est, X, target)
                 weights /= weights.sum()
                 tree_weights.append(np.tile(weights, est.n_trees_per_iteration_))
             return tree_weights

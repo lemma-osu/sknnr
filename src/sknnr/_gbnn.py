@@ -99,7 +99,8 @@ class GBNNRegressor(WeightedTreesNNRegressor):
         weighting of targets when calculating distances. Note that all trees
         associated with a target will receive the same weight.  If "uniform",
         each tree is assigned equal weight.
-    tree_weighting_method: {"delta_loss", "uniform"}, default="delta_loss"
+    tree_weighting_method: {"train_improvement", "uniform"},
+        default="train_improvement"
         The method used to weight the trees in each gradient boosting model.
     n_neighbors : int, default=5
         Number of neighbors to use by default for `kneighbors` queries.
@@ -139,6 +140,20 @@ class GBNNRegressor(WeightedTreesNNRegressor):
         When `y_fit` is passed to `fit`, the data used to construct the
         individual gradient boosting models.  Note that all `y` data is used
         for prediction.
+
+    Notes
+    -----
+    The `tree_weighting_method` parameter determines how the trees in each
+    forest are weighted when calculating distances between node indexes.
+    If `tree_weighting_method` is set to "train_improvement", tree weights are
+    calculated as a function of the change in loss between successive trees
+    in the gradient boosting estimator.  As such, weights are directly
+    proportional to the loss function specified and the user may want to
+    choose the appropriate loss function (i.e. `loss_reg` or `loss_clf`)
+    for their task.
+
+    If `tree_weighting_method` is set to "uniform", all trees are weighted
+    equally.
     """
 
     def __init__(
@@ -169,7 +184,9 @@ class GBNNRegressor(WeightedTreesNNRegressor):
         tol: float = 0.0001,
         ccp_alpha: float = 0.0,
         forest_weights: Literal["uniform"] | ArrayLike[float] = "uniform",
-        tree_weighting_method: Literal["delta_loss", "uniform"] = "delta_loss",
+        tree_weighting_method: Literal[
+            "train_improvement", "uniform"
+        ] = "train_improvement",
         n_neighbors: int = 5,
         weights: Literal["uniform", "distance"] | Callable = "uniform",
         algorithm: Literal["auto", "ball_tree", "kd_tree", "brute"] = "auto",

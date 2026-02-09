@@ -344,7 +344,7 @@ def test_gbnode_transformer_non_default_parameterization(loss_reg, loss_clf, alp
             assert gb.get_params()["alpha"] == alpha_reg
 
 
-@pytest.mark.parametrize("tree_weighting_method", ["delta_loss", "uniform"])
+@pytest.mark.parametrize("tree_weighting_method", ["train_improvement", "uniform"])
 @pytest.mark.parametrize("n_classes", [2, 3, 5])
 def test_gbnode_transformer_multiclass(tree_weighting_method, n_classes):
     """

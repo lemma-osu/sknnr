@@ -440,7 +440,7 @@ def test_gbnn_multiclass_weights(forest_weights):
 
 @pytest.mark.parametrize("estimator", TEST_TREE_BASED_ESTIMATORS)
 @pytest.mark.parametrize("forest_weights", ["uniform", [0.5, 1.5], (1.0, 2.0)])
-@pytest.mark.parametrize("tree_weighting_method", ["uniform", "delta_loss"])
+@pytest.mark.parametrize("tree_weighting_method", ["uniform", "train_improvement"])
 def test_hamming_weights_sum_to_one(estimator, forest_weights, tree_weighting_method):
     """Test tree-based estimators create hamming weights that sum to 1."""
     X, y = load_moscow_stjoes(return_X_y=True, as_frame=True)
