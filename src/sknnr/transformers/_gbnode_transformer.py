@@ -4,6 +4,7 @@ from typing import Literal
 
 import numpy as np
 from numpy.typing import NDArray
+from sklearn._loss.loss import HalfBinomialLoss, HalfSquaredError
 from sklearn.base import BaseEstimator
 from sklearn.ensemble import GradientBoostingClassifier, GradientBoostingRegressor
 from sklearn.utils.validation import check_is_fitted
@@ -27,11 +28,11 @@ def delta_loss(
     )
 
     # Calculate the initial loss, which by default in regression is based
-    # on predicting the mean for all samples. The loss function is
-    # half-squared error, so multiply by 2 to be consistent with how
-    # sklearn calculates loss.
+    # on predicting the mean for all samples.  Use a multiplicative factor
+    # following the same calculation as in scikit-learn
+    factor = 2 if isinstance(est._loss, (HalfSquaredError, HalfBinomialLoss)) else 1
     initial_loss = (
-        est._loss(np.asarray(y, dtype="float64"), est._raw_predict_init(X)) * 2
+        est._loss(np.asarray(y, dtype="float64"), est._raw_predict_init(X)) * factor
     )
 
     # Calculate the change in loss at each stage
