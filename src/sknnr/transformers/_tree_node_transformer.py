@@ -15,6 +15,15 @@ if TYPE_CHECKING:
     import pandas as pd
 
 
+def uniform_weights(n_forests: int, n_estimators: int) -> list[NDArray[np.float64]]:
+    """
+    Calculate uniform weights for an ensemble of tree-based estimators.
+    """
+    return [
+        np.ones(n_estimators, dtype="float64") / n_estimators for _ in range(n_forests)
+    ]
+
+
 class TreeNodeTransformer(TransformerMixin, BaseEstimator, ABC):
     def _validate_and_promote_targets(
         self, y: Any, target_info: dict[str, np.dtype | pd.CategoricalDtype]
@@ -100,7 +109,7 @@ class TreeNodeTransformer(TransformerMixin, BaseEstimator, ABC):
         }
 
     def _fit(self, X, y, regressor_cls, classifier_cls, reg_kwargs, clf_kwargs):
-        _validate_data(self, X=X, reset=True)
+        X = _validate_data(self, X=X, reset=True)
 
         if y is None:
             msg = (
@@ -129,25 +138,44 @@ class TreeNodeTransformer(TransformerMixin, BaseEstimator, ABC):
             for i, target in enumerate(y)
         ]
         self.n_forests_ = len(self.estimators_)
-        self.tree_weights_ = self._set_tree_weights()
+        self.n_trees_per_iteration_ = self._set_n_trees_per_iteration()
+        self.tree_weights_ = self._set_tree_weights(X, y)
         return self
 
     @abstractmethod
-    def _set_tree_weights(self): ...
+    def _set_n_trees_per_iteration(self) -> list[int]: ...
+
+    @abstractmethod
+    def _set_tree_weights(self, X, y) -> list[NDArray[np.float64]]: ...
 
     @abstractmethod
     def fit(self, X, y): ...
 
     def transform(self, X):
         check_is_fitted(self)
-        _validate_data(
+        X = _validate_data(
             self,
             X=X,
             reset=False,
             ensure_min_features=1,
             ensure_min_samples=1,
         )
-        return np.hstack([est.apply(X) for est in self.estimators_]).astype("int64")
+
+        # Get the node IDs for each tree in each forest
+        node_ids = []
+        for est in self.estimators_:
+            est_node_ids = est.apply(X)
+            # In the case of some multi-class estimators (e.g.
+            # GradientBoostingClassifier), the output of `apply` is 3D (n_samples,
+            # n_estimators, n_classes). First swap axes to get (n_samples,
+            # n_classes, n_estimators), then flatten the last two dimensions
+            # to ensure a 2D output.
+            if est_node_ids.ndim == 3:
+                est_node_ids = np.swapaxes(est_node_ids, 1, 2).reshape(
+                    est_node_ids.shape[0], -1
+                )
+            node_ids.append(est_node_ids)
+        return np.hstack(node_ids).astype("int64")
 
     def fit_transform(self, X, y):
         return self.fit(X, y).transform(X)

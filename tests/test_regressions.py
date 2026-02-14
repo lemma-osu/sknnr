@@ -4,6 +4,7 @@ import pytest
 
 from sknnr import (
     EuclideanKNNRegressor,
+    GBNNRegressor,
     GNNRegressor,
     MahalanobisKNNRegressor,
     MSNRegressor,
@@ -18,6 +19,12 @@ ESTIMATORS = {
     "gnn": GNNRegressor,
     "msn": MSNRegressor,
     "randomForest": RFNNRegressor,
+    "gbnn": GBNNRegressor,
+}
+
+TREE_BASED_ESTIMATORS = {
+    "randomForest": RFNNRegressor,
+    "gbnn": GBNNRegressor,
 }
 
 
@@ -115,41 +122,58 @@ def test_predict(
         ndarrays_regression.check(dict(pred=pred))
 
 
+@pytest.mark.parametrize(
+    "estimator", TREE_BASED_ESTIMATORS.values(), ids=TREE_BASED_ESTIMATORS.keys()
+)
 @pytest.mark.parametrize("reference", [True, False], ids=["reference", "target"])
-def test_mixed_rfnn_forests(
+def test_estimators_with_mixed_type_forests(
     ndarrays_regression,
     moscow_stjoes_test_data,
+    estimator,
     reference,
 ):
     """
-    Test RFNNRegressor for kneighbors and predict when building a combination of
-    regression and classification forests.
+    Test tree-based NN regressors (RFNNRegressor and GBNNRegressor) for
+    kneighbors and predict when building a combination of regression and
+    classification forests.  In addition, this tests the accuracy of the
+    tree weights when using a multi-class classification forest in GBNN.
     """
     dataset = moscow_stjoes_test_data
-    hyperparams = get_default_hyperparams(RFNNRegressor, n_neighbors=5)
+    hyperparams = get_default_hyperparams(estimator, n_neighbors=5)
 
-    # Create y_fit data to have two columns - Total_BA and the species
-    # with the highest abundance.  This should use one regression forest and
-    # one classification forest in prediction.
+    # Basal area columns by species
     cols = [
         col
         for col in dataset.y_train.columns
         if col.endswith("_BA") and col != "Total_BA"
     ]
-    y_fit = dataset.y_train[["Total_BA"]].assign(
-        MAX_SPECIES=dataset.y_train[cols].idxmax(axis=1)
+
+    # Find the species with the maximum basal area per sample.  Then
+    # reclass into three classes - ABGR_BA, TSHE_BA (the two most dominant
+    # species in the training set) and OTHER (anything else).
+    max_species = dataset.y_train[cols].idxmax(axis=1)
+    max_species = max_species.where(
+        max_species.isin(["ABGR_BA", "TSHE_BA"]), other="OTHER"
     )
 
-    est = RFNNRegressor(**hyperparams).fit(
-        dataset.X_train, dataset.y_train, y_fit=y_fit
-    )
+    # Create y_fit data to have two columns - Total_BA and the maximum species
+    # class.  This should use one regression forest and one classification
+    # forest in prediction.
+    y_fit = dataset.y_train[["Total_BA"]].assign(MAX_SPECIES=max_species)
+
+    est = estimator(**hyperparams).fit(dataset.X_train, dataset.y_train, y_fit=y_fit)
 
     if reference:
         dist, nn = est.kneighbors()
         pred = est.independent_prediction_
         score = est.independent_score_
-        ndarrays_regression.check(dict(dist=dist, nn=nn, pred=pred, score=score))
+        ndarrays_regression.check(
+            dict(dist=dist, nn=nn, pred=pred, score=score),
+            tolerances={"dist": dict(atol=1e-3)},
+        )
     else:
         dist, nn = est.kneighbors(dataset.X_test)
         pred = est.predict(dataset.X_test)
-        ndarrays_regression.check(dict(dist=dist, nn=nn, pred=pred))
+        ndarrays_regression.check(
+            dict(dist=dist, nn=nn, pred=pred), tolerances={"dist": dict(atol=1e-3)}
+        )

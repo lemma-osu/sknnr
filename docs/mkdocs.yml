@@ -15,12 +15,14 @@ nav:
       - GNNRegressor: api/estimators/gnn.md
       - MSNRegressor: api/estimators/msn.md
       - RFNNRegressor: api/estimators/rfnn.md
+      - GBNNRegressor: api/estimators/gbnn.md
     - Transformers:
       - StandardScalerWithDOF: api/transformers/standardscalerwithdof.md
       - MahalanobisTransformer: api/transformers/mahalanobis.md
       - CCATransformer: api/transformers/cca.md
       - CCorATransformer: api/transformers/ccora.md
       - RFNodeTransformer: api/transformers/rfnode.md
+      - GBNodeTransformer: api/transformers/gbnode.md
     - Datasets:
       - Dataset: api/datasets/dataset.md
       - "Moscow Mountain / St. Joes": api/datasets/moscow_stjoes.md

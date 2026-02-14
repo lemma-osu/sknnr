@@ -12,6 +12,7 @@ from sklearn.utils.validation import NotFittedError
 
 from sknnr import (
     EuclideanKNNRegressor,
+    GBNNRegressor,
     GNNRegressor,
     MahalanobisKNNRegressor,
     MSNRegressor,
@@ -27,6 +28,7 @@ TEST_ESTIMATORS = [
     MSNRegressor,
     GNNRegressor,
     RFNNRegressor,
+    GBNNRegressor,
 ]
 
 TEST_TRANSFORMED_ESTIMATORS = [
@@ -35,9 +37,24 @@ TEST_TRANSFORMED_ESTIMATORS = [
     MSNRegressor,
     GNNRegressor,
     RFNNRegressor,
+    GBNNRegressor,
 ]
 
-TEST_YFIT_ESTIMATORS = [MSNRegressor, GNNRegressor, RFNNRegressor]
+TEST_YFIT_ESTIMATORS = [MSNRegressor, GNNRegressor, RFNNRegressor, GBNNRegressor]
+
+TEST_TREE_BASED_ESTIMATORS = [RFNNRegressor, GBNNRegressor]
+
+
+def standardize_user_forest_weights(
+    forest_weights: str | list[int | float], n_forests: int
+) -> NDArray[np.float64]:
+    """Standardize user-supplied forest weights for comparison."""
+    if isinstance(forest_weights, str) and forest_weights == "uniform":
+        forest_weights_arr = np.ones(n_forests, dtype="float64") / n_forests
+    else:
+        forest_weights_arr = np.asarray(forest_weights, dtype="float64")
+        forest_weights_arr /= np.sum(forest_weights_arr)
+    return forest_weights_arr
 
 
 def get_estimator_xfail_checks(estimator) -> dict[str, str]:
@@ -95,7 +112,7 @@ def get_estimator_xfail_checks(estimator) -> dict[str, str]:
             }
         )
 
-    if isinstance(estimator, (GNNRegressor, MSNRegressor, RFNNRegressor)):
+    if isinstance(estimator, tuple(TEST_YFIT_ESTIMATORS)):
         # These checks fail because the transformed estimators store the number of
         # transformed features rather than raw input features as expected by sklearn.
         n_features_in_checks = [
@@ -357,29 +374,94 @@ def test_kneighbors_precision_decimals(
     assert_array_equal(idx[0], expected_idx_order)
 
 
+@pytest.mark.parametrize("estimator", TEST_TREE_BASED_ESTIMATORS)
 @pytest.mark.parametrize("forest_weights", ["uniform", [0.5, 1.5], (1.0, 2.0)])
-def test_rfnn_handles_forest_weights(forest_weights):
-    """Test that RFNNRegressor handles forest weights correctly."""
+def test_tree_estimator_handles_forest_weights(estimator, forest_weights):
+    """Test tree-based estimators handle forest weights correctly."""
+    X, y = load_moscow_stjoes(return_X_y=True, as_frame=True)
+    y = y.iloc[:, :2]
+
+    est = estimator(forest_weights=forest_weights).fit(X, y)
+
+    assert hasattr(est.transformer_, "tree_weights_")
+
+    # `est.hamming_weights_` is a 1D array with length equal to the
+    # total number of trees across all forests.  The sum of the weights across
+    # trees in each forest should be proportional to the corresponding forest
+    # weight
+    calculated_forest_weights = est.hamming_weights_.reshape(
+        est.transformer_.n_forests_, -1
+    ).sum(axis=1)
+
+    # Standardize the user-supplied forest weights for comparison
+    forest_weights_arr = standardize_user_forest_weights(
+        forest_weights, est.transformer_.n_forests_
+    )
+
+    assert np.allclose(calculated_forest_weights, forest_weights_arr, atol=1e-3)
+
+
+@pytest.mark.parametrize("forest_weights", ["uniform", [0.5, 1.5], (1.0, 2.0)])
+def test_gbnn_multiclass_weights(forest_weights):
+    """Test GBNN in multi-class mode handles forest weights correctly."""
+    X, y = load_moscow_stjoes(return_X_y=True, as_frame=True)
+    y_fit = y[["Total_BA"]].assign(
+        ABGR_CLASS=np.digitize(
+            y.iloc[:, 0], np.percentile(y.iloc[:, 0], [33, 66])
+        ).astype(str)
+    )
+
+    est = GBNNRegressor(forest_weights=forest_weights).fit(X, y, y_fit=y_fit)
+    assert hasattr(est.transformer_, "tree_weights_")
+
+    # With GBNN multi-class classification forests, `est.hamming_weights_` is a
+    # bit more complex.  It is still a 1D array, but the length is equal to
+    # the sum of (n_classes * n_estimators) across all forests.  In this test,
+    # with n_estimators=100 and 3 classes, the classification forest will
+    # have 300 weights, and the regression forest will have 100 weights.
+    # The sum of the weights across all trees in the forest should still be
+    # proportional to the corresponding forest weight, but will be divided by
+    # and repeated for the number of classes.
+
+    calculated_forest_weights = est.hamming_weights_.reshape(
+        -1, est.transformer_.n_estimators
+    ).sum(axis=1)
+
+    # Standardize the user-supplied forest weights for comparison
+    forest_weights_arr = standardize_user_forest_weights(
+        forest_weights, est.transformer_.n_forests_
+    )
+
+    # Spread and repeat the forest weights across the number of classes
+    n_classes = np.asarray(est.transformer_.n_trees_per_iteration_)
+    expected_weights = np.repeat(forest_weights_arr / n_classes, n_classes)
+    assert np.allclose(calculated_forest_weights, expected_weights, atol=1e-3)
+
+
+@pytest.mark.parametrize("estimator", TEST_TREE_BASED_ESTIMATORS)
+@pytest.mark.parametrize("forest_weights", ["uniform", [0.5, 1.5], (1.0, 2.0)])
+@pytest.mark.parametrize("tree_weighting_method", ["uniform", "train_improvement"])
+def test_hamming_weights_sum_to_one(estimator, forest_weights, tree_weighting_method):
+    """Test tree-based estimators create hamming weights that sum to 1."""
     X, y = load_moscow_stjoes(return_X_y=True, as_frame=True)
     num_weights = 1 if forest_weights == "uniform" else len(forest_weights)
     y = y.iloc[:, :num_weights]
 
-    est = RFNNRegressor(forest_weights=forest_weights).fit(X, y)
-
-    assert hasattr(est.transformer_, "tree_weights_")
-
-    if isinstance(forest_weights, str) and forest_weights == "uniform":
-        assert np.all(est.hamming_weights_ == 1.0)
-    else:
-        values, counts = np.unique(est.hamming_weights_, return_counts=True)
-        assert set(values) == set(forest_weights)
-        assert np.all(counts == est.n_estimators)
+    # Set tree_weighting_method for GBNNRegressor
+    kwargs = (
+        {"tree_weighting_method": tree_weighting_method}
+        if estimator is GBNNRegressor
+        else {}
+    )
+    est = estimator(forest_weights=forest_weights, **kwargs).fit(X, y)
+    assert np.isclose(est.hamming_weights_.sum(), 1.0)
 
 
-def test_rfnn_raises_on_invalid_forest_weights():
+@pytest.mark.parametrize("estimator", TEST_TREE_BASED_ESTIMATORS)
+def test_tree_estimator_raises_on_invalid_forest_weights(estimator):
     """Test that tree-based estimators raise on invalid forest weights."""
     X, y = load_moscow_stjoes(return_X_y=True, as_frame=True)
     y = y.iloc[:, :2]
 
     with pytest.raises(ValueError, match=r"Expected `forest_weights` to have length 2"):
-        RFNNRegressor(forest_weights=[0.5]).fit(X, y)
+        estimator(forest_weights=[0.5]).fit(X, y)

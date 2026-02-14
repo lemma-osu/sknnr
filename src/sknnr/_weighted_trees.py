@@ -6,9 +6,7 @@ import numpy as np
 from numpy.typing import ArrayLike
 
 from ._base import TransformedKNeighborsRegressor, YFitMixin
-from .transformers import RFNodeTransformer
-
-TREE_NODE_TRANSFORMER = RFNodeTransformer
+from .transformers._tree_node_transformer import TreeNodeTransformer
 
 
 class WeightedTreesNNRegressor(YFitMixin, TransformedKNeighborsRegressor):
@@ -35,12 +33,12 @@ class WeightedTreesNNRegressor(YFitMixin, TransformedKNeighborsRegressor):
 
     Notes
     -----
-    Because this class does not implement the `_get_transformer` method, this class
+    Because this class does not implement the `_get_transformer` method, it
     cannot be instantiated directly. Instead, use subclasses that implement the
     `_get_transformer` method.
     """
 
-    transformer_: TREE_NODE_TRANSFORMER
+    transformer_: TreeNodeTransformer
     forest_weights: Literal["uniform"] | ArrayLike[float]
 
     def __init__(
@@ -69,28 +67,39 @@ class WeightedTreesNNRegressor(YFitMixin, TransformedKNeighborsRegressor):
         """
         Get the weights for the Hamming distance metric, based on tree weights
         from the transformer and forest weights provided as a user parameter.
+        Hamming weights should sum to 1.0 across all trees in the transformer.
         """
+        n_forests = self.transformer_.n_forests_
+
         # Equal weighting for all forests
         if isinstance(self.forest_weights, str) and self.forest_weights == "uniform":
-            forest_weights_arr = np.ones(
-                (self.transformer_.n_forests_, 1), dtype="float64"
-            )
+            forest_weights_arr = np.ones(n_forests, dtype="float64") / n_forests
 
         # User-supplied forest weights
         else:
-            if len(self.forest_weights) != self.transformer_.n_forests_:
+            if len(self.forest_weights) != n_forests:
                 raise ValueError(
                     "Expected `forest_weights` to have length "
-                    f"{self.transformer_.n_forests_}, but got "
-                    f"{len(self.forest_weights)}."
+                    f"{n_forests}, but got {len(self.forest_weights)}."
                 )
-            forest_weights_arr = np.asarray(
-                self.forest_weights, dtype="float64"
-            ).reshape(-1, 1)
+            forest_weights_arr = np.asarray(self.forest_weights, dtype="float64")
+            forest_weights_arr /= np.sum(forest_weights_arr)
+
+        # Adjust forest weights based on whether the forest creates multiple trees
+        # per iteration (i.e. classification with multiple classes in gradient
+        # boosting).  This ensures that forests with more trees do not
+        # disproportionately influence the distance metric.
+        for i in range(len(forest_weights_arr)):
+            forest_weights_arr[i] /= self.transformer_.n_trees_per_iteration_[i]
 
         # Element-wise multiply the transformer's tree weights with the forest_weights
         # and set the Hamming metric weights
-        return (forest_weights_arr * self.transformer_.tree_weights_).flatten()
+        return np.hstack(
+            [
+                tw * fw
+                for tw, fw in zip(self.transformer_.tree_weights_, forest_weights_arr)
+            ]
+        )
 
     def _get_additional_regressor_init_kwargs(self) -> dict:
         return {"metric_params": {"w": self.hamming_weights_}}

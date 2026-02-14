@@ -1,6 +1,6 @@
 ## Estimators
 
-`sknnr` provides six estimators that are fully compatible, drop-in replacements for `scikit-learn` estimators:
+`sknnr` provides seven estimators that are fully compatible, drop-in replacements for `scikit-learn` estimators:
 
 - [RawKNNRegressor](api/estimators/raw.md)
 - [EuclideanKNNRegressor](api/estimators/euclidean.md)
@@ -8,6 +8,7 @@
 - [GNNRegressor](api/estimators/gnn.md)
 - [MSNRegressor](api/estimators/msn.md)
 - [RFNNRegressor](api/estimators/rfnn.md)
+- [GBNNRegressor](api/estimators/gbnn.md)
 
 These estimators can be used like any other `sklearn` regressor (or [classifier](#regression-and-classification))[^sklearn-docs].
 
@@ -128,11 +129,11 @@ print(y.loc[neighbor_ids[0]])
 
 ### Y-Fit Data
 
-The [GNNRegressor](api/estimators/gnn.md), [MSNRegressor](api/estimators/msn.md), and [RFNNRegressor](api/estimators/rfnn.md) estimators can be fit with `X` and `y` data, but they also accept an optional `y_fit` parameter. If provided, `y_fit` is used to fit the ordination transformer while `y` is used to fit the kNN regressor.
+The [GNNRegressor](api/estimators/gnn.md), [MSNRegressor](api/estimators/msn.md), [RFNNRegressor](api/estimators/rfnn.md), and [GBNNRegressor](api/estimators/gbnn.md) estimators can be fit with `X` and `y` data, but they also accept an optional `y_fit` parameter. If provided, `y_fit` is used to fit the ordination transformer while `y` is used to fit the kNN regressor.
 
 In forest attribute estimation, the underlying ordination transformations for two of these estimators (CCA for GNN and CCorA for MSN) typically use a matrix of species abundances or presence/absence information to relate the species data to environmental covariates, but often the user wants predictions based not on these features, but rather attributes that describe forest structure (e.g. biomass) or composition (e.g. species richness). In this case, the species matrix would be specified as `y_fit` and the stand attributes would be specified as `y`.
 
-For RFNN, the `y_fit` parameter can be used to specify the attributes for which individual random forests will be created (one forest per feature). As with GNN and MSN, the `y` parameter can then be used to specify the attributes that will be predicted by the nearest neighbors.
+For RFNN and GBNN, the `y_fit` parameter can be used to specify the attributes for which individual forests will be created (one forest per feature). As with GNN and MSN, the `y` parameter can then be used to specify the attributes that will be predicted by the nearest neighbors.
 
 ```python
 from sknnr import GNNRegressor
@@ -152,9 +153,11 @@ est = GNNRegressor(n_components=3).fit(X, y)
 
     The maximum number of components depends on the input data and the estimator. Specifying `n_components` greater than the maximum number of components will raise an error.
 
-### RFNN Distance Metric
+### RFNN and GBNN Distance Metric
 
-For all estimators other than [RFNNRegressor](api/estimators/rfnn.md), the distance metric used to determine nearest neighbors is the Euclidean distance between samples in the transformed space. RFNN, on the other hand, first builds a random forest for each feature in the `y` (or `y_fit`) matrix and then captures the node IDs (_not_ values) for each sample on every forest and tree. The distance between samples is calculated using [Hamming Distance](https://en.wikipedia.org/wiki/Hamming_distance), which captures the number of node IDs that are different between the target and reference samples and then divided by the total number of nodes. Therefore, a target and reference sample that share _all_ node IDs would have a distance of 0, whereas a target and reference sample that share _no_ node IDs would have a distance of 1.
+For all estimators other than [RFNNRegressor](api/estimators/rfnn.md) and [GBNNRegressor](api/estimators/gbnn.md), the distance metric used to determine nearest neighbors is the Euclidean distance between samples in the transformed space. RFNN and GBNN, on the other hand, first build a forest for each feature in the `y` (or `y_fit`) matrix and then capture the node IDs (_not_ values) for each sample on every forest and tree. The distance between samples is calculated using [Hamming Distance](https://en.wikipedia.org/wiki/Hamming_distance), which captures the number of node IDs that are different between the target and reference samples and then divided by the total number of nodes. Therefore, a target and reference sample that share _all_ node IDs would have a distance of 0, whereas a target and reference sample that share _no_ node IDs would have a distance of 1.
+
+Additionally, GBNN allows users to specify the `tree_weighting_method` parameter, which applies weights to the Hamming distance calculation based on the importance of the tree stage in training. When `tree_weighting_method` is set to `"train_improvement"`, tree stages that contribute more to reducing training loss are weighted more heavily. When `tree_weighting_method` is set to `"uniform"`, all trees are weighted equally.
 
 ### Custom Transformers
 
@@ -174,6 +177,7 @@ print(cca.fit_transform(X, y))
 - [CCATransformer](api/transformers/cca.md)
 - [CCorATransformer](api/transformers/ccora.md)
 - [RFNodeTransformer](api/transformers/rfnode.md)
+- [GBNodeTransformer](api/transformers/gbnode.md)
 
 ## Datasets
 
