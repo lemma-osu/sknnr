@@ -296,11 +296,17 @@ class GBNodeTransformer(TreeNodeTransformer):
 
     def get_feature_names_out(self) -> NDArray:
         check_is_fitted(self, "estimators_")
-        return np.asarray(
-            [
-                f"gb{i}_tree{j}"
-                for i in range(len(self.estimators_))
-                for j in range(self.estimators_[i].n_estimators)
-            ],
-            dtype=object,
-        )
+        feature_names = []
+        for i, est in enumerate(self.estimators_):
+            # Regression and binary classification have 1 tree per iteration
+            if est.n_trees_per_iteration_ == 1:
+                feature_names.extend(
+                    [f"gb{i}_tree{k}" for k in range(est.n_estimators)]
+                )
+            # Multi-class classification has n_classes trees per iteration
+            else:
+                for j in range(est.n_trees_per_iteration_):
+                    feature_names.extend(
+                        [f"gb{i}_cls{j}_tree{k}" for k in range(est.n_estimators)]
+                    )
+        return np.asarray(feature_names, dtype=object)
