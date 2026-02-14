@@ -361,7 +361,7 @@ def test_gbnode_transformer_multiclass(tree_weighting_method, n_classes):
 
     # Adjust y to be 2D with a multiclass target, a binary target, and a
     # continuous target.
-    y = np.vstack([y.astype(str), y % 2, y.astype(float)], dtype="object").T
+    y = np.array([y.astype(str), y % 2, y.astype(float)], dtype=object).T
 
     # The special case of n_classes=2 is really binary classification
     # so expected_n_classes should be 1
