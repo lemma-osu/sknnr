@@ -162,14 +162,19 @@ class TreeNodeTransformer(TransformerMixin, BaseEstimator, ABC):
         )
 
         # Get the node IDs for each tree in each forest
-        # In the case of certain multi-class estimators (e.g.
-        # GradientBoostingClassifier), the output of `apply` is 3D,
-        # (n_samples, n_estimators, n_classes), so flatten the last two
-        # dimensions to ensure a 2D output
-        node_ids = [
-            arr.reshape(arr.shape[0], -1) if arr.ndim == 3 else arr
-            for arr in (est.apply(X) for est in self.estimators_)
-        ]
+        node_ids = []
+        for est in self.estimators_:
+            est_node_ids = est.apply(X)
+            # In the case of some multi-class estimators (e.g.
+            # GradientBoostingClassifier), the output of `apply` is 3D (n_samples,
+            # n_estimators, n_classes). First swap axes to get (n_samples,
+            # n_classes, n_estimators), then flatten the last two dimensions
+            # to ensure a 2D output.
+            if est_node_ids.ndim == 3:
+                est_node_ids = np.swapaxes(est_node_ids, 1, 2).reshape(
+                    est_node_ids.shape[0], -1
+                )
+            node_ids.append(est_node_ids)
         return np.hstack(node_ids).astype("int64")
 
     def fit_transform(self, X, y):
