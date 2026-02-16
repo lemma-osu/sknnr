@@ -458,10 +458,31 @@ def test_hamming_weights_sum_to_one(estimator, forest_weights, tree_weighting_me
 
 
 @pytest.mark.parametrize("estimator", TEST_TREE_BASED_ESTIMATORS)
-def test_tree_estimator_raises_on_invalid_forest_weights(estimator):
+@pytest.mark.parametrize(
+    ("forest_weights", "expected_msg"),
+    [
+        ([0.5], "Expected `forest_weights` to have length 2"),
+        ("ab", "`forest_weights` must be a sequence of numeric values"),
+        (["a", "b"], "`forest_weights` must be a sequence of numeric values"),
+        ([np.inf, 0.5], "Expected elements in `forest_weights` to be finite"),
+        ([0.5, np.nan], "Expected elements in `forest_weights` to be finite"),
+        ([0.5, -0.5], "Expected elements in `forest_weights` to be non-negative"),
+    ],
+    ids=[
+        "invalid_length",
+        "non_numeric_scalar",
+        "non_numeric_sequence",
+        "infinite_weight",
+        "nan_weight",
+        "negative_weights",
+    ],
+)
+def test_tree_estimator_raises_on_invalid_forest_weights(
+    estimator, forest_weights, expected_msg
+):
     """Test that tree-based estimators raise on invalid forest weights."""
     X, y = load_moscow_stjoes(return_X_y=True, as_frame=True)
     y = y.iloc[:, :2]
 
-    with pytest.raises(ValueError, match=r"Expected `forest_weights` to have length 2"):
-        estimator(forest_weights=[0.5]).fit(X, y)
+    with pytest.raises(ValueError, match=expected_msg):
+        estimator(forest_weights=forest_weights).fit(X, y)

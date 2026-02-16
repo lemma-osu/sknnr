@@ -77,12 +77,7 @@ class WeightedTreesNNRegressor(YFitMixin, TransformedKNeighborsRegressor):
 
         # User-supplied forest weights
         else:
-            if len(self.forest_weights) != n_forests:
-                raise ValueError(
-                    "Expected `forest_weights` to have length "
-                    f"{n_forests}, but got {len(self.forest_weights)}."
-                )
-            forest_weights_arr = np.asarray(self.forest_weights, dtype="float64")
+            forest_weights_arr = self._validate_user_forest_weights()
             forest_weights_arr /= np.sum(forest_weights_arr)
 
         # Adjust forest weights based on whether the forest creates multiple trees
@@ -100,6 +95,39 @@ class WeightedTreesNNRegressor(YFitMixin, TransformedKNeighborsRegressor):
                 for tw, fw in zip(self.transformer_.tree_weights_, forest_weights_arr)
             ]
         )
+
+    def _validate_user_forest_weights(self):
+        """
+        Validate user-supplied forest weights, ensuring they are numeric,
+        finite and non-negative.
+        """
+        n_forests = self.transformer_.n_forests_
+        try:
+            forest_weights = np.asarray(self.forest_weights, dtype="float64")
+        except (TypeError, ValueError) as e:
+            raise ValueError(
+                f"`forest_weights` must be a sequence of numeric values, "
+                f"but got {self.forest_weights} instead."
+            ) from e
+
+        if forest_weights.shape != (n_forests,):
+            raise ValueError(
+                f"Expected `forest_weights` to have length {n_forests}, "
+                f"but got {len(forest_weights)}."
+            )
+
+        if not np.all(np.isfinite(forest_weights)):
+            raise ValueError(
+                f"Expected elements in `forest_weights` to be finite, "
+                f"but got {self.forest_weights}."
+            )
+
+        if np.any(forest_weights < 0):
+            raise ValueError(
+                f"Expected elements in `forest_weights` to be non-negative, "
+                f"but got {self.forest_weights}."
+            )
+        return forest_weights
 
     def _get_additional_regressor_init_kwargs(self) -> dict:
         return {"metric_params": {"w": self.hamming_weights_}}
