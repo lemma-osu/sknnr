@@ -106,10 +106,6 @@ class GBNNRegressor(WeightedTreesNNRegressor):
         Number of neighbors to use by default for `kneighbors` queries.
     weights : {"uniform", "distance"}, callable or None, default="uniform"
         Weight function used in prediction.
-    algorithm : {"auto", "ball_tree", "kd_tree", "brute"}, default="auto"
-        Algorithm used to compute the nearest neighbors.
-    leaf_size : int, default=30
-        Leaf size passed to `BallTree` or `KDTree`.
     n_jobs : int or None, default=None
         The number of jobs to run in parallel.
 
@@ -189,8 +185,6 @@ class GBNNRegressor(WeightedTreesNNRegressor):
         ] = "train_improvement",
         n_neighbors: int = 5,
         weights: Literal["uniform", "distance"] | Callable = "uniform",
-        algorithm: Literal["auto", "ball_tree", "kd_tree", "brute"] = "auto",
-        leaf_size: int = 30,
         n_jobs: int | None = None,
     ):
         self.loss_reg = loss_reg
@@ -221,8 +215,6 @@ class GBNNRegressor(WeightedTreesNNRegressor):
         super().__init__(
             n_neighbors=n_neighbors,
             weights=weights,
-            algorithm=algorithm,
-            leaf_size=leaf_size,
             n_jobs=n_jobs,
         )
 
