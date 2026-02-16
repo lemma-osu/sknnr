@@ -123,7 +123,7 @@ def test_predict(
 
 
 @pytest.mark.parametrize(
-    ("estimator", "reference", "precision"),
+    ("estimator", "reference", "atol_precision"),
     [
         # Set a higher precision threshold for GBNN with target-based forests
         # because the tree weights are less accurate when using a
@@ -145,7 +145,7 @@ def test_estimators_with_mixed_type_forests(
     moscow_stjoes_test_data,
     estimator,
     reference,
-    precision,
+    atol_precision,
 ):
     """
     Test tree-based NN regressors (RFNNRegressor and GBNNRegressor) for
@@ -184,11 +184,12 @@ def test_estimators_with_mixed_type_forests(
         score = est.independent_score_
         ndarrays_regression.check(
             dict(dist=dist, nn=nn, pred=pred, score=score),
-            tolerances={"dist": dict(atol=precision)},
+            tolerances={"dist": dict(atol=atol_precision)},
         )
     else:
         dist, nn = est.kneighbors(dataset.X_test)
         pred = est.predict(dataset.X_test)
         ndarrays_regression.check(
-            dict(dist=dist, nn=nn, pred=pred), tolerances={"dist": dict(atol=precision)}
+            dict(dist=dist, nn=nn, pred=pred),
+            tolerances={"dist": dict(atol=atol_precision)},
         )
