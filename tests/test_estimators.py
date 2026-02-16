@@ -462,19 +462,23 @@ def test_hamming_weights_sum_to_one(estimator, forest_weights, tree_weighting_me
     ("forest_weights", "expected_msg"),
     [
         ([0.5], "Expected `forest_weights` to have length 2"),
+        (1, "Expected `forest_weights` to have length 2"),
         ("ab", "`forest_weights` must be a sequence of numeric values"),
         (["a", "b"], "`forest_weights` must be a sequence of numeric values"),
         ([np.inf, 0.5], "Expected elements in `forest_weights` to be finite"),
         ([0.5, np.nan], "Expected elements in `forest_weights` to be finite"),
         ([0.5, -0.5], "Expected elements in `forest_weights` to be non-negative"),
+        ([0, 0], "At least one element in `forest_weights` must be positive"),
     ],
     ids=[
         "invalid_length",
+        "numeric_scalar",
         "non_numeric_scalar",
         "non_numeric_sequence",
         "infinite_weight",
         "nan_weight",
         "negative_weights",
+        "zero_weights",
     ],
 )
 def test_tree_estimator_raises_on_invalid_forest_weights(

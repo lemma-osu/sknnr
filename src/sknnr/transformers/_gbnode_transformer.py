@@ -284,12 +284,17 @@ class GBNodeTransformer(TreeNodeTransformer):
                 weights = train_improvement(est, X, target)
                 weights /= weights.sum()
                 tree_weights.append(np.tile(weights, est.n_trees_per_iteration_))
-            return tree_weights
+        elif self.tree_weighting_method == "uniform":
+            for est in self.estimators_:
+                n_weights = est.n_estimators * est.n_trees_per_iteration_
+                arr = np.full(n_weights, 1.0 / n_weights, dtype=np.float64)
+                tree_weights.append(arr)
+        else:
+            raise ValueError(
+                f"Invalid tree_weighting_method: {self.tree_weighting_method}. "
+                "Must be 'train_improvement' or 'uniform'."
+            )
 
-        for est in self.estimators_:
-            n_weights = est.n_estimators * est.n_trees_per_iteration_
-            arr = np.full(n_weights, 1.0 / n_weights, dtype=np.float64)
-            tree_weights.append(arr)
         return tree_weights
 
     def get_feature_names_out(self) -> NDArray:

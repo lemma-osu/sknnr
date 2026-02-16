@@ -106,19 +106,25 @@ class WeightedTreesNNRegressor(YFitMixin, TransformedKNeighborsRegressor):
         if forest_weights.shape != (n_forests,):
             raise ValueError(
                 f"Expected `forest_weights` to have length {n_forests}, "
-                f"but got {len(forest_weights)}."
+                f"but got {forest_weights.size}."
             )
 
         if not np.all(np.isfinite(forest_weights)):
             raise ValueError(
                 f"Expected elements in `forest_weights` to be finite, "
-                f"but got {self.forest_weights}."
+                f"but got {forest_weights}."
             )
 
         if np.any(forest_weights < 0):
             raise ValueError(
                 f"Expected elements in `forest_weights` to be non-negative, "
-                f"but got {self.forest_weights}."
+                f"but got {forest_weights}."
+            )
+
+        if np.sum(forest_weights) <= 0:
+            raise ValueError(
+                f"At least one element in `forest_weights` must be positive, "
+                f"but got {forest_weights}."
             )
         return forest_weights
 
