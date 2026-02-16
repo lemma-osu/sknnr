@@ -129,9 +129,9 @@ print(y.loc[neighbor_ids[0]])
 
 ### Y-Fit Data
 
-The [GNNRegressor](api/estimators/gnn.md), [MSNRegressor](api/estimators/msn.md), [RFNNRegressor](api/estimators/rfnn.md), and [GBNNRegressor](api/estimators/gbnn.md) estimators can be fit with `X` and `y` data, but they also accept an optional `y_fit` parameter. If provided, `y_fit` is used to fit the ordination transformer while `y` is used to fit the kNN regressor.
+The [GNNRegressor](api/estimators/gnn.md), [MSNRegressor](api/estimators/msn.md), [RFNNRegressor](api/estimators/rfnn.md), and [GBNNRegressor](api/estimators/gbnn.md) estimators can be fit with `X` and `y` data, but they also accept an optional `y_fit` parameter. If provided, `y_fit` is used to fit the transformer while `y` is used to fit the kNN regressor.
 
-In forest attribute estimation, the underlying ordination transformations for two of these estimators (CCA for GNN and CCorA for MSN) typically use a matrix of species abundances or presence/absence information to relate the species data to environmental covariates, but often the user wants predictions based not on these features, but rather attributes that describe forest structure (e.g. biomass) or composition (e.g. species richness). In this case, the species matrix would be specified as `y_fit` and the stand attributes would be specified as `y`.
+In forest attribute estimation, the underlying transformations for two of these estimators (CCA for GNN and CCorA for MSN) typically use a matrix of species abundances or presence/absence information to relate the species data to environmental covariates, but often the user wants predictions based not on these features, but rather attributes that describe forest structure (e.g. biomass) or composition (e.g. species richness). In this case, the species matrix would be specified as `y_fit` and the stand attributes would be specified as `y`.
 
 For RFNN and GBNN, the `y_fit` parameter can be used to specify the attributes for which individual forests will be created (one forest per feature). As with GNN and MSN, the `y` parameter can then be used to specify the attributes that will be predicted by the nearest neighbors.
 

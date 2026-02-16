@@ -73,7 +73,7 @@ class WeightedTreesNNRegressor(YFitMixin, TransformedKNeighborsRegressor):
 
         # Equal weighting for all forests
         if isinstance(self.forest_weights, str) and self.forest_weights == "uniform":
-            forest_weights_arr = np.ones(n_forests, dtype="float64") / n_forests
+            forest_weights_arr = np.full(n_forests, 1.0 / n_forests, dtype=np.float64)
 
         # User-supplied forest weights
         else:
@@ -103,7 +103,7 @@ class WeightedTreesNNRegressor(YFitMixin, TransformedKNeighborsRegressor):
         """
         n_forests = self.transformer_.n_forests_
         try:
-            forest_weights = np.asarray(self.forest_weights, dtype="float64")
+            forest_weights = np.asarray(self.forest_weights, dtype=np.float64)
         except (TypeError, ValueError) as e:
             raise ValueError(
                 f"`forest_weights` must be a sequence of numeric values, "

@@ -34,7 +34,7 @@ def train_improvement(
     # following the same calculation as in scikit-learn
     factor = 2 if isinstance(est._loss, (HalfSquaredError, HalfBinomialLoss)) else 1
     initial_loss = (
-        est._loss(np.asarray(y, dtype="float64"), est._raw_predict_init(X)) * factor
+        est._loss(np.asarray(y, dtype=np.float64), est._raw_predict_init(X)) * factor
     )
 
     # Calculate the change in loss at each stage
@@ -42,7 +42,7 @@ def train_improvement(
 
     # Normalize the loss delta to get the relative contribution of each tree
     return (
-        np.ones_like(loss_delta, dtype="float64")
+        np.ones_like(loss_delta, dtype=np.float64)
         if np.allclose(loss_delta, 0.0)
         else (loss_delta / np.sum(loss_delta))
     )
@@ -287,10 +287,8 @@ class GBNodeTransformer(TreeNodeTransformer):
             return tree_weights
 
         for est in self.estimators_:
-            arr = np.ones(
-                (est.n_estimators * est.n_trees_per_iteration_,), dtype="float64"
-            )
-            arr = arr / arr.sum(axis=0)
+            n_weights = est.n_estimators * est.n_trees_per_iteration_
+            arr = np.full(n_weights, 1.0 / n_weights, dtype=np.float64)
             tree_weights.append(arr)
         return tree_weights
 

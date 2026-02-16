@@ -50,9 +50,9 @@ def standardize_user_forest_weights(
 ) -> NDArray[np.float64]:
     """Standardize user-supplied forest weights for comparison."""
     if isinstance(forest_weights, str) and forest_weights == "uniform":
-        forest_weights_arr = np.ones(n_forests, dtype="float64") / n_forests
+        forest_weights_arr = np.full(n_forests, 1.0 / n_forests, dtype=np.float64)
     else:
-        forest_weights_arr = np.asarray(forest_weights, dtype="float64")
+        forest_weights_arr = np.asarray(forest_weights, dtype=np.float64)
         forest_weights_arr /= np.sum(forest_weights_arr)
     return forest_weights_arr
 
