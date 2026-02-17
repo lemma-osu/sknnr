@@ -109,10 +109,6 @@ class RFNNRegressor(WeightedTreesNNRegressor):
         Number of neighbors to use by default for `kneighbors` queries.
     weights : {"uniform", "distance"}, callable or None, default="uniform"
         Weight function used in prediction.
-    algorithm : {"auto", "ball_tree", "kd_tree", "brute"}, default="auto"
-        Algorithm used to compute the nearest neighbors.
-    leaf_size : int, default=30
-        Leaf size passed to `BallTree` or `KDTree`.
 
     Attributes
     ----------
@@ -184,8 +180,6 @@ class RFNNRegressor(WeightedTreesNNRegressor):
         forest_weights: Literal["uniform"] | ArrayLike[float] = "uniform",
         n_neighbors: int = 5,
         weights: Literal["uniform", "distance"] | Callable = "uniform",
-        algorithm: Literal["auto", "ball_tree", "kd_tree", "brute"] = "auto",
-        leaf_size: int = 30,
     ):
         self.n_estimators = n_estimators
         self.criterion_reg = criterion_reg
@@ -213,8 +207,6 @@ class RFNNRegressor(WeightedTreesNNRegressor):
         super().__init__(
             n_neighbors=n_neighbors,
             weights=weights,
-            algorithm=algorithm,
-            leaf_size=leaf_size,
             n_jobs=self.n_jobs,
         )
 
