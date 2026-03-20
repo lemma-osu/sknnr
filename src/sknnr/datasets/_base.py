@@ -149,7 +149,8 @@ def load_dataset_from_csv_filenames(
     as_frame: bool = False,
     module_name: str | types.ModuleType = DATA_MODULE,
 ) -> (
-    Dataset[T_ArrayOrFrame]
+    Dataset[NDArray[np.float64]]
+    | Dataset[pd.DataFrame]
     | tuple[NDArray[np.float64], NDArray[np.float64]]
     | tuple[pd.DataFrame, pd.DataFrame]
 ): ...
@@ -163,7 +164,8 @@ def load_dataset_from_csv_filenames(
     as_frame: bool = False,
     module_name: str | types.ModuleType = DATA_MODULE,
 ) -> (
-    Dataset[T_ArrayOrFrame]
+    Dataset[NDArray[np.float64]]
+    | Dataset[pd.DataFrame]
     | tuple[NDArray[np.float64], NDArray[np.float64]]
     | tuple[pd.DataFrame, pd.DataFrame]
 ):
@@ -204,7 +206,7 @@ def load_dataset_from_csv_filenames(
         file_name=target_filename, module_name=module_name
     )
 
-    dataset: Dataset[T_ArrayOrFrame] = Dataset(
+    dataset = Dataset(
         index=index,
         data=data,
         target=target,
@@ -246,7 +248,8 @@ def load_moscow_stjoes(
 def load_moscow_stjoes(
     return_X_y: bool = False, as_frame: bool = False
 ) -> (
-    Dataset[T_ArrayOrFrame]
+    Dataset[NDArray[np.float64]]
+    | Dataset[pd.DataFrame]
     | tuple[NDArray[np.float64], NDArray[np.float64]]
     | tuple[pd.DataFrame, pd.DataFrame]
 ):
@@ -320,7 +323,8 @@ def load_swo_ecoplot(
 def load_swo_ecoplot(
     return_X_y: bool = False, as_frame: bool = False
 ) -> (
-    Dataset[T_ArrayOrFrame]
+    Dataset[NDArray[np.float64]]
+    | Dataset[pd.DataFrame]
     | tuple[NDArray[np.float64], NDArray[np.float64]]
     | tuple[pd.DataFrame, pd.DataFrame]
 ):
