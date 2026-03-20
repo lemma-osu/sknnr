@@ -32,7 +32,7 @@ def train_improvement(
     # Calculate the initial loss, which by default in regression is based
     # on predicting the mean for all samples.  Use a multiplicative factor
     # following the same calculation as in scikit-learn
-    factor = 2 if isinstance(est._loss, (HalfSquaredError, HalfBinomialLoss)) else 1
+    factor = 2 if isinstance(est._loss, HalfSquaredError | HalfBinomialLoss) else 1
     initial_loss = (
         est._loss(np.asarray(y, dtype=np.float64), est._raw_predict_init(X)) * factor
     )
@@ -280,7 +280,7 @@ class GBNodeTransformer(TreeNodeTransformer):
     def _set_tree_weights(self, X, y) -> list[NDArray[np.float64]]:
         tree_weights = []
         if self.tree_weighting_method == "train_improvement":
-            for est, target in zip(self.estimators_, y):
+            for est, target in zip(self.estimators_, y, strict=True):
                 weights = train_improvement(est, X, target)
                 weights /= weights.sum()
                 tree_weights.append(np.tile(weights, est.n_trees_per_iteration_))

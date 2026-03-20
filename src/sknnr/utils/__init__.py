@@ -105,7 +105,7 @@ def get_feature_dtypes(obj) -> list[np.dtype | pd.CategoricalDtype]:
         promoted_dtypes = get_minimum_dtypes(obj)
         return [
             p_dtype if str(n_dtype) != "category" else n_dtype
-            for p_dtype, n_dtype in zip(promoted_dtypes, native_dtypes)
+            for p_dtype, n_dtype in zip(promoted_dtypes, native_dtypes, strict=True)
         ]
     if is_series_like(obj):
         native_dtype = obj.dtype
@@ -133,5 +133,7 @@ def get_feature_names_and_dtypes(
     """
     return {
         name: dtype
-        for name, dtype in zip(get_feature_names(obj), get_feature_dtypes(obj))
+        for name, dtype in zip(
+            get_feature_names(obj), get_feature_dtypes(obj), strict=True
+        )
     }

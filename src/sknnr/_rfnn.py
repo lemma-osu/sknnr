@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import Callable, Literal
+from collections.abc import Callable
+from typing import Literal
 
 from numpy.random import RandomState
 from numpy.typing import ArrayLike
