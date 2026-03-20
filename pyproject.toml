@@ -7,7 +7,7 @@ name = "sknnr"
 dynamic = ["version"]
 description = "Scikit-learn estimators for kNN regression methods"
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.11"
 authors = [
     { name = "Matt Gregory", email = "matt.gregory@oregonstate.edu" },
     { name = "Aaron Zuspan", email = "aaron.zuspan@oregonstate.edu" },
@@ -48,7 +48,7 @@ coverage = "pytest --cov=src/sknnr {args} --doctest-modules"
 template = "test"
 
 [[tool.hatch.envs.test_matrix.matrix]]
-python = ["3.9", "3.10", "3.11", "3.12"]
+python = ["3.11", "3.12", "3.13", "3.14"]
 
 [tool.hatch.envs.docs]
 dependencies = ["mkdocs", "mkdocs-material", "mkdocstrings[python]"]

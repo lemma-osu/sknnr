@@ -12,7 +12,7 @@ pip install sknnr --pre
 
 ## Dependencies
 
-- Python >= 3.9
+- Python >= 3.11
 - scikit-learn >= 1.2
 - numpy
 - scipy

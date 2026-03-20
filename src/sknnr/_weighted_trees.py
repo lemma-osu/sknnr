@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import Callable, Literal
+from collections.abc import Callable
+from typing import Literal
 
 import numpy as np
 from numpy.typing import ArrayLike
@@ -85,7 +86,9 @@ class WeightedTreesNNRegressor(YFitMixin, TransformedKNeighborsRegressor):
         return np.hstack(
             [
                 tw * fw
-                for tw, fw in zip(self.transformer_.tree_weights_, forest_weights_arr)
+                for tw, fw in zip(
+                    self.transformer_.tree_weights_, forest_weights_arr, strict=True
+                )
             ]
         )
 

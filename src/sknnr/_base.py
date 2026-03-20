@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Callable, Literal
+from collections.abc import Callable
+from typing import TYPE_CHECKING, Literal
 
 import numpy as np
 from sklearn.base import BaseEstimator, TransformerMixin

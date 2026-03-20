@@ -1,5 +1,3 @@
-from typing import Union
-
 import numpy as np
 from numpy.typing import NDArray
 from sklearn.preprocessing import StandardScaler
@@ -9,7 +7,7 @@ from .._base import _validate_data
 from ._cca import CCA
 from ._ccora import CCorA
 
-Ordination = Union[CCA, CCorA]
+Ordination = CCA | CCorA
 
 
 class StandardScalerWithDOF(StandardScaler):

@@ -373,7 +373,9 @@ def test_gbnode_transformer_multiclass(tree_weighting_method, n_classes):
     assert est.n_trees_per_iteration_ == [expected_n_classes, 1, 1]
     assert all(
         w.shape == (est.n_estimators * n_trees,)
-        for w, n_trees in zip(est.tree_weights_, est.n_trees_per_iteration_)
+        for w, n_trees in zip(
+            est.tree_weights_, est.n_trees_per_iteration_, strict=True
+        )
     )
 
     # Confirm the shape of the node matrix
