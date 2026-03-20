@@ -228,8 +228,8 @@ def test_estimators_warn_for_missing_features(estimator, fit_names):
         msg = "fitted without feature names"
         fit_X, predict_X = X, X_df
 
+    estimator.fit(fit_X, y)
     with pytest.warns(UserWarning, match=msg):
-        estimator.fit(fit_X, y)
         estimator.predict(predict_X)
 
 
