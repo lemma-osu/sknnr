@@ -1,10 +1,14 @@
-from collections.abc import Sequence
-from typing import Protocol, TypeAlias
+from __future__ import annotations
 
-from numpy.typing import DTypeLike as NDTypeLike
-from pandas.api.extensions import ExtensionDtype
+from typing import TYPE_CHECKING, Protocol, Union
 
-DTypeLike: TypeAlias = NDTypeLike | ExtensionDtype
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+
+    from numpy.typing import DTypeLike as NDTypeLike
+    from pandas.api.extensions import ExtensionDtype
+
+DTypeLike = Union["NDTypeLike", "ExtensionDtype"]
 
 
 class DataFrameLike(Protocol):
