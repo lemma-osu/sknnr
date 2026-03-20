@@ -1,15 +1,19 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 import numpy as np
 
 if TYPE_CHECKING:
+    from typing import TypeGuard
+
     import pandas as pd
 
+    from ..types import DataFrameLike, DTypeLike, SeriesLike
 
-def is_dataframe_like(obj: Any) -> bool:
+
+def is_dataframe_like(obj: object) -> TypeGuard[DataFrameLike]:
     """
     Check if `obj` is a dataframe-like structure.  This will evaluate to `True`
     for pandas and polars DataFrames without the need to import those packages
@@ -18,7 +22,7 @@ def is_dataframe_like(obj: Any) -> bool:
     return hasattr(obj, "columns") and hasattr(obj, "dtypes")
 
 
-def is_series_like(obj: Any) -> bool:
+def is_series_like(obj: object) -> TypeGuard[SeriesLike]:
     """
     Check if `obj` is a series-like structure.  This will evaluate to `True`
     for pandas and polars Series without the need to import those packages
@@ -27,7 +31,7 @@ def is_series_like(obj: Any) -> bool:
     return hasattr(obj, "name") and hasattr(obj, "dtype")
 
 
-def is_number_like_type(t: Any) -> bool:
+def is_number_like_type(t: DTypeLike) -> bool:
     """
     Check if `t` is a number-like type.  For most types, np.issubdtype will
     correctly identify the type.  For pandas extension types, we can check the
@@ -43,7 +47,7 @@ def is_number_like_type(t: Any) -> bool:
             raise TypeError(msg) from err
 
 
-def is_nan_like(x: Any) -> bool:
+def is_nan_like(x: object) -> bool:
     """Check if `x` is NaN-like, including None, np.nan, and pd.NA values."""
     return bool(
         x is None
@@ -52,7 +56,7 @@ def is_nan_like(x: Any) -> bool:
     )
 
 
-def get_feature_names(obj) -> list[str]:
+def get_feature_names(obj: None | Sequence | DataFrameLike | SeriesLike) -> list[str]:
     """
     Get the names of the features in `obj`. If no names are found, return
     a list of strings with the feature index.
@@ -63,24 +67,26 @@ def get_feature_names(obj) -> list[str]:
         return list(obj.columns)
     if is_series_like(obj):
         return ["0"] if obj.name is None else [obj.name]
-    obj = np.asarray(obj, dtype=object)
-    if obj.ndim == 1:
-        obj = obj.reshape(-1, 1)
-    return [str(i) for i in range(obj.shape[1])]
+    arr = np.asarray(obj, dtype=object)
+    if arr.ndim == 1:
+        arr = arr.reshape(-1, 1)
+    return [str(i) for i in range(arr.shape[1])]
 
 
-def get_minimum_dtypes(obj: Any) -> list[np.dtype]:
+def get_minimum_dtypes(obj: Sequence | DataFrameLike | SeriesLike) -> list[np.dtype]:
     """
     Return the smallest numpy dtype that can accommodate all data for each
     column in obj.
     """
-    obj = np.asarray(obj, dtype=object)
-    if obj.ndim == 1:
-        obj = obj.reshape(-1, 1)
-    return [np.asarray(obj[:, i].tolist()).dtype for i in range(obj.shape[1])]
+    arr = np.asarray(obj, dtype=object)
+    if arr.ndim == 1:
+        arr = arr.reshape(-1, 1)
+    return [np.asarray(arr[:, i].tolist()).dtype for i in range(arr.shape[1])]
 
 
-def get_feature_dtypes(obj) -> list[np.dtype | pd.CategoricalDtype]:
+def get_feature_dtypes(
+    obj: None | Sequence | DataFrameLike | SeriesLike,
+) -> list[np.dtype | pd.CategoricalDtype]:
     """
     Get numpy dtypes of the features in `obj`, promoting dtypes as necessary to
     the smallest type that can accommodate all data elements in that feature.
@@ -116,7 +122,7 @@ def get_feature_dtypes(obj) -> list[np.dtype | pd.CategoricalDtype]:
 
 
 def get_feature_names_and_dtypes(
-    obj: Sequence,
+    obj: None | Sequence | DataFrameLike | SeriesLike,
 ) -> dict[str, np.dtype | pd.CategoricalDtype]:
     """
     Get the names and dtypes of the features in `obj` and return as dict.
