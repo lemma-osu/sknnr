@@ -21,5 +21,5 @@ class DataFrameLike(Protocol):
 class SeriesLike(Protocol):
     """A protocol for series-like objects, such as pandas and polars Series."""
 
-    name: str
+    name: str | None
     dtype: DTypeLike
