@@ -112,8 +112,8 @@ def load_dataset_from_csv_filenames(
     *,
     data_filename: str,
     target_filename: str,
-    return_X_y: Literal[False] = False,
-    as_frame: Literal[True] = True,
+    return_X_y: Literal[False],
+    as_frame: Literal[True],
     module_name: str | types.ModuleType = DATA_MODULE,
 ) -> Dataset[pd.DataFrame]: ...
 
@@ -124,7 +124,7 @@ def load_dataset_from_csv_filenames(
     data_filename: str,
     target_filename: str,
     return_X_y: Literal[True],
-    as_frame: Literal[False] = False,
+    as_frame: Literal[False],
     module_name: str | types.ModuleType = DATA_MODULE,
 ) -> tuple[NDArray[np.float64], NDArray[np.float64]]: ...
 
@@ -229,13 +229,13 @@ def load_moscow_stjoes(
 
 @overload
 def load_moscow_stjoes(
-    return_X_y: Literal[False] = False, as_frame: Literal[True] = True
+    return_X_y: Literal[False], as_frame: Literal[True]
 ) -> Dataset[pd.DataFrame]: ...
 
 
 @overload
 def load_moscow_stjoes(
-    return_X_y: Literal[True], as_frame: Literal[False] = False
+    return_X_y: Literal[True], as_frame: Literal[False]
 ) -> tuple[NDArray[np.float64], NDArray[np.float64]]: ...
 
 
@@ -304,13 +304,13 @@ def load_swo_ecoplot(
 
 @overload
 def load_swo_ecoplot(
-    return_X_y: Literal[False] = False, as_frame: Literal[True] = True
+    return_X_y: Literal[False], as_frame: Literal[True]
 ) -> Dataset[pd.DataFrame]: ...
 
 
 @overload
 def load_swo_ecoplot(
-    return_X_y: Literal[True], as_frame: Literal[False] = False
+    return_X_y: Literal[True], as_frame: Literal[False]
 ) -> tuple[NDArray[np.float64], NDArray[np.float64]]: ...
 
 
