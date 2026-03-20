@@ -4,7 +4,7 @@ import csv
 import types
 from dataclasses import dataclass
 from importlib import resources
-from typing import TYPE_CHECKING, Literal, overload
+from typing import TYPE_CHECKING, Generic, Literal, TypeVar, Union, overload
 
 import numpy as np
 from numpy.typing import NDArray
@@ -14,12 +14,16 @@ if TYPE_CHECKING:
 
 DATA_MODULE = "sknnr.datasets.data"
 
+T_ArrayOrFrame = TypeVar(
+    "T_ArrayOrFrame", bound=Union[NDArray[np.float64], "pd.DataFrame"]
+)
+
 
 @dataclass
-class Dataset:
-    index: NDArray[np.int64] | pd.DataFrame
-    data: NDArray[np.float64] | pd.DataFrame
-    target: NDArray[np.float64] | pd.DataFrame
+class Dataset(Generic[T_ArrayOrFrame]):
+    index: NDArray[np.int64]
+    data: T_ArrayOrFrame
+    target: T_ArrayOrFrame
     frame: None | pd.DataFrame
     feature_names: list[str]
     target_names: list[str]
@@ -31,7 +35,7 @@ class Dataset:
         return f"Dataset(n={n}, features={n_features}, targets={n_targets})"
 
 
-def _dataset_as_frame(dataset: Dataset) -> Dataset:
+def _dataset_as_frame(dataset: Dataset[NDArray[np.float64]]) -> Dataset[pd.DataFrame]:
     """Convert a Dataset of arrays to a Dataset of DataFrames."""
     pd = _import_pandas()
 
@@ -98,9 +102,20 @@ def load_dataset_from_csv_filenames(
     data_filename: str,
     target_filename: str,
     return_X_y: Literal[False] = False,
-    as_frame: bool = False,
+    as_frame: Literal[False] = False,
     module_name: str | types.ModuleType = DATA_MODULE,
-) -> Dataset: ...
+) -> Dataset[NDArray[np.float64]]: ...
+
+
+@overload
+def load_dataset_from_csv_filenames(
+    *,
+    data_filename: str,
+    target_filename: str,
+    return_X_y: Literal[False] = False,
+    as_frame: Literal[True] = True,
+    module_name: str | types.ModuleType = DATA_MODULE,
+) -> Dataset[pd.DataFrame]: ...
 
 
 @overload
@@ -134,7 +149,7 @@ def load_dataset_from_csv_filenames(
     as_frame: bool = False,
     module_name: str | types.ModuleType = DATA_MODULE,
 ) -> (
-    Dataset
+    Dataset[T_ArrayOrFrame]
     | tuple[NDArray[np.float64], NDArray[np.float64]]
     | tuple[pd.DataFrame, pd.DataFrame]
 ): ...
@@ -148,7 +163,7 @@ def load_dataset_from_csv_filenames(
     as_frame: bool = False,
     module_name: str | types.ModuleType = DATA_MODULE,
 ) -> (
-    Dataset
+    Dataset[T_ArrayOrFrame]
     | tuple[NDArray[np.float64], NDArray[np.float64]]
     | tuple[pd.DataFrame, pd.DataFrame]
 ):
@@ -189,7 +204,7 @@ def load_dataset_from_csv_filenames(
         file_name=target_filename, module_name=module_name
     )
 
-    dataset = Dataset(
+    dataset: Dataset[T_ArrayOrFrame] = Dataset(
         index=index,
         data=data,
         target=target,
@@ -206,8 +221,14 @@ def load_dataset_from_csv_filenames(
 
 @overload
 def load_moscow_stjoes(
-    return_X_y: Literal[False] = False, as_frame: bool = False
-) -> Dataset: ...
+    return_X_y: Literal[False] = False, as_frame: Literal[False] = False
+) -> Dataset[NDArray[np.float64]]: ...
+
+
+@overload
+def load_moscow_stjoes(
+    return_X_y: Literal[False] = False, as_frame: Literal[True] = True
+) -> Dataset[pd.DataFrame]: ...
 
 
 @overload
@@ -225,7 +246,7 @@ def load_moscow_stjoes(
 def load_moscow_stjoes(
     return_X_y: bool = False, as_frame: bool = False
 ) -> (
-    Dataset
+    Dataset[T_ArrayOrFrame]
     | tuple[NDArray[np.float64], NDArray[np.float64]]
     | tuple[pd.DataFrame, pd.DataFrame]
 ):
@@ -274,8 +295,14 @@ def load_moscow_stjoes(
 
 @overload
 def load_swo_ecoplot(
-    return_X_y: Literal[False] = False, as_frame: bool = False
-) -> Dataset: ...
+    return_X_y: Literal[False] = False, as_frame: Literal[False] = False
+) -> Dataset[NDArray[np.float64]]: ...
+
+
+@overload
+def load_swo_ecoplot(
+    return_X_y: Literal[False] = False, as_frame: Literal[True] = True
+) -> Dataset[pd.DataFrame]: ...
 
 
 @overload
@@ -293,7 +320,7 @@ def load_swo_ecoplot(
 def load_swo_ecoplot(
     return_X_y: bool = False, as_frame: bool = False
 ) -> (
-    Dataset
+    Dataset[T_ArrayOrFrame]
     | tuple[NDArray[np.float64], NDArray[np.float64]]
     | tuple[pd.DataFrame, pd.DataFrame]
 ):
