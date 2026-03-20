@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-from collections.abc import Sequence
 from typing import TYPE_CHECKING
 
 import numpy as np
 
 if TYPE_CHECKING:
+    from collections.abc import Hashable, Sequence
     from typing import TypeGuard
 
     import pandas as pd
@@ -56,7 +56,9 @@ def is_nan_like(x: object) -> bool:
     )
 
 
-def get_feature_names(obj: None | Sequence | DataFrameLike | SeriesLike) -> list[str]:
+def get_feature_names(
+    obj: None | Sequence | DataFrameLike | SeriesLike,
+) -> list[Hashable]:
     """
     Get the names of the features in `obj`. If no names are found, return
     a list of strings with the feature index.
@@ -123,7 +125,7 @@ def get_feature_dtypes(
 
 def get_feature_names_and_dtypes(
     obj: None | Sequence | DataFrameLike | SeriesLike,
-) -> dict[str, np.dtype | pd.CategoricalDtype]:
+) -> dict[Hashable, np.dtype | pd.CategoricalDtype]:
     """
     Get the names and dtypes of the features in `obj` and return as dict.
 
@@ -134,7 +136,7 @@ def get_feature_names_and_dtypes(
 
     Returns:
     --------
-    dict[str, np.dtype | pd.CategoricalDtype] : dict
+    dict[Hashable, np.dtype | pd.CategoricalDtype] : dict
         The feature names and dtypes of the features in `obj`.
     """
     return {
