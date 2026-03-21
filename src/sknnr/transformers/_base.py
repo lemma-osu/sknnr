@@ -1,3 +1,5 @@
+from typing import Self
+
 import numpy as np
 from numpy.typing import NDArray
 from sklearn.preprocessing import StandardScaler
@@ -37,11 +39,11 @@ class StandardScalerWithDOF(StandardScaler):
         The number of samples processed by the estimator for each feature.
     """
 
-    def __init__(self, ddof=0):
+    def __init__(self, ddof: int = 0):
         super().__init__()
         self.ddof = ddof
 
-    def fit(self, X, y=None):
+    def fit(self, X, y: None = None) -> Self:
         scaler = super().fit(X, y)
 
         X = _validate_data(
@@ -64,7 +66,7 @@ class ComponentReducerMixin:
 
     ordination_: Ordination
 
-    def __init__(self, n_components=None):
+    def __init__(self, n_components: int | None = None):
         self.n_components = n_components
 
     def get_feature_names_out(self) -> NDArray:
@@ -77,7 +79,7 @@ class ComponentReducerMixin:
             dtype=object,
         )
 
-    def set_n_components(self):
+    def set_n_components(self) -> None:
         n_components = (
             self.n_components
             if self.n_components is not None

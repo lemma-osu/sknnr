@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from collections.abc import Callable
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING
 
 import numpy as np
 from sklearn.base import BaseEstimator, TransformerMixin
@@ -11,10 +11,19 @@ from sklearn.neighbors import KNeighborsRegressor
 from sklearn.utils.validation import _is_arraylike, check_is_fitted
 
 if TYPE_CHECKING:
+    from typing import Literal
+
+    from numpy.typing import NDArray
+
     from .transformers._base import ComponentReducerMixin
 
 
-def _validate_data(estimator, *, ensure_all_finite: bool = True, **kwargs):
+def _validate_data(
+    estimator: BaseEstimator,
+    *,
+    ensure_all_finite: bool | Literal["allow-nan"] = True,
+    **kwargs,
+) -> NDArray | tuple[NDArray, NDArray]:
     """
     Compatibility wrapper around sklearn's _validate_data function.
 
