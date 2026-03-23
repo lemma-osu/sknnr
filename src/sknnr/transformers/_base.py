@@ -1,7 +1,8 @@
-from typing import Self
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 import numpy as np
-from numpy.typing import NDArray
 from sklearn.preprocessing import StandardScaler
 from sklearn.utils.validation import FLOAT_DTYPES, check_is_fitted
 
@@ -10,6 +11,14 @@ from ._cca import CCA
 from ._ccora import CCorA
 
 Ordination = CCA | CCorA
+
+
+if TYPE_CHECKING:
+    from typing import Self
+
+    from numpy.typing import NDArray
+
+    from ..types import DataLike
 
 
 class StandardScalerWithDOF(StandardScaler):
@@ -43,7 +52,7 @@ class StandardScalerWithDOF(StandardScaler):
         super().__init__()
         self.ddof = ddof
 
-    def fit(self, X, y: None = None) -> Self:
+    def fit(self, X: DataLike, y: DataLike | None = None) -> Self:
         scaler = super().fit(X, y)
 
         X = _validate_data(

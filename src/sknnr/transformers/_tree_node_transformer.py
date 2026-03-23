@@ -1,10 +1,9 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Any, Literal
+from typing import TYPE_CHECKING
 
 import numpy as np
-from numpy.typing import NDArray
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.utils.validation import check_array, check_is_fitted
 
@@ -12,7 +11,13 @@ from .._base import _validate_data
 from ..utils import get_feature_names_and_dtypes, is_nan_like, is_number_like_type
 
 if TYPE_CHECKING:
-    import pandas as pd
+    from collections.abc import Hashable
+    from typing import Literal, Self
+
+    from numpy.typing import NDArray
+    from sklearn.utils._tags import Tags
+
+    from ..types import DataLike, DTypeLike
 
 
 def uniform_weights(n_forests: int, n_estimators: int) -> list[NDArray[np.float64]]:
@@ -27,7 +32,7 @@ def uniform_weights(n_forests: int, n_estimators: int) -> list[NDArray[np.float6
 
 class TreeNodeTransformer(TransformerMixin, BaseEstimator, ABC):
     def _validate_and_promote_targets(
-        self, y: Any, target_info: dict[str, np.dtype | pd.CategoricalDtype]
+        self, y: DataLike, target_info: dict[Hashable, DTypeLike]
     ) -> list[NDArray]:
         """
         Given target names and types, validate and promote each target in `y`.
@@ -98,8 +103,8 @@ class TreeNodeTransformer(TransformerMixin, BaseEstimator, ABC):
         return targets
 
     def _set_estimator_types(
-        self, target_info: dict[str, Any]
-    ) -> dict[str, Literal["regression", "classification"]]:
+        self, target_info: dict[Hashable, DTypeLike]
+    ) -> dict[Hashable, Literal["regression", "classification"]]:
         """Set the estimator type to use for each target in `y`."""
 
         # TODO: Handle overrides from user based on names
@@ -109,7 +114,15 @@ class TreeNodeTransformer(TransformerMixin, BaseEstimator, ABC):
             for k, v in target_info.items()
         }
 
-    def _fit(self, X, y, regressor_cls, classifier_cls, reg_kwargs, clf_kwargs):
+    def _fit(
+        self,
+        X: DataLike,
+        y: DataLike,
+        regressor_cls,
+        classifier_cls,
+        reg_kwargs,
+        clf_kwargs,
+    ) -> Self:
         X = _validate_data(self, X=X, reset=True)
 
         if y is None:
@@ -147,12 +160,14 @@ class TreeNodeTransformer(TransformerMixin, BaseEstimator, ABC):
     def _set_n_trees_per_iteration(self) -> list[int]: ...
 
     @abstractmethod
-    def _set_tree_weights(self, X, y) -> list[NDArray[np.float64]]: ...
+    def _set_tree_weights(
+        self, X: DataLike, y: DataLike
+    ) -> list[NDArray[np.float64]]: ...
 
     @abstractmethod
-    def fit(self, X, y): ...
+    def fit(self, X: DataLike, y: DataLike) -> Self: ...
 
-    def transform(self, X):
+    def transform(self, X: DataLike) -> NDArray[np.int64]:
         check_is_fitted(self)
         X = _validate_data(
             self,
@@ -178,10 +193,10 @@ class TreeNodeTransformer(TransformerMixin, BaseEstimator, ABC):
             node_ids.append(est_node_ids)
         return np.hstack(node_ids).astype("int64")
 
-    def fit_transform(self, X, y):
+    def fit_transform(self, X: DataLike, y: DataLike) -> NDArray[np.int64]:
         return self.fit(X, y).transform(X)
 
-    def __sklearn_tags__(self):
+    def __sklearn_tags__(self) -> Tags:
         tags = super().__sklearn_tags__()
         tags.target_tags.required = True
         tags.transformer_tags.preserves_dtype = ["int64"]

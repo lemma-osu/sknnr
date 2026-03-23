@@ -1,9 +1,21 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 import numpy as np
 from sklearn.base import BaseEstimator, OneToOneFeatureMixin, TransformerMixin
 from sklearn.utils.validation import check_is_fitted
 
 from .._base import _validate_data
 from . import StandardScalerWithDOF
+
+if TYPE_CHECKING:
+    from typing import Self
+
+    from numpy.typing import NDArray
+    from sklearn.utils._tags import Tags
+
+    from ..types import DataLike
 
 
 class MahalanobisTransformer(OneToOneFeatureMixin, TransformerMixin, BaseEstimator):
@@ -27,7 +39,7 @@ class MahalanobisTransformer(OneToOneFeatureMixin, TransformerMixin, BaseEstimat
         The Mahalanobis transformation matrix.
     """
 
-    def fit(self, X, y=None):
+    def fit(self, X: DataLike, y: None = None) -> Self:
         _validate_data(
             self, X=X, ensure_all_finite="allow-nan", reset=True, ensure_min_features=2
         )
@@ -37,16 +49,16 @@ class MahalanobisTransformer(OneToOneFeatureMixin, TransformerMixin, BaseEstimat
         self.transform_ = np.linalg.inv(np.linalg.cholesky(covariance).T)
         return self
 
-    def transform(self, X, y=None):
+    def transform(self, X: DataLike, y: None = None) -> NDArray:
         check_is_fitted(self)
         _validate_data(self, X=X, ensure_all_finite="allow-nan", reset=False)
 
         return self.scaler_.transform(X) @ self.transform_
 
-    def fit_transform(self, X, y=None):
+    def fit_transform(self, X: DataLike, y: None = None) -> NDArray:
         return self.fit(X, y).transform(X)
 
-    def __sklearn_tags__(self):
+    def __sklearn_tags__(self) -> Tags:
         tags = super().__sklearn_tags__()
         tags.input_tags.allow_nan = True
 

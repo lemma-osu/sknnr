@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 import numpy as np
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.utils.validation import FLOAT_DTYPES, check_is_fitted
@@ -5,6 +9,14 @@ from sklearn.utils.validation import FLOAT_DTYPES, check_is_fitted
 from .._base import _validate_data
 from . import ComponentReducerMixin
 from ._cca import CCA
+
+if TYPE_CHECKING:
+    from typing import Self
+
+    from numpy.typing import NDArray
+    from sklearn.utils._tags import Tags
+
+    from ..types import DataLike
 
 
 class CCATransformer(ComponentReducerMixin, TransformerMixin, BaseEstimator):
@@ -42,7 +54,7 @@ class CCATransformer(ComponentReducerMixin, TransformerMixin, BaseEstimator):
     67: 1167–1179.
     """
 
-    def fit(self, X, y):
+    def fit(self, X: DataLike, y: DataLike) -> Self:
         X = _validate_data(
             self,
             X=X,
@@ -62,7 +74,7 @@ class CCATransformer(ComponentReducerMixin, TransformerMixin, BaseEstimator):
         self.projector_ = self.ordination_.projector(n_components=self.n_components_)
         return self
 
-    def transform(self, X, y=None):
+    def transform(self, X: DataLike, y: None = None) -> NDArray:
         check_is_fitted(self)
         X = _validate_data(
             self,
@@ -75,10 +87,10 @@ class CCATransformer(ComponentReducerMixin, TransformerMixin, BaseEstimator):
         )
         return (X - self.env_center_) @ self.projector_
 
-    def fit_transform(self, X, y):
+    def fit_transform(self, X: DataLike, y: DataLike) -> NDArray:
         return self.fit(X, y).transform(X)
 
-    def __sklearn_tags__(self):
+    def __sklearn_tags__(self) -> Tags:
         tags = super().__sklearn_tags__()
         tags.target_tags.required = True
         tags.target_tags.positive_only = True
