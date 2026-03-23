@@ -13,20 +13,14 @@ if TYPE_CHECKING:
 DTypeLike = Union["NDTypeLike", "ExtensionDtype"]
 
 
-class Indexed(Protocol):
-    """A protocol for objects that have an index, such as dataframes and series."""
-
-    index: Sequence[Hashable]
-
-
-class DataFrameLike(Indexed, Protocol):
+class DataFrameLike(Protocol):
     """A protocol for dataframe-like objects, such as pandas and polars DataFrames."""
 
     columns: Sequence[Hashable]
     dtypes: Sequence[DTypeLike]
 
 
-class SeriesLike(Indexed, Protocol):
+class SeriesLike(Protocol):
     """A protocol for series-like objects, such as pandas and polars Series."""
 
     name: Hashable | None

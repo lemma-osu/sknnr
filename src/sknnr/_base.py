@@ -8,8 +8,6 @@ from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.utils.validation import _is_arraylike, check_is_fitted
 
-from sknnr.utils import is_dataframe_like, is_series_like
-
 if TYPE_CHECKING:
     from collections.abc import Callable
     from typing import Literal, Self
@@ -51,10 +49,9 @@ class DFIndexCrosswalkMixin:
 
     def _set_dataframe_index_in(self, X: DataLike) -> None:
         """Store dataframe indexes if X is a dataframe."""
-        if is_dataframe_like(X) or is_series_like(X):
-            index = X.index
-            if _is_arraylike(index):
-                self.dataframe_index_in_ = np.asarray(index)
+        index = getattr(X, "index", None)
+        if _is_arraylike(index):
+            self.dataframe_index_in_ = np.asarray(index)
 
 
 class IndependentPredictorMixin(KNeighborsRegressor):
