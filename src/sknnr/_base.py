@@ -374,7 +374,7 @@ class TransformedKNeighborsRegressor(BaseEstimator, ABC):
         X_transformed = self._transform_X(X)
         return self.regressor_.predict(X_transformed)
 
-    def score(self, X: DataLike, y: DataLike | None = None) -> float:
+    def score(self, X: DataLike, y: DataLike) -> float:
         X_transformed = self._transform_X(X)
         return self.regressor_.score(X_transformed, y)
 
