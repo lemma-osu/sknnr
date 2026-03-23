@@ -1,9 +1,10 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import numpy as np
 import pytest
 from numpy.testing import assert_array_equal
-from numpy.typing import NDArray
 from sklearn import config_context
 from sklearn.model_selection import GridSearchCV
 from sklearn.neighbors import KNeighborsRegressor
@@ -20,6 +21,9 @@ from sknnr import (
     RFNNRegressor,
 )
 from sknnr.datasets import load_moscow_stjoes
+
+if TYPE_CHECKING:
+    from numpy.typing import NDArray
 
 TEST_ESTIMATORS = [
     RawKNNRegressor,

@@ -5,7 +5,6 @@ from typing import TYPE_CHECKING
 import numpy as np
 from numpy.typing import NDArray
 from sklearn._loss.loss import HalfBinomialLoss, HalfSquaredError
-from sklearn.base import BaseEstimator
 from sklearn.ensemble import GradientBoostingClassifier, GradientBoostingRegressor
 from sklearn.utils.validation import check_is_fitted
 
@@ -15,6 +14,7 @@ if TYPE_CHECKING:
     from typing import Literal, Self
 
     from numpy.typing import NDArray
+    from sklearn.base import BaseEstimator
 
     from ..types import DataLike
 

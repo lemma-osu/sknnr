@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import csv
-import types
 from dataclasses import dataclass
 from importlib import resources
 from typing import TYPE_CHECKING, Generic, Literal, TypeVar, Union, overload
@@ -10,6 +9,8 @@ import numpy as np
 from numpy.typing import NDArray
 
 if TYPE_CHECKING:
+    import types
+
     import pandas as pd
 
 DATA_MODULE = "sknnr.datasets.data"

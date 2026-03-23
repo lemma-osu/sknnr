@@ -1,21 +1,21 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from collections.abc import Callable
 from typing import TYPE_CHECKING
 
 import numpy as np
 from sklearn.base import BaseEstimator, TransformerMixin
-from sklearn.metrics import DistanceMetric
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.utils.validation import _is_arraylike, check_is_fitted
 
 from sknnr.utils import is_dataframe_like, is_series_like
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
     from typing import Literal, Self
 
     from numpy.typing import NDArray
+    from sklearn.metrics import DistanceMetric
     from sklearn.utils._tags import Tags
 
     from .transformers._base import ComponentReducerMixin

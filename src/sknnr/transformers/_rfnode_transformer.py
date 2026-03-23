@@ -1,10 +1,8 @@
 from __future__ import annotations
 
-from collections.abc import Callable
 from typing import TYPE_CHECKING
 
 import numpy as np
-from numpy.random import RandomState
 from numpy.typing import NDArray
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.utils.validation import check_is_fitted
@@ -12,8 +10,10 @@ from sklearn.utils.validation import check_is_fitted
 from ._tree_node_transformer import TreeNodeTransformer, uniform_weights
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
     from typing import Literal, Self
 
+    from numpy.random import RandomState
     from numpy.typing import NDArray
 
     from ..types import DataLike

@@ -1,13 +1,15 @@
 from __future__ import annotations
 
-from collections.abc import Callable
-from typing import Literal
-
-from numpy.typing import ArrayLike
-from sklearn.base import BaseEstimator, TransformerMixin
+from typing import TYPE_CHECKING, Literal
 
 from ._weighted_trees import WeightedTreesNNRegressor
 from .transformers import GBNodeTransformer
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    from numpy.typing import ArrayLike
+    from sklearn.base import BaseEstimator, TransformerMixin
 
 
 class GBNNRegressor(WeightedTreesNNRegressor):

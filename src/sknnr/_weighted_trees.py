@@ -1,13 +1,17 @@
 from __future__ import annotations
 
-from collections.abc import Callable
-from typing import Literal
+from typing import TYPE_CHECKING, Literal
 
 import numpy as np
-from numpy.typing import ArrayLike
 
 from ._base import TransformedKNeighborsRegressor, YFitMixin
-from .transformers._tree_node_transformer import TreeNodeTransformer
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    from numpy.typing import ArrayLike
+
+    from .transformers._tree_node_transformer import TreeNodeTransformer
 
 
 class WeightedTreesNNRegressor(YFitMixin, TransformedKNeighborsRegressor):
