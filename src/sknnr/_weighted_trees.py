@@ -9,9 +9,10 @@ from ._base import TransformedKNeighborsRegressor, YFitMixin
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-    from numpy.typing import ArrayLike
+    from numpy.typing import ArrayLike, NDArray
 
     from .transformers._tree_node_transformer import TreeNodeTransformer
+    from .types import DataLike
 
 
 class WeightedTreesNNRegressor(YFitMixin, TransformedKNeighborsRegressor):
@@ -57,11 +58,11 @@ class WeightedTreesNNRegressor(YFitMixin, TransformedKNeighborsRegressor):
             n_jobs=n_jobs,
         )
 
-    def _set_fitted_transformer(self, X, y) -> None:
+    def _set_fitted_transformer(self, X: DataLike, y: DataLike) -> None:
         super()._set_fitted_transformer(X, y)
         self.hamming_weights_ = self._get_hamming_weights()
 
-    def _get_hamming_weights(self):
+    def _get_hamming_weights(self) -> NDArray[np.float64]:
         """
         Get the weights for the Hamming distance metric, based on tree weights
         from the transformer and forest weights provided as a user parameter.
@@ -96,7 +97,7 @@ class WeightedTreesNNRegressor(YFitMixin, TransformedKNeighborsRegressor):
             ]
         )
 
-    def _validate_user_forest_weights(self):
+    def _validate_user_forest_weights(self) -> NDArray[np.float64]:
         """
         Validate user-supplied forest weights, ensuring they are numeric,
         finite and non-negative.
@@ -135,5 +136,5 @@ class WeightedTreesNNRegressor(YFitMixin, TransformedKNeighborsRegressor):
             )
         return forest_weights
 
-    def _get_additional_regressor_init_kwargs(self) -> dict:
+    def _get_additional_regressor_init_kwargs(self) -> dict[str, object]:
         return {"metric_params": {"w": self.hamming_weights_}}
