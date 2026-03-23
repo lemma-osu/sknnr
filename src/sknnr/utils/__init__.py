@@ -4,20 +4,11 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from ..types import DataFrameLike, DTypeLike, SeriesLike
-
 if TYPE_CHECKING:
     from collections.abc import Hashable, Sequence
     from typing import TypeGuard
 
     from ..types import DataFrameLike, DTypeLike, SeriesLike
-
-
-def _has_all_attrs(obj: object, protocol: type) -> bool:
-    """
-    Check if an object satisfies the attributes of a protocol.
-    """
-    return all(hasattr(obj, attr) for attr in protocol.__annotations__)
 
 
 def is_dataframe_like(obj: object) -> TypeGuard[DataFrameLike]:
@@ -26,7 +17,7 @@ def is_dataframe_like(obj: object) -> TypeGuard[DataFrameLike]:
     for pandas and polars DataFrames without the need to import those packages
     explicitly.
     """
-    return _has_all_attrs(obj, DataFrameLike)
+    return hasattr(obj, "columns") and hasattr(obj, "dtypes")
 
 
 def is_series_like(obj: object) -> TypeGuard[SeriesLike]:
@@ -35,7 +26,7 @@ def is_series_like(obj: object) -> TypeGuard[SeriesLike]:
     for pandas and polars Series without the need to import those packages
     explicitly.
     """
-    return _has_all_attrs(obj, SeriesLike)
+    return hasattr(obj, "name") and hasattr(obj, "dtype")
 
 
 def is_number_like_type(t: DTypeLike) -> bool:
