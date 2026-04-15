@@ -5,10 +5,10 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 if TYPE_CHECKING:
-    from collections.abc import Hashable, Sequence
+    from collections.abc import Hashable
     from typing import TypeGuard
 
-    from ..types import DataFrameLike, DTypeLike, SeriesLike
+    from ..types import DataFrameLike, DataLike, DTypeLike, SeriesLike
 
 
 def is_dataframe_like(obj: object) -> TypeGuard[DataFrameLike]:
@@ -52,9 +52,7 @@ def is_nan_like(x: object) -> bool:
     )
 
 
-def get_feature_names(
-    obj: None | Sequence | DataFrameLike | SeriesLike,
-) -> list[Hashable]:
+def get_feature_names(obj: DataLike | None) -> list[Hashable]:
     """
     Get the names of the features in `obj`. If no names are found, return
     a list of strings with the feature index.
@@ -71,7 +69,7 @@ def get_feature_names(
     return [str(i) for i in range(arr.shape[1])]
 
 
-def get_minimum_dtypes(obj: Sequence | DataFrameLike | SeriesLike) -> list[DTypeLike]:
+def get_minimum_dtypes(obj: DataLike) -> list[DTypeLike]:
     """
     Return the smallest numpy dtype that can accommodate all data for each
     column in obj.
@@ -82,9 +80,7 @@ def get_minimum_dtypes(obj: Sequence | DataFrameLike | SeriesLike) -> list[DType
     return [np.asarray(arr[:, i].tolist()).dtype for i in range(arr.shape[1])]
 
 
-def get_feature_dtypes(
-    obj: None | Sequence | DataFrameLike | SeriesLike,
-) -> list[DTypeLike]:
+def get_feature_dtypes(obj: DataLike | None) -> list[DTypeLike]:
     """
     Get numpy dtypes of the features in `obj`, promoting dtypes as necessary to
     the smallest type that can accommodate all data elements in that feature.
@@ -119,9 +115,7 @@ def get_feature_dtypes(
     return get_minimum_dtypes(obj)
 
 
-def get_feature_names_and_dtypes(
-    obj: None | Sequence | DataFrameLike | SeriesLike,
-) -> dict[Hashable, DTypeLike]:
+def get_feature_names_and_dtypes(obj: DataLike | None) -> dict[Hashable, DTypeLike]:
     """
     Get the names and dtypes of the features in `obj` and return as dict.
 
