@@ -224,7 +224,9 @@ class RFNodeTransformer(TreeNodeTransformer):
     def _set_n_trees_per_iteration(self) -> list[int]:
         return [1] * self.n_forests_
 
-    def _set_tree_weights(self, X: DataLike, y: DataLike) -> list[NDArray[np.float64]]:
+    def _set_tree_weights(
+        self, X: NDArray, y: list[NDArray]
+    ) -> list[NDArray[np.float64]]:
         return uniform_weights(self.n_forests_, self.n_estimators)
 
     def get_feature_names_out(self) -> NDArray:

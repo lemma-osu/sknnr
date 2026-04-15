@@ -161,7 +161,7 @@ class TreeNodeTransformer(TransformerMixin, BaseEstimator, ABC):
 
     @abstractmethod
     def _set_tree_weights(
-        self, X: DataLike, y: DataLike
+        self, X: NDArray, y: list[NDArray]
     ) -> list[NDArray[np.float64]]: ...
 
     @abstractmethod

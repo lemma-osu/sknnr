@@ -283,7 +283,9 @@ class GBNodeTransformer(TreeNodeTransformer):
     def _set_n_trees_per_iteration(self) -> list[int]:
         return [est.n_trees_per_iteration_ for est in self.estimators_]
 
-    def _set_tree_weights(self, X: DataLike, y: DataLike) -> list[NDArray[np.float64]]:
+    def _set_tree_weights(
+        self, X: NDArray, y: list[NDArray]
+    ) -> list[NDArray[np.float64]]:
         tree_weights = []
         if self.tree_weighting_method == "train_improvement":
             for est, target in zip(self.estimators_, y, strict=True):
