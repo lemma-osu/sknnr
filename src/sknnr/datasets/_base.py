@@ -60,7 +60,7 @@ def _dataset_as_frame(dataset: Dataset[NDArray[np.float64]]) -> Dataset[pd.DataF
 
 def load_csv_data(
     file_name: str, *, module_name: str | types.ModuleType = DATA_MODULE
-) -> tuple[NDArray[np.int64], NDArray[np.float64], NDArray[np.str_]]:
+) -> tuple[NDArray[np.int64], NDArray[np.float64], list[str]]:
     """Load data from a CSV file from the specified module_name.
 
     Parameters
@@ -76,7 +76,7 @@ def load_csv_data(
         The plot IDs from the first column of the CSV file.
     data: ndarray
         The data values from the remaining columns of the CSV file.
-    data_names: ndarray
+    data_names: list[str]
         The column names from the first row of the CSV file.
 
     Notes
