@@ -10,4 +10,7 @@ repos:
     hooks:
       - id: mypy
         exclude: ^tests/
-        args: [--ignore-missing-imports]
+        additional_dependencies:
+          - numpy
+          - pandas-stubs
+          - scipy-stubs
