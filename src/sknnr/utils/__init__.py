@@ -36,13 +36,11 @@ def is_number_like_type(t: DTypeLike) -> bool:
     kind of the type.
     """
     try:
-        return np.issubdtype(t, np.number)
-    except TypeError:
-        try:
-            return t.kind in "iuf"
-        except AttributeError as err:
-            msg = f"Unsupported type {t}"
-            raise TypeError(msg) from err
+        return np.issubdtype(t, np.number)  # type: ignore[arg-type]
+    except TypeError as e:
+        if kind := getattr(t, "kind", None):
+            return kind in "iuf"
+        raise TypeError(f"Unsupported type {t}") from e
 
 
 def is_nan_like(x: object) -> bool:
