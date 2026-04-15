@@ -4,7 +4,7 @@ import csv
 import types
 from dataclasses import dataclass
 from importlib import resources
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Generic, Literal, TypeVar, Union, overload
 
 import numpy as np
 from numpy.typing import NDArray
@@ -14,12 +14,16 @@ if TYPE_CHECKING:
 
 DATA_MODULE = "sknnr.datasets.data"
 
+T_ArrayOrFrame = TypeVar(
+    "T_ArrayOrFrame", bound=Union[NDArray[np.float64], "pd.DataFrame"]
+)
+
 
 @dataclass
-class Dataset:
-    index: NDArray[np.int64] | pd.DataFrame
-    data: NDArray[np.float64] | pd.DataFrame
-    target: NDArray[np.float64] | pd.DataFrame
+class Dataset(Generic[T_ArrayOrFrame]):
+    index: NDArray[np.int64]
+    data: T_ArrayOrFrame
+    target: T_ArrayOrFrame
     frame: None | pd.DataFrame
     feature_names: list[str]
     target_names: list[str]
@@ -31,7 +35,7 @@ class Dataset:
         return f"Dataset(n={n}, features={n_features}, targets={n_targets})"
 
 
-def _dataset_as_frame(dataset: Dataset) -> Dataset:
+def _dataset_as_frame(dataset: Dataset[NDArray[np.float64]]) -> Dataset[pd.DataFrame]:
     """Convert a Dataset of arrays to a Dataset of DataFrames."""
     pd = _import_pandas()
 
@@ -56,7 +60,7 @@ def _dataset_as_frame(dataset: Dataset) -> Dataset:
 
 def load_csv_data(
     file_name: str, *, module_name: str | types.ModuleType = DATA_MODULE
-) -> tuple[NDArray[np.int64], NDArray[np.float64], NDArray[np.str_]]:
+) -> tuple[NDArray[np.int64], NDArray[np.float64], list[str]]:
     """Load data from a CSV file from the specified module_name.
 
     Parameters
@@ -72,7 +76,7 @@ def load_csv_data(
         The plot IDs from the first column of the CSV file.
     data: ndarray
         The data values from the remaining columns of the CSV file.
-    data_names: ndarray
+    data_names: list[str]
         The column names from the first row of the CSV file.
 
     Notes
@@ -92,6 +96,66 @@ def load_csv_data(
     return index, data, data_names
 
 
+@overload
+def load_dataset_from_csv_filenames(
+    *,
+    data_filename: str,
+    target_filename: str,
+    return_X_y: Literal[False] = False,
+    as_frame: Literal[False] = False,
+    module_name: str | types.ModuleType = DATA_MODULE,
+) -> Dataset[NDArray[np.float64]]: ...
+
+
+@overload
+def load_dataset_from_csv_filenames(
+    *,
+    data_filename: str,
+    target_filename: str,
+    return_X_y: Literal[False] = ...,
+    as_frame: Literal[True] = ...,
+    module_name: str | types.ModuleType = DATA_MODULE,
+) -> Dataset[pd.DataFrame]: ...
+
+
+@overload
+def load_dataset_from_csv_filenames(
+    *,
+    data_filename: str,
+    target_filename: str,
+    return_X_y: Literal[True] = ...,
+    as_frame: Literal[False] = ...,
+    module_name: str | types.ModuleType = DATA_MODULE,
+) -> tuple[NDArray[np.float64], NDArray[np.float64]]: ...
+
+
+@overload
+def load_dataset_from_csv_filenames(
+    *,
+    data_filename: str,
+    target_filename: str,
+    return_X_y: Literal[True] = ...,
+    as_frame: Literal[True] = ...,
+    module_name: str | types.ModuleType = DATA_MODULE,
+) -> tuple[pd.DataFrame, pd.DataFrame]: ...
+
+
+@overload
+def load_dataset_from_csv_filenames(
+    *,
+    data_filename: str,
+    target_filename: str,
+    return_X_y: bool = ...,
+    as_frame: bool = ...,
+    module_name: str | types.ModuleType = DATA_MODULE,
+) -> (
+    Dataset[NDArray[np.float64]]
+    | Dataset[pd.DataFrame]
+    | tuple[NDArray[np.float64], NDArray[np.float64]]
+    | tuple[pd.DataFrame, pd.DataFrame]
+): ...
+
+
 def load_dataset_from_csv_filenames(
     *,
     data_filename: str,
@@ -99,7 +163,12 @@ def load_dataset_from_csv_filenames(
     return_X_y: bool = False,
     as_frame: bool = False,
     module_name: str | types.ModuleType = DATA_MODULE,
-) -> tuple[NDArray[np.float64], NDArray[np.float64]] | Dataset:
+) -> (
+    Dataset[NDArray[np.float64]]
+    | Dataset[pd.DataFrame]
+    | tuple[NDArray[np.float64], NDArray[np.float64]]
+    | tuple[pd.DataFrame, pd.DataFrame]
+):
     """Load separate data and target CSV files into a dataset or paired NumPy arrays.
 
     Parameters
@@ -152,9 +221,38 @@ def load_dataset_from_csv_filenames(
     return (dataset.data, dataset.target) if return_X_y else dataset
 
 
+@overload
+def load_moscow_stjoes(
+    return_X_y: Literal[False] = False, as_frame: Literal[False] = False
+) -> Dataset[NDArray[np.float64]]: ...
+
+
+@overload
+def load_moscow_stjoes(
+    return_X_y: Literal[False] = ..., as_frame: Literal[True] = ...
+) -> Dataset[pd.DataFrame]: ...
+
+
+@overload
+def load_moscow_stjoes(
+    return_X_y: Literal[True] = ..., as_frame: Literal[False] = ...
+) -> tuple[NDArray[np.float64], NDArray[np.float64]]: ...
+
+
+@overload
+def load_moscow_stjoes(
+    return_X_y: Literal[True] = ..., as_frame: Literal[True] = ...
+) -> tuple[pd.DataFrame, pd.DataFrame]: ...
+
+
 def load_moscow_stjoes(
     return_X_y: bool = False, as_frame: bool = False
-) -> tuple[NDArray[np.float64], NDArray[np.float64]] | Dataset:
+) -> (
+    Dataset[NDArray[np.float64]]
+    | Dataset[pd.DataFrame]
+    | tuple[NDArray[np.float64], NDArray[np.float64]]
+    | tuple[pd.DataFrame, pd.DataFrame]
+):
     """Load the Moscow Mountain / St. Joe's dataset (Hudak 2010[^1]).
 
     The dataset contains 165 plots with environmental, LiDAR, and forest structure
@@ -198,9 +296,38 @@ def load_moscow_stjoes(
     )
 
 
+@overload
+def load_swo_ecoplot(
+    return_X_y: Literal[False] = False, as_frame: Literal[False] = False
+) -> Dataset[NDArray[np.float64]]: ...
+
+
+@overload
+def load_swo_ecoplot(
+    return_X_y: Literal[False] = ..., as_frame: Literal[True] = ...
+) -> Dataset[pd.DataFrame]: ...
+
+
+@overload
+def load_swo_ecoplot(
+    return_X_y: Literal[True] = ..., as_frame: Literal[False] = ...
+) -> tuple[NDArray[np.float64], NDArray[np.float64]]: ...
+
+
+@overload
+def load_swo_ecoplot(
+    return_X_y: Literal[True] = ..., as_frame: Literal[True] = ...
+) -> tuple[pd.DataFrame, pd.DataFrame]: ...
+
+
 def load_swo_ecoplot(
     return_X_y: bool = False, as_frame: bool = False
-) -> tuple[NDArray[np.float64], NDArray[np.float64]] | Dataset:
+) -> (
+    Dataset[NDArray[np.float64]]
+    | Dataset[pd.DataFrame]
+    | tuple[NDArray[np.float64], NDArray[np.float64]]
+    | tuple[pd.DataFrame, pd.DataFrame]
+):
     """Load the southwest Oregon (SWO) USFS Region 6 Ecoplot dataset.
 
     The dataset contains 3,005 plots with environmental, Landsat, and forest cover
