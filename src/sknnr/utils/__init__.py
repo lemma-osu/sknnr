@@ -93,7 +93,7 @@ def get_feature_dtypes(
 
     Parameters
     ----------
-    obj : array-like, DataFrame, or Series
+    obj : array-like, DataFrame, or Series, optional
         The object from which to get the feature dtypes.
 
     Returns:
@@ -127,7 +127,7 @@ def get_feature_names_and_dtypes(
 
     Parameters
     ----------
-    obj : array-like, DataFrame, or Series
+    obj : array-like, DataFrame, or Series, optional
         The object to get the feature names and dtypes from.
 
     Returns:
