@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Protocol, Union
+from typing import TYPE_CHECKING, Protocol, TypeAlias, Union
 
 from numpy.typing import ArrayLike, DTypeLike
 
@@ -10,7 +10,7 @@ if TYPE_CHECKING:
     from pandas import CategoricalDtype
     from pandas.api.extensions import ExtensionDtype
 
-NumpyDTypeLike = DTypeLike
+NumpyDTypeLike: TypeAlias = DTypeLike
 """Any data type that can be used in a numpy array."""
 
 AnyDTypeLike = Union[NumpyDTypeLike, "ExtensionDtype"]
