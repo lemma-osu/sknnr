@@ -8,7 +8,13 @@ from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.utils.validation import check_array, check_is_fitted
 
 from .._base import _validate_data
-from ..utils import get_feature_names_and_dtypes, is_nan_like, is_number_like_type
+from ..utils import (
+    get_feature_names_and_dtypes,
+    is_categorical_dtype,
+    is_nan_like,
+    is_number_like_type,
+    is_numpy_dtypelike,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Hashable
@@ -17,7 +23,7 @@ if TYPE_CHECKING:
     from numpy.typing import NDArray
     from sklearn.utils._tags import Tags
 
-    from ..types import DataLike, DTypeLike
+    from ..types import DataDTypeLike, DataLike
 
 
 def uniform_weights(n_forests: int, n_estimators: int) -> list[NDArray[np.float64]]:
@@ -32,7 +38,7 @@ def uniform_weights(n_forests: int, n_estimators: int) -> list[NDArray[np.float6
 
 class TreeNodeTransformer(TransformerMixin, BaseEstimator, ABC):
     def _validate_and_promote_targets(
-        self, y: DataLike, target_info: dict[Hashable, DTypeLike]
+        self, y: DataLike, target_info: dict[Hashable, DataDTypeLike]
     ) -> list[NDArray]:
         """
         Given target names and types, validate and promote each target in `y`.
@@ -66,27 +72,27 @@ class TreeNodeTransformer(TransformerMixin, BaseEstimator, ABC):
             # minimum numpy dtype.  Numpy does not support categorical dtypes,
             # but we need to retain the categorical dtype label to correctly route
             # the target to a random forest classifier.
-            if str(promoted_dtype) == "category":
+            if is_categorical_dtype(promoted_dtype):
                 target = np.asarray(target.tolist())
 
-            # Check for targets with mixed numeric and non-numeric elements.
-            # Safe promotion of numeric types to other numeric types is
-            # allowed (e.g. bool to int, int to float), but potentially unsafe
-            # promotion from numeric to non-numeric types is not allowed
-            # (e.g. int to str, float to str).
-            elif np.issubdtype(promoted_dtype, np.str_) and (
-                non_string_types := {
-                    type(v) for v in target if not np.issubdtype(type(v), np.str_)
-                }
-            ):
-                raise ValueError(
-                    f"Target {name} has non-string types ({non_string_types}) "
-                    f"that cannot be safely converted to a string dtype "
-                    f"({promoted_dtype})."
-                )
+            elif is_numpy_dtypelike(promoted_dtype):
+                # Check for targets with mixed numeric and non-numeric elements.
+                # Safe promotion of numeric types to other numeric types is
+                # allowed (e.g. bool to int, int to float), but potentially unsafe
+                # promotion from numeric to non-numeric types is not allowed
+                # (e.g. int to str, float to str).
+                if np.issubdtype(promoted_dtype, np.str_) and (
+                    non_string_types := {
+                        type(v) for v in target if not np.issubdtype(type(v), np.str_)
+                    }
+                ):
+                    raise ValueError(
+                        f"Target {name} has non-string types ({non_string_types}) "
+                        f"that cannot be safely converted to a string dtype "
+                        f"({promoted_dtype})."
+                    )
 
-            # Otherwise, promote the target to the minimum numpy dtype
-            else:
+                # Otherwise, promote the target to the minimum numpy dtype
                 target = target.astype(promoted_dtype)
 
             # Check for any other issues with the target when paired with the
@@ -103,7 +109,7 @@ class TreeNodeTransformer(TransformerMixin, BaseEstimator, ABC):
         return targets
 
     def _set_estimator_types(
-        self, target_info: dict[Hashable, DTypeLike]
+        self, target_info: dict[Hashable, DataDTypeLike]
     ) -> dict[Hashable, Literal["regression", "classification"]]:
         """Set the estimator type to use for each target in `y`."""
 
