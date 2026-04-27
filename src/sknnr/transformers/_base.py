@@ -78,7 +78,7 @@ class ComponentReducerMixin:
     def __init__(self, n_components: int | None = None):
         self.n_components = n_components
 
-    def get_feature_names_out(self) -> NDArray:
+    def get_feature_names_out(self) -> NDArray[np.object_]:
         check_is_fitted(self, "n_components_")
         return np.asarray(
             [

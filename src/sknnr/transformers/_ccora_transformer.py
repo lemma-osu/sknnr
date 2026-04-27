@@ -12,6 +12,7 @@ from ._ccora import CCorA
 if TYPE_CHECKING:
     from typing import Self
 
+    import numpy as np
     from numpy.typing import NDArray
     from sklearn.utils._tags import Tags
 
@@ -64,12 +65,12 @@ class CCorATransformer(ComponentReducerMixin, TransformerMixin, BaseEstimator):
         self.projector_ = self.ordination_.projector(n_components=self.n_components_)
         return self
 
-    def transform(self, X: DataLike, y: None = None) -> NDArray:
+    def transform(self, X: DataLike, y: None = None) -> NDArray[np.float64]:
         check_is_fitted(self)
         _validate_data(self, X=X, reset=False, ensure_all_finite=True)
         return self.scaler_.transform(X) @ self.projector_
 
-    def fit_transform(self, X: DataLike, y: DataLike) -> NDArray:
+    def fit_transform(self, X: DataLike, y: DataLike) -> NDArray[np.float64]:
         return self.fit(X, y).transform(X)
 
     def __sklearn_tags__(self) -> Tags:

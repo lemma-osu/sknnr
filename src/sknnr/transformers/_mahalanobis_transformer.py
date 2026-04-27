@@ -49,13 +49,13 @@ class MahalanobisTransformer(OneToOneFeatureMixin, TransformerMixin, BaseEstimat
         self.transform_ = np.linalg.inv(np.linalg.cholesky(covariance).T)
         return self
 
-    def transform(self, X: DataLike, y: None = None) -> NDArray:
+    def transform(self, X: DataLike, y: None = None) -> NDArray[np.float64]:
         check_is_fitted(self)
         _validate_data(self, X=X, ensure_all_finite="allow-nan", reset=False)
 
         return self.scaler_.transform(X) @ self.transform_
 
-    def fit_transform(self, X: DataLike, y: None = None) -> NDArray:
+    def fit_transform(self, X: DataLike, y: None = None) -> NDArray[np.float64]:
         return self.fit(X, y).transform(X)
 
     def __sklearn_tags__(self) -> Tags:

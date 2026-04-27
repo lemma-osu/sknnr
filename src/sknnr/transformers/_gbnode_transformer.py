@@ -20,7 +20,7 @@ if TYPE_CHECKING:
 
 def train_improvement(
     est: GradientBoostingClassifier | GradientBoostingRegressor, X: NDArray, y: NDArray
-) -> NDArray:
+) -> NDArray[np.float64]:
     """
     Calculate tree weights as a function of the change in loss between
     successive trees in a gradient boosting estimator.  This behaves as a proxy
@@ -305,7 +305,7 @@ class GBNodeTransformer(TreeNodeTransformer):
 
         return tree_weights
 
-    def get_feature_names_out(self) -> NDArray:
+    def get_feature_names_out(self) -> NDArray[np.object_]:
         check_is_fitted(self, "estimators_")
         feature_names: list[str] = []
         for i, est in enumerate(self.estimators_):

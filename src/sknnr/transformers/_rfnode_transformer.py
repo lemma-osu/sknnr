@@ -229,7 +229,7 @@ class RFNodeTransformer(TreeNodeTransformer):
     ) -> list[NDArray[np.float64]]:
         return uniform_weights(self.n_forests_, self.n_estimators)
 
-    def get_feature_names_out(self) -> NDArray:
+    def get_feature_names_out(self) -> NDArray[np.object_]:
         check_is_fitted(self, "estimators_")
         return np.asarray(
             [

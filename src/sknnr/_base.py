@@ -348,7 +348,7 @@ class TransformedKNeighborsRegressor(BaseEstimator, ABC):
         return_distance: bool = True,
         return_dataframe_index: bool = False,
         use_deterministic_ordering: bool = True,
-    ) -> NDArray | tuple[NDArray, NDArray]:
+    ) -> NDArray[np.int64] | tuple[NDArray[np.float64], NDArray[np.int64]]:
         """
         Find the K-neighbors of a point or points of transformed feature data
         and optionally return dataframe indexes rather than array indices when
@@ -402,7 +402,7 @@ class TransformedKNeighborsRegressor(BaseEstimator, ABC):
             use_deterministic_ordering=use_deterministic_ordering,
         )
 
-    def predict(self, X: DataLike) -> NDArray:
+    def predict(self, X: DataLike) -> NDArray[np.float64]:
         X_transformed = self._transform_X(X)
         return self.regressor_.predict(X_transformed)
 

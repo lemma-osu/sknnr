@@ -74,7 +74,7 @@ class CCATransformer(ComponentReducerMixin, TransformerMixin, BaseEstimator):
         self.projector_ = self.ordination_.projector(n_components=self.n_components_)
         return self
 
-    def transform(self, X: DataLike, y: None = None) -> NDArray:
+    def transform(self, X: DataLike, y: None = None) -> NDArray[np.float64]:
         check_is_fitted(self)
         X_arr = _validate_data(
             self,
@@ -87,7 +87,7 @@ class CCATransformer(ComponentReducerMixin, TransformerMixin, BaseEstimator):
         )
         return (X_arr - self.env_center_) @ self.projector_
 
-    def fit_transform(self, X: DataLike, y: DataLike) -> NDArray:
+    def fit_transform(self, X: DataLike, y: DataLike) -> NDArray[np.float64]:
         return self.fit(X, y).transform(X)
 
     def __sklearn_tags__(self) -> Tags:
