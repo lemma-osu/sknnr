@@ -39,7 +39,7 @@ def uniform_weights(n_forests: int, n_estimators: int) -> list[NDArray[np.float6
 class TreeNodeTransformer(TransformerMixin, BaseEstimator, ABC):
     def _validate_and_promote_targets(
         self, y: DataLike, target_info: dict[Hashable, DataDTypeLike]
-    ) -> list[NDArray]:
+    ) -> list[NDArray[np.object_ | np.number]]:
         """
         Given target names and types, validate and promote each target in `y`.
 
@@ -167,7 +167,9 @@ class TreeNodeTransformer(TransformerMixin, BaseEstimator, ABC):
 
     @abstractmethod
     def _set_tree_weights(
-        self, X: NDArray, y: list[NDArray]
+        self,
+        X: NDArray[np.object_ | np.number],
+        y: list[NDArray[np.object_ | np.number]],
     ) -> list[NDArray[np.float64]]: ...
 
     @abstractmethod

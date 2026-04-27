@@ -19,7 +19,9 @@ if TYPE_CHECKING:
 
 
 def train_improvement(
-    est: GradientBoostingClassifier | GradientBoostingRegressor, X: NDArray, y: NDArray
+    est: GradientBoostingClassifier | GradientBoostingRegressor,
+    X: NDArray[np.object_ | np.number],
+    y: NDArray[np.object_ | np.number],
 ) -> NDArray[np.float64]:
     """
     Calculate tree weights as a function of the change in loss between
@@ -284,7 +286,9 @@ class GBNodeTransformer(TreeNodeTransformer):
         return [est.n_trees_per_iteration_ for est in self.estimators_]
 
     def _set_tree_weights(
-        self, X: NDArray, y: list[NDArray]
+        self,
+        X: NDArray[np.object_ | np.number],
+        y: list[NDArray[np.object_ | np.number]],
     ) -> list[NDArray[np.float64]]:
         tree_weights = []
         if self.tree_weighting_method == "train_improvement":
