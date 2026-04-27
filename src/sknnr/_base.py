@@ -25,7 +25,7 @@ def _validate_data(
     estimator: BaseEstimator,
     *,
     X: DataLike,
-    y: Literal["no-validation"] = "no-validation",
+    y: Literal["no_validation"] = "no_validation",
     ensure_all_finite: bool | Literal["allow-nan"] = True,
     **kwargs,
 ) -> NDArray: ...
@@ -33,7 +33,7 @@ def _validate_data(
 def _validate_data(
     estimator: BaseEstimator,
     *,
-    X: Literal["no-validation"] = "no-validation",
+    X: Literal["no_validation"] = "no_validation",
     y: DataLike,
     ensure_all_finite: bool | Literal["allow-nan"] = True,
     **kwargs,
@@ -52,8 +52,8 @@ def _validate_data(
 def _validate_data(
     estimator: BaseEstimator,
     *,
-    X: DataLike | Literal["no-validation"] = "no-validation",
-    y: DataLike | Literal["no-validation"] | None = "no-validation",
+    X: DataLike | Literal["no_validation"] = "no_validation",
+    y: DataLike | Literal["no_validation"] | None = "no_validation",
     ensure_all_finite: bool | Literal["allow-nan"] = True,
     **kwargs,
 ) -> NDArray | tuple[NDArray, NDArray]:
