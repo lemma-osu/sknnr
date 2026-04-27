@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, overload
 
 import numpy as np
 from sklearn.base import BaseEstimator, TransformerMixin
@@ -20,9 +20,40 @@ if TYPE_CHECKING:
     from .types import DataLike
 
 
+@overload
 def _validate_data(
     estimator: BaseEstimator,
     *,
+    X: DataLike,
+    y: Literal["no-validation"] = "no-validation",
+    ensure_all_finite: bool | Literal["allow-nan"] = True,
+    **kwargs,
+) -> NDArray: ...
+@overload
+def _validate_data(
+    estimator: BaseEstimator,
+    *,
+    X: Literal["no-validation"] = "no-validation",
+    y: DataLike,
+    ensure_all_finite: bool | Literal["allow-nan"] = True,
+    **kwargs,
+) -> NDArray: ...
+@overload
+def _validate_data(
+    estimator: BaseEstimator,
+    *,
+    X: DataLike,
+    y: DataLike,
+    ensure_all_finite: bool | Literal["allow-nan"] = True,
+    **kwargs,
+) -> tuple[NDArray, NDArray]: ...
+
+
+def _validate_data(
+    estimator: BaseEstimator,
+    *,
+    X: DataLike | Literal["no-validation"] = "no-validation",
+    y: DataLike | Literal["no-validation"] | None = "no-validation",
     ensure_all_finite: bool | Literal["allow-nan"] = True,
     **kwargs,
 ) -> NDArray | tuple[NDArray, NDArray]:
@@ -39,9 +70,13 @@ def _validate_data(
     try:
         from sklearn.utils.validation import validate_data
     except ImportError:
-        return estimator._validate_data(force_all_finite=ensure_all_finite, **kwargs)
+        return estimator._validate_data(
+            X=X, y=y, force_all_finite=ensure_all_finite, **kwargs
+        )
 
-    return validate_data(estimator, ensure_all_finite=ensure_all_finite, **kwargs)
+    return validate_data(
+        estimator, X=X, y=y, ensure_all_finite=ensure_all_finite, **kwargs
+    )
 
 
 class DFIndexCrosswalkMixin:
