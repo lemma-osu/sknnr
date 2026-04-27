@@ -55,7 +55,7 @@ class StandardScalerWithDOF(StandardScaler):
     def fit(self, X: DataLike, y: DataLike | None = None) -> Self:
         scaler = super().fit(X, y)
 
-        X = _validate_data(
+        X_arr = _validate_data(
             self,
             X=X,
             accept_sparse=False,
@@ -64,7 +64,7 @@ class StandardScalerWithDOF(StandardScaler):
             reset=False,
             ensure_min_samples=self.ddof + 1,
         )
-        scaler.scale_ = np.std(X, axis=0, ddof=self.ddof)
+        scaler.scale_ = np.std(X_arr, axis=0, ddof=self.ddof)
         return scaler
 
 

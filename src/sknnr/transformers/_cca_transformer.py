@@ -55,7 +55,7 @@ class CCATransformer(ComponentReducerMixin, TransformerMixin, BaseEstimator):
     """
 
     def fit(self, X: DataLike, y: DataLike) -> Self:
-        X = _validate_data(
+        X_arr = _validate_data(
             self,
             X=X,
             reset=True,
@@ -68,7 +68,7 @@ class CCATransformer(ComponentReducerMixin, TransformerMixin, BaseEstimator):
         if len(y.shape) < 2:
             raise ValueError("`y` must be a 2D array.")
 
-        self.ordination_ = CCA(X, y)
+        self.ordination_ = CCA(X_arr, y)
         self.set_n_components()
         self.env_center_ = self.ordination_.env_center
         self.projector_ = self.ordination_.projector(n_components=self.n_components_)
@@ -76,7 +76,7 @@ class CCATransformer(ComponentReducerMixin, TransformerMixin, BaseEstimator):
 
     def transform(self, X: DataLike, y: None = None) -> NDArray:
         check_is_fitted(self)
-        X = _validate_data(
+        X_arr = _validate_data(
             self,
             X=X,
             reset=False,
@@ -85,7 +85,7 @@ class CCATransformer(ComponentReducerMixin, TransformerMixin, BaseEstimator):
             ensure_min_features=2,
             ensure_min_samples=1,
         )
-        return (X - self.env_center_) @ self.projector_
+        return (X_arr - self.env_center_) @ self.projector_
 
     def fit_transform(self, X: DataLike, y: DataLike) -> NDArray:
         return self.fit(X, y).transform(X)

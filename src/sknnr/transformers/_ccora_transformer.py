@@ -52,14 +52,14 @@ class CCorATransformer(ComponentReducerMixin, TransformerMixin, BaseEstimator):
     """
 
     def fit(self, X: DataLike, y: DataLike) -> Self:
-        _, y = _validate_data(self, X=X, y=y, reset=True, multi_output=True)
+        _, y_arr = _validate_data(self, X=X, y=y, reset=True, multi_output=True)
         self.scaler_ = StandardScalerWithDOF(ddof=1).fit(X)
 
-        if y.ndim == 1:
-            y = y.reshape(-1, 1)
-        y = StandardScalerWithDOF(ddof=1).fit_transform(y)
+        if y_arr.ndim == 1:
+            y_arr = y_arr.reshape(-1, 1)
+        y_arr = StandardScalerWithDOF(ddof=1).fit_transform(y_arr)
 
-        self.ordination_ = CCorA(self.scaler_.transform(X), y)
+        self.ordination_ = CCorA(self.scaler_.transform(X), y_arr)
         self.set_n_components()
         self.projector_ = self.ordination_.projector(n_components=self.n_components_)
         return self

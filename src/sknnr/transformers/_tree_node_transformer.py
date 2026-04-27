@@ -129,7 +129,7 @@ class TreeNodeTransformer(TransformerMixin, BaseEstimator, ABC):
         reg_kwargs: dict[str, Any],
         clf_kwargs: dict[str, Any],
     ) -> Self:
-        X = _validate_data(self, X=X, reset=True)
+        X_arr = _validate_data(self, X=X, reset=True)
 
         if y is None:
             msg = (
@@ -152,14 +152,14 @@ class TreeNodeTransformer(TransformerMixin, BaseEstimator, ABC):
             i: v for i, (_, v) in enumerate(self.estimator_type_dict_.items())
         }
         self.estimators_ = [
-            regressor_cls(**reg_kwargs).fit(X, target)
+            regressor_cls(**reg_kwargs).fit(X_arr, target)
             if target_idx_to_estimator_type[i] == "regression"
-            else classifier_cls(**clf_kwargs).fit(X, target)
+            else classifier_cls(**clf_kwargs).fit(X_arr, target)
             for i, target in enumerate(y)
         ]
         self.n_forests_ = len(self.estimators_)
         self.n_trees_per_iteration_ = self._set_n_trees_per_iteration()
-        self.tree_weights_ = self._set_tree_weights(X, y)
+        self.tree_weights_ = self._set_tree_weights(X_arr, y)
         return self
 
     @abstractmethod
@@ -175,7 +175,7 @@ class TreeNodeTransformer(TransformerMixin, BaseEstimator, ABC):
 
     def transform(self, X: DataLike) -> NDArray[np.int64]:
         check_is_fitted(self)
-        X = _validate_data(
+        X_arr = _validate_data(
             self,
             X=X,
             reset=False,
@@ -186,7 +186,7 @@ class TreeNodeTransformer(TransformerMixin, BaseEstimator, ABC):
         # Get the node IDs for each tree in each forest
         node_ids = []
         for est in self.estimators_:
-            est_node_ids = est.apply(X)
+            est_node_ids = est.apply(X_arr)
             # In the case of some multi-class estimators (e.g.
             # GradientBoostingClassifier), the output of `apply` is 3D (n_samples,
             # n_estimators, n_classes). First swap axes to get (n_samples,
