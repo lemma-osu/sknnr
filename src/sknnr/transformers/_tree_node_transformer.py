@@ -71,7 +71,7 @@ class TreeNodeTransformer(TransformerMixin, BaseEstimator, ABC):
             # If the promoted dtype is categorical, promote the data to the
             # minimum numpy dtype.  Numpy does not support categorical dtypes,
             # but we need to retain the categorical dtype label to correctly route
-            # the target to a random forest classifier.
+            # the target to a tree-based classifier.
             if is_categorical_dtype(promoted_dtype):
                 target = np.asarray(target.tolist())
 
