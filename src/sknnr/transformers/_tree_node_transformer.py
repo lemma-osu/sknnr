@@ -124,8 +124,8 @@ class TreeNodeTransformer(TransformerMixin, BaseEstimator, ABC):
         self,
         X: DataLike,
         y: DataLike,
-        regressor_cls: BaseEstimator,
-        classifier_cls: BaseEstimator,
+        regressor_cls: type[BaseEstimator],
+        classifier_cls: type[BaseEstimator],
         reg_kwargs: dict[str, Any],
         clf_kwargs: dict[str, Any],
     ) -> Self:
