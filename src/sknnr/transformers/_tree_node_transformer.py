@@ -18,7 +18,7 @@ from ..utils import (
 
 if TYPE_CHECKING:
     from collections.abc import Hashable
-    from typing import Literal, Self
+    from typing import Any, Literal, Self
 
     from numpy.typing import NDArray
     from sklearn.utils._tags import Tags
@@ -124,10 +124,10 @@ class TreeNodeTransformer(TransformerMixin, BaseEstimator, ABC):
         self,
         X: DataLike,
         y: DataLike,
-        regressor_cls,
-        classifier_cls,
-        reg_kwargs,
-        clf_kwargs,
+        regressor_cls: BaseEstimator,
+        classifier_cls: BaseEstimator,
+        reg_kwargs: dict[str, Any],
+        clf_kwargs: dict[str, Any],
     ) -> Self:
         X = _validate_data(self, X=X, reset=True)
 
