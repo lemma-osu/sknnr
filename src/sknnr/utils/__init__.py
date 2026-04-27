@@ -38,11 +38,11 @@ def is_series_like(obj: object) -> TypeGuard[SeriesLike]:
     return hasattr(obj, "name") and hasattr(obj, "dtype")
 
 
-def is_number_like_type(t: AnyDTypeLike) -> bool:
+def is_number_like_dtype(t: AnyDTypeLike) -> bool:
     """
-    Check if `t` is a number-like type.  For most types, np.issubdtype will
-    correctly identify the type.  For pandas extension types, we can check the
-    kind of the type.
+    Check if `t` is a number-like dtype.  For most dtypes, np.issubdtype will
+    correctly identify the type.  For pandas extension dtypes, we can check the
+    kind of the dtype.
     """
     if is_numpy_dtypelike(t):
         return np.issubdtype(t, np.number)

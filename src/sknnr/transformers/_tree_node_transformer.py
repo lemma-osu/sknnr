@@ -12,7 +12,7 @@ from ..utils import (
     get_feature_names_and_dtypes,
     is_categorical_dtype,
     is_nan_like,
-    is_number_like_type,
+    is_number_like_dtype,
     is_numpy_dtypelike,
 )
 
@@ -116,7 +116,7 @@ class TreeNodeTransformer(TransformerMixin, BaseEstimator, ABC):
         # TODO: Handle overrides from user based on names
         # TODO: target_info.update(user_overrides)
         return {
-            k: "regression" if is_number_like_type(v) else "classification"
+            k: "regression" if is_number_like_dtype(v) else "classification"
             for k, v in target_info.items()
         }
 
