@@ -23,7 +23,7 @@ if TYPE_CHECKING:
     from numpy.typing import NDArray
     from sklearn.utils._tags import Tags
 
-    from ..types import DataDTypeLike, DataLike
+    from ..types import DataDTypeLike, DataLike, TreeClassifier, TreeRegressor
 
 
 def uniform_weights(n_forests: int, n_estimators: int) -> list[NDArray[np.float64]]:
@@ -124,8 +124,8 @@ class TreeNodeTransformer(TransformerMixin, BaseEstimator, ABC):
         self,
         X: DataLike,
         y: DataLike,
-        regressor_cls: type[BaseEstimator],
-        classifier_cls: type[BaseEstimator],
+        regressor_cls: type[TreeRegressor],
+        classifier_cls: type[TreeClassifier],
         reg_kwargs: dict[str, Any],
         clf_kwargs: dict[str, Any],
     ) -> Self:

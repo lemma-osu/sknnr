@@ -9,6 +9,12 @@ if TYPE_CHECKING:
 
     from pandas import CategoricalDtype
     from pandas.api.extensions import ExtensionDtype
+    from sklearn.ensemble import (
+        GradientBoostingClassifier,
+        GradientBoostingRegressor,
+        RandomForestClassifier,
+        RandomForestRegressor,
+    )
 
 NumpyDTypeLike: TypeAlias = DTypeLike
 """Any data type that can be used in a numpy array."""
@@ -18,6 +24,9 @@ AnyDTypeLike = Union[NumpyDTypeLike, "ExtensionDtype"]
 
 DataDTypeLike = Union[NumpyDTypeLike, "CategoricalDtype"]
 """Data types used for features or targets, i.e. Numpy and Pandas categorical dtypes."""
+
+TreeRegressor = Union["RandomForestRegressor", "GradientBoostingRegressor"]
+TreeClassifier = Union["RandomForestClassifier", "GradientBoostingClassifier"]
 
 
 class DataFrameLike(Protocol):
