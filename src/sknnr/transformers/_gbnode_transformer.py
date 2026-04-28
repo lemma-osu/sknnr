@@ -287,7 +287,7 @@ class GBNodeTransformer(TreeNodeTransformer):
 
     def _set_tree_weights(
         self,
-        X: NDArray[np.object_ | np.number],
+        X: NDArray,
         y: list[NDArray[np.object_ | np.number]],
     ) -> list[NDArray[np.float64]]:
         tree_weights = []

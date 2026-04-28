@@ -226,7 +226,7 @@ class RFNodeTransformer(TreeNodeTransformer):
 
     def _set_tree_weights(
         self,
-        X: NDArray[np.object_ | np.number],
+        X: NDArray,
         y: list[NDArray[np.object_ | np.number]],
     ) -> list[NDArray[np.float64]]:
         return uniform_weights(self.n_forests_, self.n_estimators)

@@ -142,7 +142,7 @@ class TreeNodeTransformer(TransformerMixin, BaseEstimator, ABC):
         target_info = get_feature_names_and_dtypes(y)
 
         # Validate and promote targets within `y`
-        y = self._validate_and_promote_targets(y, target_info)
+        y_arr = self._validate_and_promote_targets(y, target_info)
 
         # Assign estimator types based on the target dtypes
         self.estimator_type_dict_ = self._set_estimator_types(target_info)
@@ -155,11 +155,11 @@ class TreeNodeTransformer(TransformerMixin, BaseEstimator, ABC):
             regressor_cls(**reg_kwargs).fit(X_arr, target)
             if target_idx_to_estimator_type[i] == "regression"
             else classifier_cls(**clf_kwargs).fit(X_arr, target)
-            for i, target in enumerate(y)
+            for i, target in enumerate(y_arr)
         ]
         self.n_forests_ = len(self.estimators_)
         self.n_trees_per_iteration_ = self._set_n_trees_per_iteration()
-        self.tree_weights_ = self._set_tree_weights(X_arr, y)
+        self.tree_weights_ = self._set_tree_weights(X_arr, y_arr)
         return self
 
     @abstractmethod
@@ -168,7 +168,7 @@ class TreeNodeTransformer(TransformerMixin, BaseEstimator, ABC):
     @abstractmethod
     def _set_tree_weights(
         self,
-        X: NDArray[np.object_ | np.number],
+        X: NDArray,
         y: list[NDArray[np.object_ | np.number]],
     ) -> list[NDArray[np.float64]]: ...
 

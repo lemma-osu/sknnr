@@ -135,7 +135,7 @@ def get_estimator_xfail_checks(estimator) -> dict[str, str]:
 
 
 @pytest.fixture
-def X_y_yfit() -> tuple[NDArray, NDArray, NDArray]:
+def X_y_yfit() -> tuple[NDArray[np.float64], NDArray[np.float64], NDArray[np.float64]]:
     """Return X, y, and y_fit arrays for testing y_fit compatible estimators."""
     X, y = load_moscow_stjoes(return_X_y=True)
     # Arbitrary split with a constant to prevent zero sum rows

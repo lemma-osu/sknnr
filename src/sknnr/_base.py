@@ -174,7 +174,7 @@ class RawKNNRegressor(
         return_distance: bool = True,
         return_dataframe_index: bool = False,
         use_deterministic_ordering: bool = True,
-    ) -> NDArray | tuple[NDArray, NDArray]:
+    ) -> NDArray[np.int64] | tuple[NDArray[np.float64], NDArray[np.int64]]:
         """
         Find the K-neighbors of a point or points in the dataset and optionally
         return dataframe indexes rather than array indices when the model was
