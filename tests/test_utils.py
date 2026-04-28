@@ -7,7 +7,8 @@ from sknnr.utils import (
     get_feature_names,
     is_dataframe_like,
     is_nan_like,
-    is_number_like_type,
+    is_number_like_dtype,
+    is_numpy_dtypelike,
     is_series_like,
 )
 
@@ -63,9 +64,9 @@ def test_is_series_like(obj, expected):
         (type(None), False),
     ],
 )
-def test_is_number_like_type(t, expected):
-    """Test is_number_like_type returns expected results."""
-    assert is_number_like_type(t) is expected
+def test_is_number_like_dtype(t, expected):
+    """Test is_number_like_dtype returns expected results."""
+    assert is_number_like_dtype(t) is expected
 
 
 @pytest.mark.parametrize("x", [None, np.nan, float("nan"), pd.NA])
@@ -148,3 +149,23 @@ def test_promoted_feature_dtypes(obj, expected):
     elements with mixed dtypes.
     """
     assert get_feature_dtypes(obj) == expected
+
+
+@pytest.mark.parametrize(
+    ("t", "expected"),
+    [
+        (int, True),
+        (float, True),
+        (np.int32, True),
+        (np.float64, True),
+        (pd.CategoricalDtype(), False),
+        (pd.IntervalDtype(), False),
+        (pd.Int16Dtype(), False),
+        (pd.Float32Dtype(), False),
+        (pd.StringDtype(), False),
+        (pd.BooleanDtype(), False),
+    ],
+)
+def test_is_numpy_dtypelike(t, expected):
+    """Test is_numpy_dtypelike returns expected results."""
+    assert is_numpy_dtypelike(t) is expected

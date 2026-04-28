@@ -1,14 +1,16 @@
 from __future__ import annotations
 
-from collections.abc import Callable
-from typing import Literal
-
-from numpy.random import RandomState
-from numpy.typing import ArrayLike
-from sklearn.base import TransformerMixin
+from typing import TYPE_CHECKING, Literal
 
 from ._weighted_trees import WeightedTreesNNRegressor
 from .transformers import RFNodeTransformer
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    from numpy.random import RandomState
+    from numpy.typing import ArrayLike
+    from sklearn.base import TransformerMixin
 
 
 class RFNNRegressor(WeightedTreesNNRegressor):

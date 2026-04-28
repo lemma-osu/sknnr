@@ -1,20 +1,62 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from collections.abc import Callable
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING, overload
 
 import numpy as np
 from sklearn.base import BaseEstimator, TransformerMixin
-from sklearn.metrics import DistanceMetric
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.utils.validation import _is_arraylike, check_is_fitted
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+    from typing import Literal, Self
+
+    from numpy.typing import NDArray
+    from sklearn.metrics import DistanceMetric
+    from sklearn.utils._tags import Tags
+
     from .transformers._base import ComponentReducerMixin
+    from .types import DataLike
 
 
-def _validate_data(estimator, *, ensure_all_finite: bool = True, **kwargs):
+@overload
+def _validate_data(
+    estimator: BaseEstimator,
+    *,
+    X: DataLike,
+    y: Literal["no_validation"] = "no_validation",
+    ensure_all_finite: bool | Literal["allow-nan"] = True,
+    **kwargs,
+) -> NDArray: ...
+@overload
+def _validate_data(
+    estimator: BaseEstimator,
+    *,
+    X: Literal["no_validation"] = "no_validation",
+    y: DataLike,
+    ensure_all_finite: bool | Literal["allow-nan"] = True,
+    **kwargs,
+) -> NDArray: ...
+@overload
+def _validate_data(
+    estimator: BaseEstimator,
+    *,
+    X: DataLike,
+    y: DataLike,
+    ensure_all_finite: bool | Literal["allow-nan"] = True,
+    **kwargs,
+) -> tuple[NDArray, NDArray]: ...
+
+
+def _validate_data(
+    estimator: BaseEstimator,
+    *,
+    X: DataLike | Literal["no_validation"] = "no_validation",
+    y: DataLike | Literal["no_validation"] | None = "no_validation",
+    ensure_all_finite: bool | Literal["allow-nan"] = True,
+    **kwargs,
+) -> NDArray | tuple[NDArray, NDArray]:
     """
     Compatibility wrapper around sklearn's _validate_data function.
 
@@ -28,45 +70,33 @@ def _validate_data(estimator, *, ensure_all_finite: bool = True, **kwargs):
     try:
         from sklearn.utils.validation import validate_data
     except ImportError:
-        return estimator._validate_data(force_all_finite=ensure_all_finite, **kwargs)
+        return estimator._validate_data(
+            X=X, y=y, force_all_finite=ensure_all_finite, **kwargs
+        )
 
-    return validate_data(estimator, ensure_all_finite=ensure_all_finite, **kwargs)
+    return validate_data(
+        estimator, X=X, y=y, ensure_all_finite=ensure_all_finite, **kwargs
+    )
 
 
 class DFIndexCrosswalkMixin:
     """Mixin to crosswalk array indices to dataframe indexes."""
 
-    def _set_dataframe_index_in(self, X):
+    def _set_dataframe_index_in(self, X: DataLike) -> None:
         """Store dataframe indexes if X is a dataframe."""
         index = getattr(X, "index", None)
         if _is_arraylike(index):
             self.dataframe_index_in_ = np.asarray(index)
 
 
-class IndependentPredictorMixin:
+class IndependentPredictorMixin(KNeighborsRegressor):
     """Mixin to return independent predictions based on the X data used
     for fitting the model."""
 
-    def _set_independent_prediction_attributes(self, y):
+    def _set_independent_prediction_attributes(self, y: DataLike) -> None:
         """Store independent predictions and score."""
         self.independent_prediction_ = super().predict(X=None)
         self.independent_score_ = super().score(X=None, y=y)
-
-
-class YFitMixin:
-    """Mixin for transformed estimators that use an optional y_fit to fit their
-    transformer."""
-
-    def _set_fitted_transformer(self, X, y):
-        """Fit and store the transformer, using stored y_fit data if available."""
-        y_fit = self.y_fit_ if self.y_fit_ is not None else y
-        self.transformer_ = self._get_transformer().fit(X, y_fit)
-
-    def fit(self, X, y, y_fit=None):
-        """Fit using transformed feature data. If y_fit is provided, it will be used
-        to fit the transformer."""
-        self.y_fit_ = y_fit
-        return super().fit(X, y)
 
 
 class RawKNNRegressor(
@@ -130,7 +160,7 @@ class RawKNNRegressor(
 
     DISTANCE_PRECISION_DECIMALS = 10
 
-    def fit(self, X, y):
+    def fit(self, X: DataLike, y: DataLike) -> Self:
         """Override fit to set attributes using mixins."""
         self._set_dataframe_index_in(X)
         self = super().fit(X, y)
@@ -139,12 +169,12 @@ class RawKNNRegressor(
 
     def kneighbors(
         self,
-        X=None,
-        n_neighbors=None,
-        return_distance=True,
-        return_dataframe_index=False,
-        use_deterministic_ordering=True,
-    ):
+        X: DataLike | None = None,
+        n_neighbors: int | None = None,
+        return_distance: bool = True,
+        return_dataframe_index: bool = False,
+        use_deterministic_ordering: bool = True,
+    ) -> NDArray[np.int64] | tuple[NDArray[np.float64], NDArray[np.int64]]:
         """
         Find the K-neighbors of a point or points in the dataset and optionally
         return dataframe indexes rather than array indices when the model was
@@ -252,22 +282,22 @@ class TransformedKNeighborsRegressor(BaseEstimator, ABC):
         subclasses."""
         ...
 
-    def _set_fitted_transformer(self, X, y):
+    def _set_fitted_transformer(self, X: DataLike, y: DataLike) -> None:
         """Fit and store the transformer."""
         self.transformer_ = self._get_transformer().fit(X, y)
 
-    def _get_additional_regressor_init_kwargs(self) -> dict:
+    def _get_additional_regressor_init_kwargs(self) -> dict[str, object]:
         """Get any additional keyword arguments for the KNeighbors regressor
         initialization. Subclasses can override to provide additional arguments.
         """
         return {}
 
-    def _transform_X(self, X):
+    def _transform_X(self, X: DataLike | None) -> DataLike | None:
         """Transform feature data using the fitted transformer."""
         check_is_fitted(self, "transformer_")
         return self.transformer_.transform(X) if X is not None else X
 
-    def fit(self, X, y):
+    def fit(self, X: DataLike, y: DataLike) -> Self:
         """Fit using transformed feature data."""
         _validate_data(self, X=X, y=y, ensure_all_finite=True, multi_output=True)
 
@@ -313,12 +343,12 @@ class TransformedKNeighborsRegressor(BaseEstimator, ABC):
 
     def kneighbors(
         self,
-        X=None,
-        n_neighbors=None,
-        return_distance=True,
-        return_dataframe_index=False,
-        use_deterministic_ordering=True,
-    ):
+        X: DataLike | None = None,
+        n_neighbors: int | None = None,
+        return_distance: bool = True,
+        return_dataframe_index: bool = False,
+        use_deterministic_ordering: bool = True,
+    ) -> NDArray[np.int64] | tuple[NDArray[np.float64], NDArray[np.int64]]:
         """
         Find the K-neighbors of a point or points of transformed feature data
         and optionally return dataframe indexes rather than array indices when
@@ -372,19 +402,35 @@ class TransformedKNeighborsRegressor(BaseEstimator, ABC):
             use_deterministic_ordering=use_deterministic_ordering,
         )
 
-    def predict(self, X):
+    def predict(self, X: DataLike) -> NDArray[np.float64]:
         X_transformed = self._transform_X(X)
         return self.regressor_.predict(X_transformed)
 
-    def score(self, X, y=None):
+    def score(self, X: DataLike, y: DataLike) -> float:
         X_transformed = self._transform_X(X)
         return self.regressor_.score(X_transformed, y)
 
-    def __sklearn_tags__(self):
+    def __sklearn_tags__(self) -> Tags:
         tags = super().__sklearn_tags__()
         tags.input_tags.sparse = False
 
         return tags
+
+
+class YFitMixin(TransformedKNeighborsRegressor):
+    """Mixin for transformed estimators that use an optional y_fit to fit their
+    transformer."""
+
+    def _set_fitted_transformer(self, X: DataLike, y: DataLike) -> None:
+        """Fit and store the transformer, using stored y_fit data if available."""
+        y_fit = self.y_fit_ if self.y_fit_ is not None else y
+        self.transformer_ = self._get_transformer().fit(X, y_fit)
+
+    def fit(self, X: DataLike, y: DataLike, y_fit: DataLike | None = None) -> Self:
+        """Fit using transformed feature data. If y_fit is provided, it will be used
+        to fit the transformer."""
+        self.y_fit_ = y_fit
+        return super().fit(X, y)
 
 
 class OrdinationKNeighborsRegressor(TransformedKNeighborsRegressor, ABC):

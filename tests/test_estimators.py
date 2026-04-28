@@ -1,9 +1,10 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import numpy as np
 import pytest
 from numpy.testing import assert_array_equal
-from numpy.typing import NDArray
 from sklearn import config_context
 from sklearn.model_selection import GridSearchCV
 from sklearn.neighbors import KNeighborsRegressor
@@ -20,6 +21,9 @@ from sknnr import (
     RFNNRegressor,
 )
 from sknnr.datasets import load_moscow_stjoes
+
+if TYPE_CHECKING:
+    from numpy.typing import NDArray
 
 TEST_ESTIMATORS = [
     RawKNNRegressor,
@@ -131,7 +135,7 @@ def get_estimator_xfail_checks(estimator) -> dict[str, str]:
 
 
 @pytest.fixture
-def X_y_yfit() -> tuple[NDArray, NDArray, NDArray]:
+def X_y_yfit() -> tuple[NDArray[np.float64], NDArray[np.float64], NDArray[np.float64]]:
     """Return X, y, and y_fit arrays for testing y_fit compatible estimators."""
     X, y = load_moscow_stjoes(return_X_y=True)
     # Arbitrary split with a constant to prevent zero sum rows

@@ -1,15 +1,21 @@
 from __future__ import annotations
 
-from collections.abc import Callable
-from typing import Literal
+from typing import TYPE_CHECKING
 
 import numpy as np
-from numpy.random import RandomState
-from numpy.typing import NDArray
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.utils.validation import check_is_fitted
 
 from ._tree_node_transformer import TreeNodeTransformer, uniform_weights
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+    from typing import Literal, Self
+
+    from numpy.random import RandomState
+    from numpy.typing import NDArray
+
+    from ..types import DataLike
 
 
 class RFNodeTransformer(TreeNodeTransformer):
@@ -175,7 +181,7 @@ class RFNodeTransformer(TreeNodeTransformer):
         self.max_samples = max_samples
         self.monotonic_cst = monotonic_cst
 
-    def fit(self, X, y):
+    def fit(self, X: DataLike, y: DataLike) -> Self:
         # Specialize the kwargs sent to initialize the random forests
         rf_common_kwargs = dict(
             n_estimators=self.n_estimators,
@@ -218,10 +224,14 @@ class RFNodeTransformer(TreeNodeTransformer):
     def _set_n_trees_per_iteration(self) -> list[int]:
         return [1] * self.n_forests_
 
-    def _set_tree_weights(self, X, y) -> list[NDArray[np.float64]]:
+    def _set_tree_weights(
+        self,
+        X: NDArray,
+        y: list[NDArray[np.object_ | np.number]],
+    ) -> list[NDArray[np.float64]]:
         return uniform_weights(self.n_forests_, self.n_estimators)
 
-    def get_feature_names_out(self) -> NDArray:
+    def get_feature_names_out(self) -> NDArray[np.object_]:
         check_is_fitted(self, "estimators_")
         return np.asarray(
             [

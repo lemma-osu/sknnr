@@ -1,20 +1,28 @@
 from __future__ import annotations
 
-from typing import Literal
+from typing import TYPE_CHECKING
 
 import numpy as np
-from numpy.typing import NDArray
 from sklearn._loss.loss import HalfBinomialLoss, HalfSquaredError
-from sklearn.base import BaseEstimator
 from sklearn.ensemble import GradientBoostingClassifier, GradientBoostingRegressor
 from sklearn.utils.validation import check_is_fitted
 
 from ._tree_node_transformer import TreeNodeTransformer
 
+if TYPE_CHECKING:
+    from typing import Literal, Self
+
+    from numpy.typing import NDArray
+    from sklearn.base import BaseEstimator
+
+    from ..types import DataLike
+
 
 def train_improvement(
-    est: GradientBoostingClassifier | GradientBoostingRegressor, X: NDArray, y: NDArray
-) -> NDArray:
+    est: GradientBoostingClassifier | GradientBoostingRegressor,
+    X: NDArray,
+    y: NDArray[np.object_ | np.number],
+) -> NDArray[np.float64]:
     """
     Calculate tree weights as a function of the change in loss between
     successive trees in a gradient boosting estimator.  This behaves as a proxy
@@ -234,7 +242,7 @@ class GBNodeTransformer(TreeNodeTransformer):
         self.ccp_alpha = ccp_alpha
         self.tree_weighting_method = tree_weighting_method
 
-    def fit(self, X, y):
+    def fit(self, X: DataLike, y: DataLike) -> Self:
         gb_common_kwargs = dict(
             learning_rate=self.learning_rate,
             n_estimators=self.n_estimators,
@@ -277,7 +285,11 @@ class GBNodeTransformer(TreeNodeTransformer):
     def _set_n_trees_per_iteration(self) -> list[int]:
         return [est.n_trees_per_iteration_ for est in self.estimators_]
 
-    def _set_tree_weights(self, X, y) -> list[NDArray[np.float64]]:
+    def _set_tree_weights(
+        self,
+        X: NDArray,
+        y: list[NDArray[np.object_ | np.number]],
+    ) -> list[NDArray[np.float64]]:
         tree_weights = []
         if self.tree_weighting_method == "train_improvement":
             for est, target in zip(self.estimators_, y, strict=True):
@@ -297,9 +309,9 @@ class GBNodeTransformer(TreeNodeTransformer):
 
         return tree_weights
 
-    def get_feature_names_out(self) -> NDArray:
+    def get_feature_names_out(self) -> NDArray[np.object_]:
         check_is_fitted(self, "estimators_")
-        feature_names = []
+        feature_names: list[str] = []
         for i, est in enumerate(self.estimators_):
             # Regression and binary classification have 1 tree per iteration
             if est.n_trees_per_iteration_ == 1:

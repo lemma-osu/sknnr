@@ -92,6 +92,7 @@ select = [
     "RET",
     "SIM",
     "PERF",
+    "TC",
 ]
 
 [tool.ruff.lint.isort]

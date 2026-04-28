@@ -1,5 +1,8 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 import numpy as np
-from numpy.typing import NDArray
 from sklearn.preprocessing import StandardScaler
 from sklearn.utils.validation import FLOAT_DTYPES, check_is_fitted
 
@@ -8,6 +11,14 @@ from ._cca import CCA
 from ._ccora import CCorA
 
 Ordination = CCA | CCorA
+
+
+if TYPE_CHECKING:
+    from typing import Self
+
+    from numpy.typing import NDArray
+
+    from ..types import DataLike
 
 
 class StandardScalerWithDOF(StandardScaler):
@@ -37,14 +48,14 @@ class StandardScalerWithDOF(StandardScaler):
         The number of samples processed by the estimator for each feature.
     """
 
-    def __init__(self, ddof=0):
+    def __init__(self, ddof: int = 0):
         super().__init__()
         self.ddof = ddof
 
-    def fit(self, X, y=None):
+    def fit(self, X: DataLike, y: DataLike | None = None) -> Self:
         scaler = super().fit(X, y)
 
-        X = _validate_data(
+        X_arr = _validate_data(
             self,
             X=X,
             accept_sparse=False,
@@ -53,7 +64,7 @@ class StandardScalerWithDOF(StandardScaler):
             reset=False,
             ensure_min_samples=self.ddof + 1,
         )
-        scaler.scale_ = np.std(X, axis=0, ddof=self.ddof)
+        scaler.scale_ = np.std(X_arr, axis=0, ddof=self.ddof)
         return scaler
 
 
@@ -64,10 +75,10 @@ class ComponentReducerMixin:
 
     ordination_: Ordination
 
-    def __init__(self, n_components=None):
+    def __init__(self, n_components: int | None = None):
         self.n_components = n_components
 
-    def get_feature_names_out(self) -> NDArray:
+    def get_feature_names_out(self) -> NDArray[np.object_]:
         check_is_fitted(self, "n_components_")
         return np.asarray(
             [
@@ -77,7 +88,7 @@ class ComponentReducerMixin:
             dtype=object,
         )
 
-    def set_n_components(self):
+    def set_n_components(self) -> None:
         n_components = (
             self.n_components
             if self.n_components is not None

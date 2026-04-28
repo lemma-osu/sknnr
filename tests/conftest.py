@@ -1,13 +1,16 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
-import numpy as np
 import pytest
-from numpy.typing import NDArray
 from sklearn.model_selection import train_test_split
 
 from sknnr.datasets import load_moscow_stjoes
+
+if TYPE_CHECKING:
+    import numpy as np
+    from numpy.typing import NDArray
 
 
 @dataclass

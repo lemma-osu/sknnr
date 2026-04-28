@@ -1,9 +1,22 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.utils.validation import check_is_fitted
 
 from .._base import _validate_data
 from . import ComponentReducerMixin, StandardScalerWithDOF
 from ._ccora import CCorA
+
+if TYPE_CHECKING:
+    from typing import Self
+
+    import numpy as np
+    from numpy.typing import NDArray
+    from sklearn.utils._tags import Tags
+
+    from ..types import DataLike
 
 
 class CCorATransformer(ComponentReducerMixin, TransformerMixin, BaseEstimator):
@@ -39,28 +52,28 @@ class CCorATransformer(ComponentReducerMixin, TransformerMixin, BaseEstimator):
     Biometrika, 28(3/4), 321–377.
     """
 
-    def fit(self, X, y):
-        _, y = _validate_data(self, X=X, y=y, reset=True, multi_output=True)
+    def fit(self, X: DataLike, y: DataLike) -> Self:
+        _, y_arr = _validate_data(self, X=X, y=y, reset=True, multi_output=True)
         self.scaler_ = StandardScalerWithDOF(ddof=1).fit(X)
 
-        if y.ndim == 1:
-            y = y.reshape(-1, 1)
-        y = StandardScalerWithDOF(ddof=1).fit_transform(y)
+        if y_arr.ndim == 1:
+            y_arr = y_arr.reshape(-1, 1)
+        y_arr = StandardScalerWithDOF(ddof=1).fit_transform(y_arr)
 
-        self.ordination_ = CCorA(self.scaler_.transform(X), y)
+        self.ordination_ = CCorA(self.scaler_.transform(X), y_arr)
         self.set_n_components()
         self.projector_ = self.ordination_.projector(n_components=self.n_components_)
         return self
 
-    def transform(self, X, y=None):
+    def transform(self, X: DataLike, y: None = None) -> NDArray[np.float64]:
         check_is_fitted(self)
         _validate_data(self, X=X, reset=False, ensure_all_finite=True)
         return self.scaler_.transform(X) @ self.projector_
 
-    def fit_transform(self, X, y):
+    def fit_transform(self, X: DataLike, y: DataLike) -> NDArray[np.float64]:
         return self.fit(X, y).transform(X)
 
-    def __sklearn_tags__(self):
+    def __sklearn_tags__(self) -> Tags:
         tags = super().__sklearn_tags__()
         tags.target_tags.required = True
 
