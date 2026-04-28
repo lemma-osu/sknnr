@@ -20,7 +20,7 @@ if TYPE_CHECKING:
 
 def train_improvement(
     est: GradientBoostingClassifier | GradientBoostingRegressor,
-    X: NDArray[np.object_ | np.number],
+    X: NDArray,
     y: NDArray[np.object_ | np.number],
 ) -> NDArray[np.float64]:
     """
