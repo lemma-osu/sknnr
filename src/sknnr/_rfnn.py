@@ -180,7 +180,7 @@ class RFNNRegressor(WeightedTreesNNRegressor):
         ccp_alpha: float = 0.0,
         max_samples: int | float | None = None,
         monotonic_cst: list[int] | None = None,
-        forest_weights: Literal["uniform"] | ArrayLike[float] = "uniform",
+        forest_weights: Literal["uniform"] | ArrayLike = "uniform",
         n_neighbors: int = 5,
         weights: Literal["uniform", "distance"] | Callable = "uniform",
     ):
