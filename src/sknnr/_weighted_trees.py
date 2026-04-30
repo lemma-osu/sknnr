@@ -41,7 +41,7 @@ class WeightedTreesNNRegressor(YFitMixin, TransformedKNeighborsRegressor):
     """
 
     transformer_: TreeNodeTransformer
-    forest_weights: Literal["uniform"] | ArrayLike[float]
+    forest_weights: Literal["uniform"] | ArrayLike
 
     def __init__(
         self,
