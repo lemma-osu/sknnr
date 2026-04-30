@@ -207,7 +207,7 @@ def load_dataset_from_csv_filenames(
         file_name=target_filename, module_name=module_name
     )
 
-    dataset = Dataset(
+    array_ds = Dataset(
         index=index,
         data=data,
         target=target,
@@ -217,9 +217,10 @@ def load_dataset_from_csv_filenames(
     )
 
     if as_frame:
-        dataset = _dataset_as_frame(dataset)
+        frame_ds = _dataset_as_frame(array_ds)
+        return (frame_ds.data, frame_ds.target) if return_X_y else frame_ds
 
-    return (dataset.data, dataset.target) if return_X_y else dataset
+    return (array_ds.data, array_ds.target) if return_X_y else array_ds
 
 
 @overload
