@@ -5,9 +5,8 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 from sklearn.base import BaseEstimator, TransformerMixin
-from sklearn.utils.validation import check_array, check_is_fitted
+from sklearn.utils.validation import check_array, check_is_fitted, validate_data
 
-from .._base import _validate_data
 from ..utils import (
     get_feature_names_and_dtypes,
     is_categorical_dtype,
@@ -129,7 +128,7 @@ class TreeNodeTransformer(TransformerMixin, BaseEstimator, ABC):
         reg_kwargs: dict[str, Any],
         clf_kwargs: dict[str, Any],
     ) -> Self:
-        X_arr = _validate_data(self, X=X, reset=True)
+        X_arr = validate_data(self, X=X, reset=True)
 
         if y is None:
             msg = (
@@ -177,7 +176,7 @@ class TreeNodeTransformer(TransformerMixin, BaseEstimator, ABC):
 
     def transform(self, X: DataLike) -> NDArray[np.int64]:
         check_is_fitted(self)
-        X_arr = _validate_data(
+        X_arr = validate_data(
             self,
             X=X,
             reset=False,

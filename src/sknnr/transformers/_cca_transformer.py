@@ -4,9 +4,8 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 from sklearn.base import BaseEstimator, TransformerMixin
-from sklearn.utils.validation import FLOAT_DTYPES, check_is_fitted
+from sklearn.utils.validation import FLOAT_DTYPES, check_is_fitted, validate_data
 
-from .._base import _validate_data
 from . import ComponentReducerMixin
 from ._cca import CCA
 
@@ -55,7 +54,7 @@ class CCATransformer(ComponentReducerMixin, TransformerMixin, BaseEstimator):
     """
 
     def fit(self, X: DataLike, y: DataLike) -> Self:
-        X_arr = _validate_data(
+        X_arr = validate_data(
             self,
             X=X,
             reset=True,
@@ -76,7 +75,7 @@ class CCATransformer(ComponentReducerMixin, TransformerMixin, BaseEstimator):
 
     def transform(self, X: DataLike, y: None = None) -> NDArray[np.float64]:
         check_is_fitted(self)
-        X_arr = _validate_data(
+        X_arr = validate_data(
             self,
             X=X,
             reset=False,

@@ -3,9 +3,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from sklearn.base import BaseEstimator, TransformerMixin
-from sklearn.utils.validation import check_is_fitted
+from sklearn.utils.validation import check_is_fitted, validate_data
 
-from .._base import _validate_data
 from . import ComponentReducerMixin, StandardScalerWithDOF
 from ._ccora import CCorA
 
@@ -53,7 +52,7 @@ class CCorATransformer(ComponentReducerMixin, TransformerMixin, BaseEstimator):
     """
 
     def fit(self, X: DataLike, y: DataLike) -> Self:
-        _, y_arr = _validate_data(self, X=X, y=y, reset=True, multi_output=True)
+        _, y_arr = validate_data(self, X=X, y=y, reset=True, multi_output=True)
         self.scaler_ = StandardScalerWithDOF(ddof=1).fit(X)
 
         if y_arr.ndim == 1:
@@ -67,7 +66,7 @@ class CCorATransformer(ComponentReducerMixin, TransformerMixin, BaseEstimator):
 
     def transform(self, X: DataLike, y: None = None) -> NDArray[np.float64]:
         check_is_fitted(self)
-        _validate_data(self, X=X, reset=False, ensure_all_finite=True)
+        validate_data(self, X=X, reset=False, ensure_all_finite=True)
         return self.scaler_.transform(X) @ self.projector_
 
     def fit_transform(self, X: DataLike, y: DataLike) -> NDArray[np.float64]:

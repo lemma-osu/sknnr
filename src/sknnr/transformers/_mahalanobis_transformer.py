@@ -4,9 +4,8 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 from sklearn.base import BaseEstimator, OneToOneFeatureMixin, TransformerMixin
-from sklearn.utils.validation import check_is_fitted
+from sklearn.utils.validation import check_is_fitted, validate_data
 
-from .._base import _validate_data
 from . import StandardScalerWithDOF
 
 if TYPE_CHECKING:
@@ -40,7 +39,7 @@ class MahalanobisTransformer(OneToOneFeatureMixin, TransformerMixin, BaseEstimat
     """
 
     def fit(self, X: DataLike, y: None = None) -> Self:
-        _validate_data(
+        validate_data(
             self, X=X, ensure_all_finite="allow-nan", reset=True, ensure_min_features=2
         )
 
@@ -51,7 +50,7 @@ class MahalanobisTransformer(OneToOneFeatureMixin, TransformerMixin, BaseEstimat
 
     def transform(self, X: DataLike, y: None = None) -> NDArray[np.float64]:
         check_is_fitted(self)
-        _validate_data(self, X=X, ensure_all_finite="allow-nan", reset=False)
+        validate_data(self, X=X, ensure_all_finite="allow-nan", reset=False)
 
         return self.scaler_.transform(X) @ self.transform_
 
