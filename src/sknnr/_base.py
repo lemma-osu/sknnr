@@ -1,12 +1,12 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, overload
+from typing import TYPE_CHECKING
 
 import numpy as np
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.neighbors import KNeighborsRegressor
-from sklearn.utils.validation import _is_arraylike, check_is_fitted
+from sklearn.utils.validation import _is_arraylike, check_is_fitted, validate_data
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -18,65 +18,6 @@ if TYPE_CHECKING:
 
     from .transformers._base import ComponentReducerMixin
     from .types import DataLike
-
-
-@overload
-def _validate_data(
-    estimator: BaseEstimator,
-    *,
-    X: DataLike,
-    y: Literal["no_validation"] = "no_validation",
-    ensure_all_finite: bool | Literal["allow-nan"] = True,
-    **kwargs,
-) -> NDArray: ...
-@overload
-def _validate_data(
-    estimator: BaseEstimator,
-    *,
-    X: Literal["no_validation"] = "no_validation",
-    y: DataLike,
-    ensure_all_finite: bool | Literal["allow-nan"] = True,
-    **kwargs,
-) -> NDArray: ...
-@overload
-def _validate_data(
-    estimator: BaseEstimator,
-    *,
-    X: DataLike,
-    y: DataLike,
-    ensure_all_finite: bool | Literal["allow-nan"] = True,
-    **kwargs,
-) -> tuple[NDArray, NDArray]: ...
-
-
-def _validate_data(
-    estimator: BaseEstimator,
-    *,
-    X: DataLike | Literal["no_validation"] = "no_validation",
-    y: DataLike | Literal["no_validation"] | None = "no_validation",
-    ensure_all_finite: bool | Literal["allow-nan"] = True,
-    **kwargs,
-) -> NDArray | tuple[NDArray, NDArray]:
-    """
-    Compatibility wrapper around sklearn's _validate_data function.
-
-    scikit-learn >= 1.6.0 moved _validate_data from a method of BaseEstimator to a
-    public utility function. This function wraps the utility function if available,
-    and falls back to the method if not. `force_all_finite` was also renamed to
-    `ensure_all_finite`.
-
-    TODO: Remove when sklearn < 1.6.0 support is dropped.
-    """
-    try:
-        from sklearn.utils.validation import validate_data
-    except ImportError:
-        return estimator._validate_data(
-            X=X, y=y, force_all_finite=ensure_all_finite, **kwargs
-        )
-
-    return validate_data(
-        estimator, X=X, y=y, ensure_all_finite=ensure_all_finite, **kwargs
-    )
 
 
 class DFIndexCrosswalkMixin:
@@ -299,7 +240,7 @@ class TransformedKNeighborsRegressor(BaseEstimator, ABC):
 
     def fit(self, X: DataLike, y: DataLike) -> Self:
         """Fit using transformed feature data."""
-        _validate_data(self, X=X, y=y, ensure_all_finite=True, multi_output=True)
+        validate_data(self, X=X, y=y, ensure_all_finite=True, multi_output=True)
 
         # Set the fitted transformer and apply the transformation which serves
         # as input to the KNeighbors regressor.  If estimators derive any custom

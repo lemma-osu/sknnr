@@ -4,9 +4,8 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 from sklearn.preprocessing import StandardScaler
-from sklearn.utils.validation import FLOAT_DTYPES, check_is_fitted
+from sklearn.utils.validation import FLOAT_DTYPES, check_is_fitted, validate_data
 
-from .._base import _validate_data
 from ._cca import CCA
 from ._ccora import CCorA
 
@@ -55,7 +54,7 @@ class StandardScalerWithDOF(StandardScaler):
     def fit(self, X: DataLike, y: DataLike | None = None) -> Self:
         scaler = super().fit(X, y)
 
-        X_arr = _validate_data(
+        X_arr = validate_data(
             self,
             X=X,
             accept_sparse=False,
