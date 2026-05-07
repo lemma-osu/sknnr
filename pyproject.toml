@@ -32,7 +32,6 @@ dependencies = ["pre-commit"]
 
 [tool.hatch.envs.test]
 dependencies = [
-    "scikit-learn>=1.6.0",
     "pytest",
     "pytest-cov",
     "pytest-regressions",
@@ -51,11 +50,7 @@ template = "test"
 python = ["3.11", "3.12", "3.13", "3.14"]
 
 [tool.hatch.envs.docs]
-dependencies = [
-    "mkdocs<2.0.0", 
-    "mkdocs-material", 
-    "mkdocstrings[python]"
-]
+dependencies = ["mkdocs<2.0.0", "mkdocs-material", "mkdocstrings[python]"]
 
 [tool.hatch.envs.docs.scripts]
 serve = "mkdocs serve --config-file docs/mkdocs.yml --livereload --watch ./README.md"
