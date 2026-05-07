@@ -182,7 +182,7 @@ class GBNNRegressor(WeightedTreesNNRegressor):
         n_iter_no_change: int | None = None,
         tol: float = 0.0001,
         ccp_alpha: float = 0.0,
-        forest_weights: Literal["uniform"] | ArrayLike[float] = "uniform",
+        forest_weights: Literal["uniform"] | ArrayLike = "uniform",
         tree_weighting_method: Literal[
             "train_improvement", "uniform"
         ] = "train_improvement",
