@@ -179,7 +179,7 @@ def test_get_feature_names_and_dtypes_handles_duplicate_names():
     that evaluate to the same string are present but are not actually duplicates.
     """
     df = pd.DataFrame([[1, 2], [3, 4]], columns=["a", "a"])
-    with pytest.raises(ValueError, match="Duplicate feature names found: \\['a'\\]."):
+    with pytest.raises(ValueError, match="Duplicate feature names found: \['a'\]\.$"):
         get_feature_names_and_dtypes(df)
 
     df = pd.DataFrame([[1, 2], [3, 4]], columns=[1, "1"])
