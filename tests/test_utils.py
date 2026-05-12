@@ -5,6 +5,7 @@ import pytest
 from sknnr.utils import (
     get_feature_dtypes,
     get_feature_names,
+    get_feature_names_and_dtypes,
     is_dataframe_like,
     is_nan_like,
     is_number_like_dtype,
@@ -169,3 +170,17 @@ def test_promoted_feature_dtypes(obj, expected):
 def test_is_numpy_dtypelike(t, expected):
     """Test is_numpy_dtypelike returns expected results."""
     assert is_numpy_dtypelike(t) is expected
+
+
+def test_get_feature_names_and_dtypes_handles_duplicate_names():
+    """
+    Test get_feature_names_and_dtypes raises an error when duplicate
+    feature names are present, but does not raise an error when feature names
+    that evaluate to the same string are present but are not actually duplicates.
+    """
+    df = pd.DataFrame([[1, 2], [3, 4]], columns=["a", "a"])
+    with pytest.raises(ValueError, match="Duplicate feature names found: \\['a'\\]."):
+        get_feature_names_and_dtypes(df)
+
+    df = pd.DataFrame([[1, 2], [3, 4]], columns=[1, "1"])
+    assert get_feature_names_and_dtypes(df) == {1: np.int64, "1": np.int64}
