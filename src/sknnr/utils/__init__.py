@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections import Counter
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -157,10 +158,19 @@ def get_feature_names_and_dtypes(
     --------
     dict[Hashable, DTypeLike] : dict
         The feature names and dtypes of the features in `obj`.
+
+    Raises
+    ------
+    ValueError
+        If duplicate feature names are found in `obj`.
     """
+    names = get_feature_names(obj)
+
+    if len(set(names)) != len(names):
+        name_counts = Counter(names)
+        duplicates = [name for name, count in name_counts.items() if count > 1]
+        raise ValueError(f"Duplicate feature names found: {duplicates}.")
+
     return {
-        name: dtype
-        for name, dtype in zip(
-            get_feature_names(obj), get_feature_dtypes(obj), strict=True
-        )
+        name: dtype for name, dtype in zip(names, get_feature_dtypes(obj), strict=True)
     }

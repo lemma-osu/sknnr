@@ -268,6 +268,24 @@ def test_treenode_transformer_raises_on_mixed_target(transformer, y_wrapper):
         _ = transformer().fit(X, y)
 
 
+@pytest.mark.parametrize("transformer", TEST_TREE_TRANSFORMERS)
+def test_treenode_transformer_handles_duplicate_target_names(transformer):
+    """
+    Test that TreeNodeTransformer.fit raises an error when duplicate
+    target names are present, but does not raise an error when target names
+    that evaluate to the same string are present but are not actually duplicates.
+    """
+    X = pd.DataFrame(np.random.default_rng().random((2, 2)), columns=["f1", "f2"])
+
+    y = pd.DataFrame([[1, 2], [3, 4]], columns=["a", "a"])
+    with pytest.raises(ValueError, match="Duplicate feature names found: \['a'\]\.$"):
+        _ = transformer().fit(X, y)
+
+    y = pd.DataFrame([[1, 2], [3, 4]], columns=[1, "1"])
+    txfr = transformer().fit(X, y)
+    assert txfr.estimator_type_dict_ == {1: "regression", "1": "regression"}
+
+
 @pytest.mark.parametrize("criterion_reg", ["absolute_error"])
 @pytest.mark.parametrize("criterion_clf", ["entropy"])
 @pytest.mark.parametrize("max_features_reg", ["sqrt", "log2"])
